@@ -68,6 +68,7 @@ class FileReader
   Context = Struct.new(:nesting, :singleton, :method, :body)
 
   MIXINS = %w[include prepend extend].freeze
+  SINGLETON_MIXINS = { "include" => "extend", "prepend" => "singleton-prepend" }.freeze
   MACROS = %w[attr attr_reader attr_writer attr_accessor delegate scope has_many has_one belongs_to
               has_and_belongs_to_many].freeze
 
@@ -102,7 +103,7 @@ class FileReader
     when :def
       visit_def(node[1], node[2], node[3], node.last, context.singleton, context)
     when :defs
-      visit_def(node[3], node[4], node[5], node.last, true, context)
+      visit_def(node[3], node[4], node[5], node.last, true, context, receiver: node[1])
     when :fcall, :vcall
       declare(context, node[1], nil) if node.first == :vcall
       record(context, nil, node[1])
@@ -213,7 +214,7 @@ class FileReader
 
     body = @bodies[context.body]
     if MIXINS.include?(name[1])
-      kind = context.singleton && name[1] == "include" ? "extend" : name[1]
+      kind = context.singleton ? SINGLETON_MIXINS.fetch(name[1], name[1]) : name[1]
       # Ruby mixes in the arguments of one call from the last to the first, so `include A, B`
       # puts A before B, as `include B` then `include A` does.
       arguments_of(arguments).reverse_each do |argument|
@@ -280,9 +281,10 @@ class FileReader
     { "nesting" => nesting, "path" => path || [], "absolute" => absolute || false }
   end
 
-  def visit_def(name, params, body, last_line, singleton, context)
+  def visit_def(name, params, body, last_line, singleton, context, receiver: nil)
     singleton ||= context.method.nil? && @module_function_bodies.include?(context.body)
-    method = add_method(context, singleton, name, last_line, abstract: abstract?(body))
+    owner = receiver && owner_reference_of(receiver, context.nesting)
+    method = add_method(context, singleton, name, last_line, abstract: abstract?(body), owner: owner)
     inner = Context.new(context.nesting, singleton, method, context.body)
     @block_params[inner.method] = block_param_of(params)
     visit(params, inner)
@@ -333,10 +335,17 @@ class FileReader
     node.flat_map { |child| written_names_of(child) }
   end
 
-  def add_method(context, singleton, name, last_line, abstract: false)
+  # `def Foo.x` names a method of Foo, which the TypeScript half resolves in the nesting of the def.
+  def owner_reference_of(receiver, nesting)
+    path, absolute = constant_path(receiver)
+    path && { "nesting" => nesting, "path" => path, "absolute" => absolute }
+  end
+
+  def add_method(context, singleton, name, last_line, abstract: false, owner: nil)
     first_line = name[2][0]
     @methods << {
-      "owner" => (context.nesting.first || []).join("::"),
+      "owner" => owner ? owner["path"].join("::") : (context.nesting.first || []).join("::"),
+      "ownerReference" => owner,
       "singleton" => singleton,
       "name" => name[1],
       "firstLine" => first_line,

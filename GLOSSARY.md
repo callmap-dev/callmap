@@ -33,7 +33,7 @@ A call whose callee is code outside the repo, such as the standard library, a mo
 _Avoid_: external call, vendor call, leaf
 
 **One-of call**:
-One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module and a call to an abstract method give one-of calls too. Only one of them runs.
+One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module, `super` in a module with several includers and a call to an abstract method give one-of calls too. Only one of them runs.
 _Avoid_: maybe call, possible call
 
 **One-of group**:

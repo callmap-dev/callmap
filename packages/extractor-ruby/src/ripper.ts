@@ -30,6 +30,17 @@ export interface MadeValue extends ConstantReference {
   readonly by: string | null;
 }
 
+/** The core classes of the literals, the values of `LITERAL_CLASSES` in ruby/read.rb. */
+export const LITERAL_CLASSES: ReadonlySet<string> = new Set([
+  'String',
+  'Array',
+  'Hash',
+  'Symbol',
+  'Regexp',
+  'Integer',
+  'Float',
+]);
+
 export type Receiver =
   | { readonly kind: 'self' }
   | { readonly kind: 'super' }
@@ -45,9 +56,12 @@ export interface VariableWrite {
   readonly value: MadeValue | null;
 }
 
-/** A module that a body mixes in, by `include`, `prepend` or `extend`. */
+/**
+ * A module that a body mixes in, by `include`, `prepend` or `extend`. A `prepend` in
+ * `class << self` is a `singleton-prepend`, and an `include` there is an `extend`.
+ */
 export interface Mixin extends ConstantReference {
-  readonly kind: 'include' | 'prepend' | 'extend';
+  readonly kind: 'include' | 'prepend' | 'extend' | 'singleton-prepend';
 }
 
 /** A macro such as `attr_reader` or `has_many` in a class body, with its literal arguments. */
@@ -80,6 +94,8 @@ export const sideOf = ({ singleton }: { readonly singleton: boolean }): Side =>
 /** A `def`. The owner is the full name of the class or module body around it, or '' at the top. */
 export interface RubyMethod {
   readonly owner: string;
+  /** The constant of `def Foo.x`, which names the owner in place of the body around it. */
+  readonly ownerReference: ConstantReference | null;
   readonly singleton: boolean;
   readonly name: string;
   readonly firstLine: number;

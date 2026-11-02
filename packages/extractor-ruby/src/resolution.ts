@@ -1,7 +1,7 @@
 import type { FunctionId, OpenEndReason } from '@callmap/graph-document';
 import { madeNamesOf } from './macros.ts';
-import { sideOf } from './ripper.ts';
-import type { CallSite, ConstantReference, RubyBody, RubyMethod, Side } from './ripper.ts';
+import { LITERAL_CLASSES, sideOf } from './ripper.ts';
+import type { CallSite, ConstantReference, Mixin, RubyBody, RubyMethod, Side } from './ripper.ts';
 import { typeFlowOf } from './type-flow.ts';
 
 export interface IndexedMethod extends RubyMethod {
@@ -56,6 +56,25 @@ const namespacesOf = (name: string): readonly string[] => {
   return segments.map((_, index) => segments.slice(0, index + 1).join('::'));
 };
 
+/** Resolves a constant reference in the lexical nesting to a full name of the load unit. */
+export const constantsOf = (
+  bodies: readonly RubyBody[],
+  names: readonly string[],
+): ((reference: ConstantReference) => string | undefined) => {
+  const constants = new Set([...bodies.map(({ name }) => name), ...names].flatMap(namespacesOf));
+  return ({ nesting, path, absolute }) => {
+    const [head, ...rest] = path;
+    if (head === undefined) return undefined;
+    const lexical = absolute
+      ? [head]
+      : [...nesting.map((namespace) => [...namespace, head].join('::')), head];
+    const found = lexical.find((candidate) => constants.has(candidate));
+    if (found === undefined) return undefined;
+    const full = [found, ...rest].join('::');
+    return constants.has(full) ? full : undefined;
+  };
+};
+
 export const resolverOf = (
   unit: LoadUnitIndex,
   definedNames: ReadonlySet<string>,
@@ -87,23 +106,9 @@ export const resolverOf = (
     if (known === undefined || claimed.has(method.file) || !claimed.has(known.file))
       methods.set(method.name, method);
   }
-  const constants = new Set(
-    [...unit.bodies.map(({ name }) => name), ...unit.names].flatMap(namespacesOf),
-  );
+  const constantOf = constantsOf(unit.bodies, unit.names);
 
-  const constantOf = ({ nesting, path, absolute }: ConstantReference): string | undefined => {
-    const [head, ...rest] = path;
-    if (head === undefined) return undefined;
-    const lexical = absolute
-      ? [head]
-      : [...nesting.map((namespace) => [...namespace, head].join('::')), head];
-    const found = lexical.find((candidate) => constants.has(candidate));
-    if (found === undefined) return undefined;
-    const full = [found, ...rest].join('::');
-    return constants.has(full) ? full : undefined;
-  };
-
-  const mixinsOf = (owner: RubyClass, kind: 'include' | 'prepend' | 'extend') =>
+  const mixinsOf = (owner: RubyClass, kind: Mixin['kind']) =>
     owner.bodies
       .flatMap(({ mixins }) => mixins)
       .filter((mixin) => mixin.kind === kind)
@@ -149,12 +154,13 @@ export const resolverOf = (
             ...mixinsOf(owner, 'include').flatMap((mixin) => moduleChainOf(mixin, seen)),
           ]
         : [
+            ...mixinsOf(owner, 'singleton-prepend').flatMap((mixin) => moduleChainOf(mixin, seen)),
             { owner, side },
             ...mixinsOf(owner, 'extend').flatMap((mixin) => moduleChainOf(mixin, seen)),
             ...mixinsOf(owner, 'include').flatMap((mixin) => classMethodsOf(mixin, seen)),
           ];
     const superclass = superclassOf(owner);
-    if (superclass === null) return own;
+    if (superclass === null) return LITERAL_CLASSES.has(name) ? [...own, 'library'] : own;
     const parent = constantOf(superclass);
     if (parent === undefined) return [...own, 'library'];
     return [...own, ...chainOf(parent, side, seen)];
@@ -228,7 +234,10 @@ export const resolverOf = (
     const callerSide = sideOf(caller);
     if (receiver.kind === 'self') {
       const found = findIn(chainFor(caller.owner, callerSide), name);
-      if (found === 'none' && callerSide === 'instance' && isModule(caller.owner))
+      const unfound =
+        found === 'none' ||
+        (found === 'library' && classesBelow(caller.owner, callerSide).length > 0);
+      if (unfound && callerSide === 'instance' && isModule(caller.owner))
         return oneOfBelow(caller.owner, callerSide, name);
       return overridesOf(found, caller.owner, callerSide, name);
     }
@@ -247,7 +256,6 @@ export const resolverOf = (
       const known = typeFlow(receiver, caller);
       if (known === undefined) return 'untyped';
       const found = findIn(chainFor(known.className, 'instance'), name);
-      if (found === 'none' && known.value.by === null) return 'library';
       return overridesOf(found, known.className, 'instance', name);
     }
     const constant = constantOf(receiver);

@@ -20,7 +20,7 @@ The variant comes from the probe switch `CALLMAP_RUBY_TYPE_FLOW`, which is 1 whe
 The rules of each variant:
 
 - **A local variable** has a known class when every write of it in the def sets the same class. A parameter, a block parameter, a multiple assignment, `for`, `rescue => e` and an operator write other than `||=` make it unknown.
-- **An instance variable** has a known class when one method of the class alone writes it, on the same side, and every write there sets the same class. An `attr_writer` or `attr_accessor` of the class makes it unknown.
+- **An instance variable** has a known class when one method of the class alone writes it, on the same side, and every write there sets the same class. A macro of the class that makes the method `x=`, such as `attr_writer` or `attr_accessor`, makes `@x` unknown.
 - **A finder** is `find`, `find_by`, `find_by!`, `find_sole_by`, `sole`, `create`, `create!`, `find_or_create_by`, `find_or_create_by!`, `find_or_initialize_by`, `create_or_find_by` or `create_or_find_by!`. It makes a value of the class when the superclass chain of the class reaches `ActiveRecord::Base` and the repo does not define the finder on the class.
 - **`Foo.new`** makes a value of `Foo` when the repo does not define `Foo.new`.
 
@@ -51,7 +51,7 @@ The 3 reads took 8.76 s in all, with a peak memory of 220,304 KB. The 1-minute l
 
 ## The run after the commit `99206f9`
 
-The owner chose variant 3 on issue #12. The commit `99206f9` then changes the rule of an instance variable. An instance variable has a known class when one method alone writes it, among every method that an object of the class can run. These methods come from the class chain of the class and from the chain of each class below it, such as a subclass or a class that includes the module. So a write in a subclass, a superclass or a module counts. An `attr_writer` or `attr_accessor` in any of these chains makes the variable unknown. ADR-0032 records the choice and the rule.
+The owner chose variant 3 on issue #12. The commit `99206f9` then changes the rule of an instance variable. An instance variable has a known class when one method alone writes it, among every method that an object of the class can run. These methods come from the class chain of the class and from the chain of each class below it, such as a subclass or a class that includes the module. So a write in a subclass, a superclass or a module counts. A macro in any of these chains that makes the method `x=`, such as `attr_writer`, `attr_accessor`, `has_one`, `belongs_to`, `has_many` or `delegate`, makes `@x` unknown. ADR-0032 records the choice and the rule.
 
 The probe ran again on the same commit of mastodon, with the default scope and no tests. The tool is the Ruby extractor at the commit `99bba6b`, with the checker `Callmap Ruby rules 7`. That commit has no probe switch, so each run is variant 3 with the new rule.
 

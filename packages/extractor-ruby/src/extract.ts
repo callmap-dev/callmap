@@ -9,8 +9,8 @@ import { readGraphDocument } from '@callmap/graph-document';
 import type { Call, GraphDocument, GraphFunction, OpenEnd } from '@callmap/graph-document';
 import { inScope } from '@callmap/scope';
 import { readRubyFiles } from './ripper.ts';
-import type { RubyBody, RubyMethod } from './ripper.ts';
-import { resolverOf } from './resolution.ts';
+import type { ConstantReference, RubyBody, RubyMethod } from './ripper.ts';
+import { constantsOf, resolverOf } from './resolution.ts';
 import type { IndexedMethod, Resolver } from './resolution.ts';
 import { loadUnitsOf } from './units.ts';
 import type { LoadUnit } from './units.ts';
@@ -22,7 +22,7 @@ export const RUBY = 'ruby';
 const RUBY_CHECKER = 'Callmap Ruby rules';
 
 /** Raise it when a rule changes, so the checker on the page names the rules that ran. */
-const RUBY_RULES_VERSION = '7';
+const RUBY_RULES_VERSION = '8';
 
 export interface ExtractOptions {
   /** The root of the repo to read. Every path in the document is relative to it. */
@@ -55,13 +55,28 @@ export const readRuby = (options: ExtractOptions): RubyRead => {
   const report = readRubyFiles(repo, everyFile);
 
   const bodiesOfFile = new Map<string, readonly RubyBody[]>();
+  for (const path of everyFile) {
+    const read = report.files[path];
+    if (read?.parsed === true) bodiesOfFile.set(path, read.bodies);
+  }
+  const unitOf = loadUnitsOf(repo, tree);
+  const bodiesOf = (unit: LoadUnit) => unit.files.flatMap((path) => bodiesOfFile.get(path) ?? []);
+  const constantsIn = new Map<LoadUnit, (reference: ConstantReference) => string | undefined>();
+  const ownerOf = (path: string, { owner, ownerReference }: RubyMethod): string => {
+    if (ownerReference === null) return owner;
+    const unit = unitOf(path);
+    const constantOf = constantsIn.get(unit) ?? constantsOf(bodiesOf(unit), unit.names);
+    constantsIn.set(unit, constantOf);
+    return constantOf(ownerReference) ?? owner;
+  };
+
   const methodsOfFile = new Map<string, readonly IndexedMethod[]>();
   for (const path of everyFile) {
     const read = report.files[path];
     if (read?.parsed !== true) continue;
-    bodiesOfFile.set(path, read.bodies);
     const seen = new Map<string, number>();
-    const indexed = read.methods.map((method) => {
+    const indexed = read.methods.map((written) => {
+      const method = { ...written, owner: ownerOf(path, written) };
       const name = nameOf(method);
       const count = (seen.get(name) ?? 0) + 1;
       seen.set(name, count);
@@ -76,14 +91,13 @@ export const readRuby = (options: ExtractOptions): RubyRead => {
 
   const claimed = new Set(files);
   const definedNames = new Set([...methodsOfFile.values()].flat().map(({ name }) => name));
-  const unitOf = loadUnitsOf(repo, tree);
   const resolvers = new Map<LoadUnit, Resolver>();
   const resolverIn = (unit: LoadUnit) => {
     const known =
       resolvers.get(unit) ??
       resolverOf(
         {
-          bodies: unit.files.flatMap((path) => bodiesOfFile.get(path) ?? []),
+          bodies: bodiesOf(unit),
           methods: unit.files.flatMap((path) => methodsOfFile.get(path) ?? []),
           names: unit.names,
         },

@@ -87,8 +87,11 @@ describe('callmap review of a branch with Ruby and TypeScript', () => {
   it('shows the rate of Ruby next to the rules and the ruby that proved its calls', async () => {
     const { window } = await loadReaderPage(html);
     const rate = within(getByRole(window.document.body, 'region', { name: 'Resolution rate' }));
-    const checker = `Callmap Ruby rules 7, ${rubyVersion()}`;
-    expect(rate.getByRole('group', { name: checker }).textContent).toContain(`${checker} · 100.0%`);
+    const ruby = rubyVersion().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const checker = `Callmap Ruby rules \\d+, ${ruby}`;
+    expect(rate.getByRole('group', { name: new RegExp(`^${checker}$`) }).textContent).toMatch(
+      new RegExp(`${checker} · 100\\.0%`),
+    );
   });
 
   it('prints no note when every language has its tool', () => {

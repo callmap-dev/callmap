@@ -51,8 +51,8 @@ export interface Extractor extends CachedExtractor {
 
 /**
  * The lines that an extractor writes to stderr for the reader: a module that
- * packages/extractor-go/go/load.go skipped, or a file that packages/extractor-ruby/src/cli.ts
- * could not parse.
+ * packages/extractor-go/go/load.go skipped, or a file that Ripper could not parse, which
+ * packages/extractor-ruby/src/cli.ts reports.
  */
 const notesIn = (stderr: string): readonly string[] =>
   stderr.split('\n').filter((line) => line.startsWith('callmap '));

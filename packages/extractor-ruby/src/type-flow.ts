@@ -95,8 +95,10 @@ export const typeFlowOf = (index: ClassIndex, methods: readonly IndexedMethod[])
   };
 
   /**
-   * An instance variable has a known class when one method alone writes it, among every method
-   * that an object of the caller's class can run.
+   * The writes that set a variable for the caller. A local variable has each write in the def of
+   * the caller. An instance variable has the writes of the one method that alone writes it, among
+   * every method that an object of the caller's class can run. A second writer, or a macro there
+   * that makes its writer method, leaves it with no write.
    */
   const writesOf = (variable: string, caller: RubyMethod): readonly Written[] => {
     if (!variable.startsWith('@'))

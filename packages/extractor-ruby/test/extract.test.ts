@@ -89,6 +89,18 @@ describe('extractRuby', () => {
     ]);
   });
 
+  it('names def Other.x by the class that its receiver resolves to in the lexical nesting', () => {
+    const document = ruleCase('singleton-owner');
+    expect(namesIn(document, 'rules/singleton-owner/lib/holder.rb')).toEqual([
+      'Other.made_here',
+      'Holder.top_level_singleton',
+    ]);
+    expect(namesIn(document, 'rules/singleton-owner/lib/shop.rb')).toEqual(['Shop::Order.build']);
+    expect(callsOf(document)).toEqual([
+      'rules/singleton-owner/lib/other.rb#Other.run rules/singleton-owner/lib/holder.rb#Other.made_here 3',
+    ]);
+  });
+
   it('gives each function the file and the name as its id, and its first and last line', () => {
     expect(extract().functions.find(({ name }) => name === 'Order.recent')).toMatchObject({
       id: `${ORDER}#Order.recent`,
@@ -158,6 +170,12 @@ describe('the calls of extractRuby', () => {
     );
   });
 
+  it('gives a library call for a call on self in a reopened core class that the repo does not define, even when a def of the repo has its name', () => {
+    const document = ruleCase('reopened-core');
+    expect(callsOf(document)).toEqual([]);
+    expect(openEndsOf(document)).toEqual([]);
+  });
+
   it('ties a call on self through the superclasses of the class', () => {
     expect(callsOf(extract())).toContain(
       `${ORDERS_CONTROLLER}#Admin::OrdersController#index shop/app/controllers/application_controller.rb#ApplicationController#authorize 4`,
@@ -203,6 +221,17 @@ describe('the calls of extractRuby', () => {
     ]);
     expect(openEndsOf(document)).toEqual([
       'rules/super-several-includers/lib/lonely.rb#Lonely#greet 3 super no-implementation',
+    ]);
+  });
+
+  it('puts a module that class << self prepends before the singleton methods of the class, and out of its instance chain', () => {
+    const document = ruleCase('singleton-prepend');
+    expect(callsOf(document)).toEqual([
+      'rules/singleton-prepend/lib/person.rb#Person.welcome rules/singleton-prepend/lib/tracer.rb#Tracer#greet 9',
+      'rules/singleton-prepend/lib/tracer.rb#Tracer#greet rules/singleton-prepend/lib/person.rb#Person.greet 3',
+    ]);
+    expect(openEndsOf(document)).toEqual([
+      'rules/singleton-prepend/lib/person.rb#Person#run 13 greet other',
     ]);
   });
 
@@ -439,6 +468,16 @@ describe('the one-of groups of extractRuby', () => {
     ).toEqual([{ resolved: 1, open: 0 }]);
   });
 
+  it('gives a one-of group over each including class for a call on self in a module that includes a library module', () => {
+    const group = 'rules/library-include-one-of/lib/billable.rb:5:5';
+    const document = ruleCase('library-include-one-of');
+    expect(oneOfCallsOf(document)).toEqual([
+      `rules/library-include-one-of/lib/billable.rb#Billable#invoice rules/library-include-one-of/lib/order.rb#Order#total 5 ${group}`,
+      `rules/library-include-one-of/lib/billable.rb#Billable#invoice rules/library-include-one-of/lib/refund.rb#Refund#total 5 ${group}`,
+    ]);
+    expect(document.openEnds).toEqual([]);
+  });
+
   it('gives a one-of group over the overrides of the subclasses for a call to an abstract method', () => {
     const group = 'rules/abstract/lib/exporter.rb:3:5';
     expect(oneOfCallsOf(ruleCase('abstract'))).toEqual([
@@ -520,7 +559,7 @@ describe('the local type flow of extractRuby', () => {
     ]);
   });
 
-  it('ties a call on an instance variable that one method of the class alone sets from Foo.new', () => {
+  it('ties a call on an instance variable that one method alone sets from Foo.new, among every method that an object of the class can run', () => {
     const document = ruleCase('instance-variables');
     expect(callsOf(document)).toEqual([
       'rules/instance-variables/lib/checkout.rb#Checkout#run rules/instance-variables/lib/invoice.rb#Invoice#total 14',
