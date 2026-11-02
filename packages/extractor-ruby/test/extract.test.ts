@@ -396,6 +396,27 @@ describe('the metaprogramming of extractRuby', () => {
     expect(openEndsOf(document)).toEqual([]);
   });
 
+  it('follows a constant that a body or the top level sets to a constant path, in the nesting of the assignment', () => {
+    const copier =
+      'rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier';
+    const plan =
+      'rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb#Accounts::Billing::Services::InvoicePlan.build';
+    const index =
+      'rules/constant-aliases/lib/shared/services/ledger_index.rb#Shared::Services::LedgerIndex.code_for';
+    const document = ruleCase('constant-aliases');
+    expect(callsOf(document)).toEqual([
+      `${copier}#plan ${plan} 10`,
+      `${copier}#code ${index} 11`,
+      `${copier}#chained ${plan} 12`,
+      `rules/constant-aliases/lib/report.rb#Report#code ${index} 5`,
+    ]);
+    expect(openEndsOf(document)).toEqual([
+      `${copier}#failure 13 RequestError.build missing-module`,
+      `${copier}#direct_failure 14 Faraday::Error.build missing-module`,
+      `${copier}#loop 15 Loop.build missing-module`,
+    ]);
+  });
+
   it('ties send, public_send and try with a literal name like a direct call, and gives dynamic-key for a computed name', () => {
     const document = ruleCase('send');
     expect(callsOf(document)).toEqual([
@@ -538,6 +559,22 @@ describe('the receivers of a known class in extractRuby', () => {
     expect(openEndsOf(document)).toEqual([
       'rules/new/lib/billing/run.rb#Billing::Run#call 7 Cache.new.total untyped',
       'rules/new/lib/billing/run.rb#Billing::Run#call 8 Missing.new.total untyped',
+    ]);
+  });
+
+  it('ties new with no receiver or on self in a singleton method as Foo.new of its class, and gives its value that class', () => {
+    const document = ruleCase('singleton-new');
+    expect(callsOf(document)).toEqual([
+      'rules/singleton-new/lib/copier.rb#Copier.call rules/singleton-new/lib/copier.rb#Copier#call 3',
+      'rules/singleton-new/lib/copier.rb#Copier.call rules/singleton-new/lib/copier.rb#Copier#initialize 3',
+      'rules/singleton-new/lib/copier.rb#Copier.build rules/singleton-new/lib/copier.rb#Copier#initialize 7',
+      'rules/singleton-new/lib/copier.rb#Copier.build rules/singleton-new/lib/copier.rb#Copier#call 8',
+      'rules/singleton-new/lib/pool.rb#Pool.checkout rules/singleton-new/lib/pool.rb#Pool.new 5',
+      'rules/singleton-new/lib/special_copier.rb#SpecialCopier.make rules/singleton-new/lib/copier.rb#Copier#call 4',
+      'rules/singleton-new/lib/special_copier.rb#SpecialCopier.make rules/singleton-new/lib/copier.rb#Copier#initialize 4',
+    ]);
+    expect(openEndsOf(document)).toEqual([
+      'rules/singleton-new/lib/pool.rb#Pool.checkout 5 new.call untyped',
     ]);
   });
 });

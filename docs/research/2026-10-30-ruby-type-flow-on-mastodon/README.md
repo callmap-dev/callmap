@@ -62,6 +62,15 @@ The probe ran again on the same commit of mastodon, with the default scope and n
 
 The open ends rose by 11, and the `untyped` open ends rose by 11. To run it again, follow the steps below with the commit `99bba6b` in place of `824d8bf`. The 3 documents are then the same.
 
+The commit after `287a523` fixes 2 rules. A constant that a body or the top level sets to a constant path is another name of that constant. And `new` with no receiver or on `self` in a singleton method of a class ties as `Foo.new` does, and gives a value of `Foo`. The probe ran again on the same commit of mastodon, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`. Each run is variant 3.
+
+| Extractor                    | Resolved calls | Open ends | `untyped` open ends | `other` open ends | Rate  |
+| ---------------------------- | -------------- | --------- | ------------------- | ----------------- | ----- |
+| `287a523`                    | 8,598          | 9,836     | 8,930               | 314               | 46.6% |
+| The commit after `287a523`   | 8,614          | 9,818     | 8,924               | 302               | 46.7% |
+
+The resolved calls rose by 16, and the open ends fell by 18. The `missing-module` open ends stay at 373. To run it again, follow the steps below with the new commit in place of `824d8bf`. The 3 documents are then the same.
+
 ## The steps to run the probe again
 
 `probe.sh` beside this record runs the extractor of a callmap folder on a Ruby repo, once for each variant. It writes `variant-1.json`, `variant-2.json` and `variant-3.json` to the out folder. Then it prints one line for each variant with the counts above. It needs `node` 22.18 or later, `ruby`, `git` and `tar`. It runs no code of the Ruby repo, and it loads no gem.

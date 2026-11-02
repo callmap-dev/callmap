@@ -53,6 +53,7 @@ mix with the constants of the other folders.
 | `rules/module-function/`           | `module_function` with a name, with a `def` and with no argument                                                                 |
 | `rules/define-method/`             | `define_method` with a literal name, in the class and in `class << self`, and with a computed name                               |
 | `rules/made-classes/`              | A `def` in the block of `Struct.new`, `Data.define` and `Class.new(Base)`                                                        |
+| `rules/constant-aliases/`          | Constants that a body and the top level set to a constant path of the repo, of a library, of another alias, and in a cycle       |
 | `rules/send/`                      | `send`, `public_send` and `try` with a literal name and with a computed name                                                     |
 | `rules/send-missing/`              | `send` with a literal name and with a computed name on a constant that does not resolve                                          |
 | `rules/function-value/`            | `yield`, `block.call`, `callable.()` and `method(:x).call`                                                                       |
@@ -67,6 +68,7 @@ mix with the constants of the other folders.
 | `rules/literals/`                  | Calls on literals, whose core classes the repo reopens                                                                           |
 | `rules/library-literals/`          | Calls on literals, whose core classes the repo does not reopen                                                                   |
 | `rules/new/`                       | `Foo.new` with arguments and a block, a class with its own `new`, and a missing constant                                         |
+| `rules/singleton-new/`             | `new` with no receiver and on `self` in a singleton method, in a subclass, and in a class with its own `new`                     |
 | `rules/local-variables/`           | Local variables that each write sets from `Foo.new`, a literal or 2 classes, and a block parameter that hides a variable         |
 | `rules/instance-variables/`        | Instance variables that 1 method alone writes, that 2 methods write, and that `attr_accessor` makes                              |
 | `rules/shared-instance-variables/` | Instance variables that a subclass, a superclass, a module or an `attr_writer` of a module also writes                           |

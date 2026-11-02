@@ -9,7 +9,7 @@ import { readGraphDocument } from '@callmap/graph-document';
 import type { Call, GraphDocument, GraphFunction, OpenEnd } from '@callmap/graph-document';
 import { inScope } from '@callmap/scope';
 import { readRubyFiles } from './ripper.ts';
-import type { ConstantReference, RubyBody, RubyMethod } from './ripper.ts';
+import type { ConstantAlias, ConstantReference, RubyBody, RubyMethod } from './ripper.ts';
 import { constantsOf, resolverOf } from './resolution.ts';
 import type { IndexedMethod, Resolver } from './resolution.ts';
 import { loadUnitsOf } from './units.ts';
@@ -55,17 +55,22 @@ export const readRuby = (options: ExtractOptions): RubyRead => {
   const report = readRubyFiles(repo, everyFile);
 
   const bodiesOfFile = new Map<string, readonly RubyBody[]>();
+  const aliasesOfFile = new Map<string, readonly ConstantAlias[]>();
   for (const path of everyFile) {
     const read = report.files[path];
-    if (read?.parsed === true) bodiesOfFile.set(path, read.bodies);
+    if (read?.parsed !== true) continue;
+    bodiesOfFile.set(path, read.bodies);
+    aliasesOfFile.set(path, read.aliases);
   }
   const unitOf = loadUnitsOf(repo, tree);
   const bodiesOf = (unit: LoadUnit) => unit.files.flatMap((path) => bodiesOfFile.get(path) ?? []);
+  const aliasesOf = (unit: LoadUnit) => unit.files.flatMap((path) => aliasesOfFile.get(path) ?? []);
   const constantsIn = new Map<LoadUnit, (reference: ConstantReference) => string | undefined>();
   const ownerOf = (path: string, { owner, ownerReference }: RubyMethod): string => {
     if (ownerReference === null) return owner;
     const unit = unitOf(path);
-    const constantOf = constantsIn.get(unit) ?? constantsOf(bodiesOf(unit), unit.names);
+    const constantOf =
+      constantsIn.get(unit) ?? constantsOf(bodiesOf(unit), unit.names, aliasesOf(unit));
     constantsIn.set(unit, constantOf);
     return constantOf(ownerReference) ?? owner;
   };
@@ -100,6 +105,7 @@ export const readRuby = (options: ExtractOptions): RubyRead => {
           bodies: bodiesOf(unit),
           methods: unit.files.flatMap((path) => methodsOfFile.get(path) ?? []),
           names: unit.names,
+          aliases: aliasesOf(unit),
         },
         definedNames,
         claimed,

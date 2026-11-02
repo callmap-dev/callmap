@@ -4,7 +4,8 @@
 #
 # Usage: ruby read.rb <repo> < repo-relative paths, one per line
 # Writes {"ruby": RUBY_DESCRIPTION, "files": {"<path>": {"parsed": true, "bodies": [...],
-# "methods": [...], "calls": [...]}}}, and {"parsed": false} for a file Ripper cannot parse.
+# "methods": [...], "calls": [...], "aliases": [...]}}}, and {"parsed": false} for a file Ripper
+# cannot parse.
 # A body is one `class` or `module` keyword, with the superclass, the mixins and the macros it names.
 
 require "digest"
@@ -51,7 +52,7 @@ class PositionedSexp < Ripper::SexpBuilderPP
 end
 
 class FileReader
-  attr_reader :bodies, :methods, :calls
+  attr_reader :bodies, :methods, :calls, :aliases
 
   def initialize(source, tree)
     @lines = source.lines
@@ -60,6 +61,7 @@ class FileReader
     @bodies = []
     @methods = []
     @calls = []
+    @aliases = []
     @module_function_bodies = []
     @block_params = {}
     visit(tree, Context.new([], false, nil, nil))
@@ -86,6 +88,7 @@ class FileReader
       visit_body(node[1], node[2], node[3], context)
     when :assign
       return visit_write(node[1], node[2], context) if variable?(node[1])
+      return add_alias(node[1], node[2], context) if alias?(node[1], node[2], context)
 
       made = declared_path(node[1]) && made_class_of(node[2], context)
       made ? visit_made_class(node[1], *made, context) : node.each { |child| visit(child, context) }
@@ -186,6 +189,17 @@ class FileReader
   def visit_made_class(field, superclass, block, context)
     nesting = nested(context.nesting, field)
     visit(block, Context.new(nesting, false, nil, open_body(nesting.first, superclass)))
+  end
+
+  # `Plan = Services::Plan` in a body or at the top level makes `Plan` another name of the
+  # constant on its right, which the TypeScript half resolves in the nesting of the assignment.
+  def alias?(field, value, context)
+    context.method.nil? && declared_path(field) && constant_path(value)
+  end
+
+  def add_alias(field, value, context)
+    name = nested(context.nesting, field).first.join("::")
+    @aliases << { "name" => name, "target" => reference_of(value, context.nesting) }
   end
 
   def open_body(name, superclass, module_body: false)
@@ -319,7 +333,7 @@ class FileReader
   # A write with `=` or `||=` records the value that its right side may make: a literal, or a call
   # on a constant such as `Foo.new`. Any other write records nil.
   def visit_write(field, value, context, made: true)
-    write(context, field[1], made ? made_value_of(value, context.nesting) : nil)
+    write(context, field[1], made ? made_value_of(value, context) : nil)
     visit(value, context)
   end
 
@@ -389,7 +403,7 @@ class FileReader
       "line" => name[2][0],
       "column" => name[2][1] + 1,
       "name" => called,
-      "receiver" => receiver_of(receiver, context),
+      "receiver" => receiver_of(receiver, called, context),
       "expression" => expression,
       "open" => open
     }.compact
@@ -464,13 +478,15 @@ class FileReader
     node.is_a?(Array) && node.first.is_a?(Symbol) && node.first.start_with?("@")
   end
 
-  def receiver_of(receiver, context)
+  def receiver_of(receiver, called, context)
+    own_class = own_class_of_new(receiver, called, context)
+    return { "kind" => "constant" }.merge(own_class) if own_class
     return { "kind" => "self" } if receiver.nil? || self?(receiver)
 
     path, absolute = constant_path(receiver)
     return { "kind" => "constant", "nesting" => context.nesting, "path" => path, "absolute" => absolute } if path
 
-    made = made_value_of(receiver, context.nesting)
+    made = made_value_of(receiver, context)
     return { "kind" => "made" }.merge(made) if made
     variable = receiver.first == :var_ref && variable?([:var_field, receiver[1]])
     return { "kind" => "variable", "name" => receiver[1][1] } if variable
@@ -485,16 +501,36 @@ class FileReader
 
   # A literal names its core class. A call on a constant, such as `Foo.new` or `Foo.find_by(id: 1)`,
   # names the class that may make the value. Which calls do is a question the TypeScript half answers.
-  def made_value_of(node, nesting)
+  def made_value_of(node, context)
     literal = LITERAL_CLASSES[node.first]
     return { "nesting" => [], "path" => [literal], "absolute" => true, "by" => nil } if literal
 
     node = node[1] if node.first == :method_add_block
     node = node[1] if node.first == :method_add_arg
-    return unless %i[call command_call].include?(node.first) && token?(node[3])
+    receiver, name = case node.first
+                     when :fcall, :vcall, :command then [nil, node[1]]
+                     when :call, :command_call then node.values_at(1, 3)
+                     end
+    return unless token?(name)
 
-    path, absolute = constant_path(node[1])
-    path && { "nesting" => nesting, "path" => path, "absolute" => absolute, "by" => node[3][1] }
+    own_class = own_class_of_new(receiver, name[1], context)
+    return own_class.merge("by" => "new") if own_class
+
+    path, absolute = receiver && constant_path(receiver)
+    path && { "nesting" => context.nesting, "path" => path, "absolute" => absolute, "by" => name[1] }
+  end
+
+  # In a singleton method of a class, `new` with no receiver or on `self` is `Foo.new` of that
+  # class. A module has no `new`, so a singleton method of a module keeps the rule of `self`.
+  def own_class_of_new(receiver, called, context)
+    return unless called == "new" && (receiver.nil? || self?(receiver))
+    return unless context.method && context.singleton
+
+    owner = @methods[context.method]["ownerReference"]
+    return owner if owner
+    return if context.body.nil? || @bodies[context.body]["module"]
+
+    { "nesting" => [], "path" => context.nesting.first, "absolute" => true }
   end
 
   def self?(node)
@@ -573,6 +609,9 @@ $stdin.each_line(chomp: true) do |path|
   end
 
   read = FileReader.new(source, tree)
-  files[path] = { "parsed" => true, "bodies" => read.bodies, "methods" => read.methods, "calls" => read.calls }
+  files[path] = {
+    "parsed" => true, "bodies" => read.bodies, "methods" => read.methods, "calls" => read.calls,
+    "aliases" => read.aliases
+  }
 end
 $stdout.write(JSON.generate({ "ruby" => RUBY_DESCRIPTION, "files" => files }))

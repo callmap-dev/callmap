@@ -118,6 +118,14 @@ export interface CallSite {
   readonly open?: Extract<OpenEndReason, 'dynamic-key' | 'function-value'>;
 }
 
+/** A constant that a body or the top level sets to a constant path, such as `Plan = Services::Plan`. */
+export interface ConstantAlias {
+  /** The full name of the constant that the assignment makes. */
+  readonly name: string;
+  /** The constant path on the right, in the nesting of the assignment. */
+  readonly target: ConstantReference;
+}
+
 export type RubyFile =
   | { readonly parsed: false }
   | {
@@ -125,6 +133,7 @@ export type RubyFile =
       readonly bodies: readonly RubyBody[];
       readonly methods: readonly RubyMethod[];
       readonly calls: readonly CallSite[];
+      readonly aliases: readonly ConstantAlias[];
     };
 
 export interface RubyReport {
