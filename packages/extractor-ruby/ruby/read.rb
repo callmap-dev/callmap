@@ -314,8 +314,8 @@ class FileReader
     node.first == :var_field && %i[@ident @ivar].include?(node[1]&.first)
   end
 
-  # A local variable or an instance variable that each write sets from `Foo.new` can hold only a
-  # `Foo`. A write of any other value, a parameter or a block parameter records nil.
+  # A write with `=` or `||=` records the value that its right side may make: a literal, or a call
+  # on a constant such as `Foo.new`. Any other write records nil.
   def visit_write(field, value, context, made: true)
     write(context, field[1], made ? made_value_of(value, context.nesting) : nil)
     visit(value, context)
@@ -474,8 +474,8 @@ class FileReader
     symbol_literal: "Symbol", dyna_symbol: "Symbol", regexp_literal: "Regexp", :@int => "Integer", :@float => "Float"
   }.freeze
 
-  # A call on a constant, such as `Foo.new` or `Foo.find_by(id: 1)`, names the class that may make
-  # the value. Which calls do is a question the TypeScript half answers.
+  # A literal names its core class. A call on a constant, such as `Foo.new` or `Foo.find_by(id: 1)`,
+  # names the class that may make the value. Which calls do is a question the TypeScript half answers.
   def made_value_of(node, nesting)
     literal = LITERAL_CLASSES[node.first]
     return { "nesting" => [], "path" => [literal], "absolute" => true, "by" => nil } if literal

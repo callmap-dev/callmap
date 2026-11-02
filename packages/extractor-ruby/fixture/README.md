@@ -1,8 +1,8 @@
 # The Ruby fixture repo
 
-A repo of 2 Rails apps and a gem the extractor reads, not code this repo ships. Every file is
-here to make one rule of the extraction observable, so a reader can tell from the tree what the
-tests assert.
+A repo of 2 Rails apps, a gem and a folder of rule cases that the extractor reads, not code this
+repo ships. Every file is here to make one rule of the extraction observable, so a reader can tell
+from the tree what the tests assert.
 
 | File                                               | What it holds for the extraction                                                                                                                     |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,5 +32,41 @@ tests assert.
 | `gems/pricing/lib/pricing.rb`                      | A constant of the gem, and `Order`, which the gem does not define                                                                                    |
 | `gems/pricing/lib/pricing/tax.rb`                  | `Pricing::Tax.rate`, which the gem ties through its own index                                                                                        |
 | `tools/release.rb`                                 | Code outside every app, and a call outside any `def`, which draws nothing                                                                            |
+
+Each folder in `rules/` holds a `.gemspec`, so it is a load unit of its own. Its constants do not
+mix with the constants of the other folders.
+
+| Folder                             | What it holds for the extraction                                                                                                 |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `rules/super-in-module/`           | `super` in a prepended module and in an included module, each with 1 includer                                                    |
+| `rules/super-several-includers/`   | `super` in a module that 2 classes include, in a module with no includer, and in a module whose includer reaches a library class |
+| `rules/prepend-extend/`            | A call on `self` that finds a prepended module before the class, and a singleton call that finds an extended module              |
+| `rules/several-modules/`           | One `include` and one `prepend` with 2 modules each                                                                              |
+| `rules/extend-self/`               | A module that extends `self`, and a call on the module                                                                           |
+| `rules/class-methods/`             | A concern with a `class_methods` block, and a singleton call in a class that includes it                                         |
+| `rules/untyped/`                   | A call on a parameter, whose name a `def` of the repo has                                                                        |
+| `rules/self-other/`                | A call on `self` that finds no `def` in the class chain                                                                          |
+| `rules/macros/`                    | Methods that `attr_reader` and `delegate` make, whose names a `def` of the repo has                                              |
+| `rules/def-in-scope/`              | `spec/support/order_stub.rb`, a body out of the scope that defines the method of a body in the scope                             |
+| `rules/module-function/`           | `module_function` with a name, with a `def` and with no argument                                                                 |
+| `rules/define-method/`             | `define_method` with a literal name, in the class and in `class << self`, and with a computed name                               |
+| `rules/made-classes/`              | A `def` in the block of `Struct.new`, `Data.define` and `Class.new(Base)`                                                        |
+| `rules/send/`                      | `send`, `public_send` and `try` with a literal name and with a computed name                                                     |
+| `rules/send-missing/`              | `send` with a literal name and with a computed name on a constant that does not resolve                                          |
+| `rules/function-value/`            | `yield`, `block.call`, `callable.()` and `method(:x).call`                                                                       |
+| `rules/send-splat/`                | `send` with a splat, and a mixin and a macro with a splat                                                                        |
+| `rules/method-missing/`            | A class that defines `method_missing`, and a call on `self` that finds no `def`                                                  |
+| `rules/concern-one-of/`            | A call on `self` in a concern with no `def` of its name, which 2 classes include                                                 |
+| `rules/abstract/`                  | An abstract method, which 2 subclasses override and 1 does not                                                                   |
+| `rules/concrete-override/`         | A concrete method, which a subclass overrides                                                                                    |
+| `rules/no-implementation/`         | A concern and an abstract method whose only members the tests leave out of the scope                                             |
+| `rules/literals/`                  | Calls on literals, whose core classes the repo reopens                                                                           |
+| `rules/library-literals/`          | Calls on literals, whose core classes the repo does not reopen                                                                   |
+| `rules/new/`                       | `Foo.new` with arguments and a block, a class with its own `new`, and a missing constant                                           |
+| `rules/local-variables/`           | Local variables that each write sets from `Foo.new`, a literal or 2 classes, and a block parameter that hides a variable         |
+| `rules/instance-variables/`        | Instance variables that 1 method alone writes, that 2 methods write, and that `attr_accessor` makes                              |
+| `rules/shared-instance-variables/` | Instance variables that a subclass, a superclass, a module or an `attr_writer` of a module also writes                           |
+| `rules/finders/`                   | Finders of a model, of a class that defines its own finder, and of a class that is not a model                                   |
+| `rules/unparsed/`                  | A file that Ripper cannot parse, beside a file that it can parse                                                                 |
 
 Nothing here is linted or type-checked, because it is held exactly as an extractor must find it.

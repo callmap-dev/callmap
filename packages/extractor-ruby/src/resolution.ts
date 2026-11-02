@@ -82,7 +82,10 @@ export const resolverOf = (
     }
   }
   for (const method of unit.methods) {
-    classOf(method.owner)[sideOf(method)].set(method.name, method);
+    const methods = classOf(method.owner)[sideOf(method)];
+    const known = methods.get(method.name);
+    if (known === undefined || claimed.has(method.file) || !claimed.has(known.file))
+      methods.set(method.name, method);
   }
   const constants = new Set(
     [...unit.bodies.map(({ name }) => name), ...unit.names].flatMap(namespacesOf),
@@ -233,13 +236,11 @@ export const resolverOf = (
       const found = superOf(chainFor(caller.owner, callerSide), caller.owner, callerSide, name);
       if (found !== 'none') return found;
       if (callerSide !== 'instance' || !isModule(caller.owner)) return 'library';
-      const below = new Set(
-        classesBelow(caller.owner, callerSide).map((each) =>
+      return {
+        oneOf: classesBelow(caller.owner, callerSide).map((each) =>
           superOf(chainFor(each.name, each.side), caller.owner, callerSide, name),
         ),
-      );
-      const [only] = below;
-      return below.size === 1 && only !== undefined && only !== 'none' ? only : 'library';
+      };
     }
     if (receiver.kind === 'value') return 'untyped';
     if (receiver.kind === 'made' || receiver.kind === 'variable') {
@@ -278,7 +279,10 @@ export const resolverOf = (
   };
 
   return (site: CallSite, caller: RubyMethod): Resolution => {
-    if (site.open !== undefined) return { kind: 'open-end', reason: site.open };
+    if (site.open !== undefined) {
+      const missing = site.receiver.kind === 'constant' && constantOf(site.receiver) === undefined;
+      return { kind: 'open-end', reason: missing ? 'missing-module' : site.open };
+    }
     const callee = calleeOf(site, caller);
     if (callee === 'library') return LIBRARY;
     if (typeof callee !== 'string' && 'oneOf' in callee) return oneOfAmong(callee.oneOf, site.name);

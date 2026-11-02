@@ -32,6 +32,18 @@ const extract = (...scope: readonly string[]): GraphDocument => {
   return document;
 };
 
+const ruleCase = (name: string, ...scope: readonly string[]): GraphDocument => {
+  const folder = `rules/${name}/`;
+  const document = extract(...scope);
+  return {
+    ...document,
+    files: document.files.filter((file) => file.startsWith(folder)),
+    functions: document.functions.filter(({ file }) => file.startsWith(folder)),
+    calls: document.calls.filter(({ caller }) => caller.startsWith(folder)),
+    openEnds: document.openEnds.filter(({ caller }) => caller.startsWith(folder)),
+  };
+};
+
 const repoOf = (files: Readonly<Record<string, string>>): string => {
   const repo = tempDir('callmap-ruby-');
   for (const [path, text] of Object.entries(files)) {
@@ -176,87 +188,49 @@ describe('the calls of extractRuby', () => {
   });
 
   it('ties super in a prepended or included module to the method of the same name in the class chain after the module', () => {
-    const repo = repoOf({
-      'lib/loud.rb': 'module Loud\n  def greet\n    super\n  end\nend\n',
-      'lib/polite.rb': 'module Polite\n  def greet\n    super\n  end\nend\n',
-      'lib/person.rb': 'class Person\n  prepend Loud\n\n  def greet; end\nend\n',
-      'lib/base.rb': 'class Base\n  def greet; end\nend\n',
-      'lib/guest.rb': 'class Guest < Base\n  include Polite\nend\n',
-    });
-    expect(callsOf(extractRuby({ repo }))).toEqual([
-      'lib/loud.rb#Loud#greet lib/person.rb#Person#greet 3',
-      'lib/polite.rb#Polite#greet lib/base.rb#Base#greet 3',
+    expect(callsOf(ruleCase('super-in-module'))).toEqual([
+      'rules/super-in-module/lib/loud.rb#Loud#greet rules/super-in-module/lib/person.rb#Person#greet 3',
+      'rules/super-in-module/lib/polite.rb#Polite#greet rules/super-in-module/lib/base.rb#Base#greet 3',
+    ]);
+  });
+
+  it('gives a one-of group over the next def of each includer for super in a module that several classes include', () => {
+    const group = 'rules/super-several-includers/lib/polite.rb:3:5';
+    const document = ruleCase('super-several-includers');
+    expect(oneOfCallsOf(document)).toEqual([
+      `rules/super-several-includers/lib/polite.rb#Polite#greet rules/super-several-includers/lib/a.rb#A#greet 3 ${group}`,
+      `rules/super-several-includers/lib/polite.rb#Polite#greet rules/super-several-includers/lib/b.rb#B#greet 3 ${group}`,
+    ]);
+    expect(openEndsOf(document)).toEqual([
+      'rules/super-several-includers/lib/lonely.rb#Lonely#greet 3 super no-implementation',
     ]);
   });
 
   it('ties a call on self to a prepended module before the class, and to an extended module on the class', () => {
-    const repo = repoOf({
-      'lib/loud.rb': 'module Loud\n  def greet; end\nend\n',
-      'lib/finders.rb': 'module Finders\n  def find_all; end\nend\n',
-      'lib/person.rb': [
-        'class Person',
-        '  prepend Loud',
-        '  extend Finders',
-        '',
-        '  def greet; end',
-        '',
-        '  def hello',
-        '    greet',
-        '  end',
-        '',
-        '  def self.load',
-        '    find_all',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    expect(callsOf(extractRuby({ repo }))).toEqual([
-      'lib/person.rb#Person#hello lib/loud.rb#Loud#greet 8',
-      'lib/person.rb#Person.load lib/finders.rb#Finders#find_all 12',
+    expect(callsOf(ruleCase('prepend-extend'))).toEqual([
+      'rules/prepend-extend/lib/person.rb#Person#hello rules/prepend-extend/lib/loud.rb#Loud#greet 8',
+      'rules/prepend-extend/lib/person.rb#Person.load rules/prepend-extend/lib/finders.rb#Finders#find_all 12',
     ]);
   });
 
   it('ties a call on self to the first module of one include or prepend with several modules', () => {
-    const repo = repoOf({
-      'lib/a.rb': 'module A\n  def x; end\nend\n',
-      'lib/b.rb': 'module B\n  def x; end\nend\n',
-      'lib/c.rb': 'class C\n  include A, B\n\n  def run\n    x\n  end\nend\n',
-      'lib/d.rb': 'class D\n  prepend B, A\n\n  def x; end\n\n  def run\n    x\n  end\nend\n',
-    });
-    expect(callsOf(extractRuby({ repo }))).toEqual([
-      'lib/c.rb#C#run lib/a.rb#A#x 5',
-      'lib/d.rb#D#run lib/b.rb#B#x 7',
+    expect(callsOf(ruleCase('several-modules'))).toEqual([
+      'rules/several-modules/lib/c.rb#C#run rules/several-modules/lib/a.rb#A#x 5',
+      'rules/several-modules/lib/d.rb#D#run rules/several-modules/lib/b.rb#B#x 7',
     ]);
   });
 
   it('ties a call on a module that extends self to the instance method of the module', () => {
-    const repo = repoOf({
-      'lib/m.rb': 'module M\n  extend self\n\n  def a; end\nend\n',
-      'lib/runner.rb': 'class Runner\n  def run\n    M.a\n  end\nend\n',
-    });
-    const document = extractRuby({ repo });
-    expect(callsOf(document)).toEqual(['lib/runner.rb#Runner#run lib/m.rb#M#a 3']);
+    const document = ruleCase('extend-self');
+    expect(callsOf(document)).toEqual([
+      'rules/extend-self/lib/runner.rb#Runner#run rules/extend-self/lib/m.rb#M#a 3',
+    ]);
     expect(openEndsOf(document)).toEqual([]);
   });
 
   it('ties a call on the class of a Rails concern to a method of its class_methods block', () => {
-    const repo = repoOf({
-      'app/models/concerns/searchable.rb': [
-        'module Searchable',
-        '  extend ActiveSupport::Concern',
-        '',
-        '  class_methods do',
-        '    def search; end',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'app/models/post.rb':
-        'class Post\n  include Searchable\n\n  def self.top\n    search\n  end\nend\n',
-    });
-    expect(callsOf(extractRuby({ repo }))).toEqual([
-      'app/models/post.rb#Post.top app/models/concerns/searchable.rb#Searchable::ClassMethods#search 5',
+    expect(callsOf(ruleCase('class-methods'))).toEqual([
+      'rules/class-methods/app/models/post.rb#Post.top rules/class-methods/app/models/concerns/searchable.rb#Searchable::ClassMethods#search 5',
     ]);
   });
 
@@ -271,12 +245,8 @@ describe('the calls of extractRuby', () => {
   });
 
   it('gives an untyped open end for a call that does not tie, when a def of the repo has its name', () => {
-    const repo = repoOf({
-      'lib/label.rb': 'class Label\n  def print; end\nend\n',
-      'lib/printer.rb': 'class Printer\n  def run(label)\n    label.print\n  end\nend\n',
-    });
-    expect(openEndsOf(extractRuby({ repo }))).toEqual([
-      'lib/printer.rb#Printer#run 3 label.print untyped',
+    expect(openEndsOf(ruleCase('untyped'))).toEqual([
+      'rules/untyped/lib/printer.rb#Printer#run 3 label.print untyped',
     ]);
   });
 
@@ -287,11 +257,9 @@ describe('the calls of extractRuby', () => {
   });
 
   it('gives an open end with other for a call on self that finds no def in a class chain of the repo', () => {
-    const repo = repoOf({
-      'lib/cart.rb': 'class Cart\n  def add\n    total\n  end\nend\n',
-      'lib/order.rb': 'class Order\n  def total; end\nend\n',
-    });
-    expect(openEndsOf(extractRuby({ repo }))).toEqual(['lib/cart.rb#Cart#add 3 total other']);
+    expect(openEndsOf(ruleCase('self-other'))).toEqual([
+      'rules/self-other/lib/cart.rb#Cart#add 3 total other',
+    ]);
   });
 
   it('gives a library call for a method that has_many makes, even when a def of the repo has its name', () => {
@@ -304,21 +272,7 @@ describe('the calls of extractRuby', () => {
   });
 
   it('gives a library call for a method that attr_reader or delegate makes', () => {
-    const repo = repoOf({
-      'lib/axis.rb': 'class Axis\n  def x; end\n\n  def total; end\nend\n',
-      'lib/point.rb': [
-        'class Point',
-        '  attr_reader :x',
-        '  delegate :total, to: :axis',
-        '',
-        '  def norm',
-        '    x + total',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('macros');
     expect([...document.calls, ...document.openEnds]).toEqual([]);
   });
 
@@ -361,6 +315,13 @@ describe('the calls of extractRuby', () => {
     );
   });
 
+  it('ties a call to the def in scope when a body out of scope defines the same method', () => {
+    const document = ruleCase('def-in-scope', '!**/spec/**');
+    expect(callsOf(document)).toEqual([
+      'rules/def-in-scope/app/models/order.rb#Order#run rules/def-in-scope/app/models/order.rb#Order#total 5',
+    ]);
+  });
+
   it('gives a library call for a callee whose file the scope leaves out', () => {
     const document = extract('shop/app/models/report.rb');
     expect(callsOf(document)).toEqual([`${REPORT}#Report#render ${REPORT}#Report#rows 7`]);
@@ -370,206 +331,91 @@ describe('the calls of extractRuby', () => {
 
 describe('the metaprogramming of extractRuby', () => {
   it('names a method of module_function Mod.x, and ties a call through self in the module to it', () => {
-    const repo = repoOf({
-      'lib/units.rb': [
-        'module Units',
-        '  def to_cm; end',
-        '  module_function :to_cm',
-        '  module_function def to_in; end',
-        '',
-        '  module_function',
-        '',
-        '  def to_mm',
-        '    to_cm',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/ruler.rb': 'class Ruler\n  def mark\n    Units.to_mm\n  end\nend\n',
-    });
-    const document = extractRuby({ repo });
-    expect(namesIn(document, 'lib/units.rb')).toEqual([
+    const document = ruleCase('module-function');
+    expect(namesIn(document, 'rules/module-function/lib/units.rb')).toEqual([
       'Units.to_cm',
       'Units.to_in',
       'Units.to_mm',
     ]);
     expect(callsOf(document)).toEqual([
-      'lib/ruler.rb#Ruler#mark lib/units.rb#Units.to_mm 3',
-      'lib/units.rb#Units.to_mm lib/units.rb#Units.to_cm 9',
+      'rules/module-function/lib/ruler.rb#Ruler#mark rules/module-function/lib/units.rb#Units.to_mm 3',
+      'rules/module-function/lib/units.rb#Units.to_mm rules/module-function/lib/units.rb#Units.to_cm 9',
     ]);
   });
 
   it('names a method of define_method with a literal name at the line of that call', () => {
-    const repo = repoOf({
-      'lib/flags.rb': [
-        'class Flags',
-        '  define_method(:on) do',
-        '    reset',
-        '  end',
-        '',
-        '  class << self',
-        '    define_method "load" do',
-        '      new',
-        '    end',
-        '  end',
-        '',
-        '  %i[a b].each { |flag| define_method(flag) { reset } }',
-        '',
-        '  def reset; end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('define-method');
     expect(
       document.functions.map(({ name, firstLine, lastLine }) => `${name} ${firstLine}-${lastLine}`),
     ).toEqual(['Flags#on 2-4', 'Flags.load 7-9', 'Flags#reset 14-14']);
-    expect(callsOf(document)).toEqual(['lib/flags.rb#Flags#on lib/flags.rb#Flags#reset 3']);
+    expect(callsOf(document)).toEqual([
+      'rules/define-method/lib/flags.rb#Flags#on rules/define-method/lib/flags.rb#Flags#reset 3',
+    ]);
   });
 
   it('names a def in the block of a constant from Struct.new, Data.define or Class.new as a method of that constant', () => {
-    const repo = repoOf({
-      'lib/shapes.rb': [
-        'module Shapes',
-        '  Point = Struct.new(:x, :y) do',
-        '    def norm; end',
-        '  end',
-        '',
-        '  Size = Data.define(:width) do',
-        '    def area',
-        '      norm',
-        '    end',
-        '  end',
-        '',
-        '  Square = Class.new(Base) do',
-        '    def draw',
-        '      outline',
-        '      Point.new.norm',
-        '      Size.area',
-        '    end',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/shapes/base.rb': 'module Shapes\n  class Base\n    def outline; end\n  end\nend\n',
-    });
-    const document = extractRuby({ repo });
-    expect(namesIn(document, 'lib/shapes.rb')).toEqual([
+    const document = ruleCase('made-classes');
+    expect(namesIn(document, 'rules/made-classes/lib/shapes.rb')).toEqual([
       'Shapes::Point#norm',
       'Shapes::Size#area',
       'Shapes::Square#draw',
     ]);
     expect(callsOf(document)).toEqual([
-      'lib/shapes.rb#Shapes::Square#draw lib/shapes/base.rb#Shapes::Base#outline 14',
-      'lib/shapes.rb#Shapes::Square#draw lib/shapes.rb#Shapes::Point#norm 15',
+      'rules/made-classes/lib/shapes.rb#Shapes::Square#draw rules/made-classes/lib/shapes/base.rb#Shapes::Base#outline 14',
+      'rules/made-classes/lib/shapes.rb#Shapes::Square#draw rules/made-classes/lib/shapes.rb#Shapes::Point#norm 15',
     ]);
     expect(openEndsOf(document)).toEqual([]);
   });
 
   it('ties send, public_send and try with a literal name like a direct call, and gives dynamic-key for a computed name', () => {
-    const repo = repoOf({
-      'lib/robot.rb': [
-        'class Robot',
-        '  def self.build; end',
-        '',
-        '  def step(name, arm)',
-        '    send(:turn, 90)',
-        '    Robot.public_send "build"',
-        '    arm.try(:turn)',
-        '    send(name)',
-        '    arm.public_send(name, 1)',
-        '  end',
-        '',
-        '  def turn(degrees = 0); end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('send');
     expect(callsOf(document)).toEqual([
-      'lib/robot.rb#Robot#step lib/robot.rb#Robot#turn 5',
-      'lib/robot.rb#Robot#step lib/robot.rb#Robot.build 6',
+      'rules/send/lib/robot.rb#Robot#step rules/send/lib/robot.rb#Robot#turn 5',
+      'rules/send/lib/robot.rb#Robot#step rules/send/lib/robot.rb#Robot.build 6',
     ]);
     expect(openEndsOf(document)).toEqual([
-      'lib/robot.rb#Robot#step 7 arm.try untyped',
-      'lib/robot.rb#Robot#step 8 send dynamic-key',
-      'lib/robot.rb#Robot#step 9 arm.public_send dynamic-key',
+      'rules/send/lib/robot.rb#Robot#step 7 arm.try untyped',
+      'rules/send/lib/robot.rb#Robot#step 8 send dynamic-key',
+      'rules/send/lib/robot.rb#Robot#step 9 arm.public_send dynamic-key',
+    ]);
+  });
+
+  it('gives missing-module before dynamic-key for send with a computed name on a constant that does not resolve', () => {
+    expect(openEndsOf(ruleCase('send-missing'))).toEqual([
+      'rules/send-missing/lib/robot.rb#Robot#step 3 Ledger.send missing-module',
+      'rules/send-missing/lib/robot.rb#Robot#step 4 Ledger.send missing-module',
     ]);
   });
 
   it('gives function-value for yield and for a call of a block, a callable or a method object', () => {
-    const repo = repoOf({
-      'lib/hooks.rb': [
-        'class Hooks',
-        '  def run(callable, service, &block)',
-        '    yield',
-        '    yield(1)',
-        '    block.call(2)',
-        '    callable.()',
-        '    method(:run).call',
-        '    service.call',
-        '    service.method(:call).call',
-        '    self.method(:run).call',
-        '  end',
-        '',
-        '  def call; end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    expect(openEndsOf(extractRuby({ repo }))).toEqual([
-      'lib/hooks.rb#Hooks#run 3 yield function-value',
-      'lib/hooks.rb#Hooks#run 4 yield function-value',
-      'lib/hooks.rb#Hooks#run 5 block.call function-value',
-      'lib/hooks.rb#Hooks#run 6 callable.() function-value',
-      'lib/hooks.rb#Hooks#run 7 method(:run).call function-value',
-      'lib/hooks.rb#Hooks#run 8 service.call untyped',
-      'lib/hooks.rb#Hooks#run 9 service.method(:call).call function-value',
-      'lib/hooks.rb#Hooks#run 10 self.method(:run).call function-value',
+    expect(openEndsOf(ruleCase('function-value'))).toEqual([
+      'rules/function-value/lib/hooks.rb#Hooks#run 3 yield function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 4 yield function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 5 block.call function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 6 callable.() function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 7 method(:run).call function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 8 service.call untyped',
+      'rules/function-value/lib/hooks.rb#Hooks#run 9 service.method(:call).call function-value',
+      'rules/function-value/lib/hooks.rb#Hooks#run 10 self.method(:run).call function-value',
     ]);
   });
 
   it('gives dynamic-key for send with a splat, and reads a mixin or a macro with a splat', () => {
-    const repo = repoOf({
-      'lib/robot.rb': [
-        'class Robot',
-        '  include(*MODULES)',
-        '  attr_reader :arm, *PARTS',
-        '',
-        '  def step(*args)',
-        '    send(*args)',
-        '    public_send(:turn, *args)',
-        '  end',
-        '',
-        '  def turn; end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
-    expect(callsOf(document)).toEqual(['lib/robot.rb#Robot#step lib/robot.rb#Robot#turn 7']);
-    expect(openEndsOf(document)).toEqual(['lib/robot.rb#Robot#step 6 send dynamic-key']);
+    const document = ruleCase('send-splat');
+    expect(callsOf(document)).toEqual([
+      'rules/send-splat/lib/robot.rb#Robot#step rules/send-splat/lib/robot.rb#Robot#turn 7',
+    ]);
+    expect(openEndsOf(document)).toEqual([
+      'rules/send-splat/lib/robot.rb#Robot#step 6 send dynamic-key',
+    ]);
   });
 
   it('gives other for a call on self that only method_missing could answer', () => {
-    const repo = repoOf({
-      'lib/ghost.rb': [
-        'class Ghost',
-        '  def method_missing(name, *args)',
-        '    super',
-        '  end',
-        '',
-        '  def haunt',
-        '    vanish',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/magician.rb': 'class Magician\n  def vanish; end\nend\n',
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('method-missing');
     expect(callsOf(document)).toEqual([]);
-    expect(openEndsOf(document)).toEqual(['lib/ghost.rb#Ghost#haunt 7 vanish other']);
+    expect(openEndsOf(document)).toEqual([
+      'rules/method-missing/lib/ghost.rb#Ghost#haunt 7 vanish other',
+    ]);
   });
 });
 
@@ -580,24 +426,11 @@ const oneOfCallsOf = (document: GraphDocument): readonly string[] =>
 
 describe('the one-of groups of extractRuby', () => {
   it('gives a one-of group over each including class for a call on self in a concern with no def of its name', () => {
-    const repo = repoOf({
-      'app/models/concerns/billable.rb': [
-        'module Billable',
-        '  def invoice',
-        '    total',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'app/models/order.rb': 'class Order\n  include Billable\n\n  def total; end\nend\n',
-      'app/models/refund.rb': 'class Refund\n  include Billable\n\n  def total; end\nend\n',
-      'app/models/cart.rb': 'class Cart\n  def total; end\nend\n',
-    });
-    const group = 'app/models/concerns/billable.rb:3:5';
-    const document = extractRuby({ repo });
+    const group = 'rules/concern-one-of/app/models/concerns/billable.rb:3:5';
+    const document = ruleCase('concern-one-of');
     expect(oneOfCallsOf(document)).toEqual([
-      `app/models/concerns/billable.rb#Billable#invoice app/models/order.rb#Order#total 3 ${group}`,
-      `app/models/concerns/billable.rb#Billable#invoice app/models/refund.rb#Refund#total 3 ${group}`,
+      `rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice rules/concern-one-of/app/models/order.rb#Order#total 3 ${group}`,
+      `rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice rules/concern-one-of/app/models/refund.rb#Refund#total 3 ${group}`,
     ]);
     expect(
       reviewOf(reviewGraphsOf({ base: [], branch: [document] })).resolutionRates.map(
@@ -607,360 +440,122 @@ describe('the one-of groups of extractRuby', () => {
   });
 
   it('gives a one-of group over the overrides of the subclasses for a call to an abstract method', () => {
-    const repo = repoOf({
-      'lib/exporter.rb': [
-        'class Exporter',
-        '  def run',
-        '    write',
-        '  end',
-        '',
-        '  def write',
-        '    raise NotImplementedError, "a subclass writes"',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/csv_exporter.rb': 'class CsvExporter < Exporter\n  def write; end\nend\n',
-      'lib/json_exporter.rb': 'class JsonExporter < Exporter\n  def write = nil\nend\n',
-      'lib/null_exporter.rb': 'class NullExporter < Exporter\nend\n',
-    });
-    const group = 'lib/exporter.rb:3:5';
-    expect(oneOfCallsOf(extractRuby({ repo }))).toEqual([
-      `lib/exporter.rb#Exporter#run lib/csv_exporter.rb#CsvExporter#write 3 ${group}`,
-      `lib/exporter.rb#Exporter#run lib/json_exporter.rb#JsonExporter#write 3 ${group}`,
+    const group = 'rules/abstract/lib/exporter.rb:3:5';
+    expect(oneOfCallsOf(ruleCase('abstract'))).toEqual([
+      `rules/abstract/lib/exporter.rb#Exporter#run rules/abstract/lib/csv_exporter.rb#CsvExporter#write 3 ${group}`,
+      `rules/abstract/lib/exporter.rb#Exporter#run rules/abstract/lib/json_exporter.rb#JsonExporter#write 3 ${group}`,
     ]);
   });
 
   it('ties a call to a concrete method that a subclass overrides to the one method', () => {
-    const repo = repoOf({
-      'lib/exporter.rb': 'class Exporter\n  def run\n    write\n  end\n\n  def write; end\nend\n',
-      'lib/csv_exporter.rb': 'class CsvExporter < Exporter\n  def write; end\nend\n',
-    });
-    expect(oneOfCallsOf(extractRuby({ repo }))).toEqual([
-      'lib/exporter.rb#Exporter#run lib/exporter.rb#Exporter#write 3 no group',
+    expect(oneOfCallsOf(ruleCase('concrete-override'))).toEqual([
+      'rules/concrete-override/lib/exporter.rb#Exporter#run rules/concrete-override/lib/exporter.rb#Exporter#write 3 no group',
     ]);
   });
 
   it('gives no-implementation for a one-of group with no member in scope', () => {
-    const repo = repoOf({
-      'lib/billable.rb': 'module Billable\n  def invoice\n    total\n  end\nend\n',
-      'lib/cart.rb': 'class Cart\n  def total; end\nend\n',
-      'lib/exporter.rb': [
-        'class Exporter',
-        '  def run',
-        '    write',
-        '  end',
-        '',
-        '  def write',
-        '    raise(NotImplementedError)',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/csv_exporter.rb': 'class CsvExporter < Exporter\n  def write; end\nend\n',
-    });
-    const document = extractRuby({ repo, scope: ['lib/billable.rb', 'lib/exporter.rb'] });
+    const document = ruleCase(
+      'no-implementation',
+      'rules/no-implementation/lib/billable.rb',
+      'rules/no-implementation/lib/exporter.rb',
+    );
     expect(document.calls).toEqual([]);
     expect(openEndsOf(document)).toEqual([
-      'lib/billable.rb#Billable#invoice 3 total no-implementation',
-      'lib/exporter.rb#Exporter#run 3 write no-implementation',
+      'rules/no-implementation/lib/billable.rb#Billable#invoice 3 total no-implementation',
+      'rules/no-implementation/lib/exporter.rb#Exporter#run 3 write no-implementation',
     ]);
   });
 });
 
 describe('the receivers of a known class in extractRuby', () => {
   it('ties a call on a literal to a method that the repo adds to its library class', () => {
-    const repo = repoOf({
-      'lib/core_ext.rb': [
-        'class String',
-        '  def slugify; end',
-        'end',
-        '',
-        'class Array',
-        '  def second; end',
-        'end',
-        '',
-        'class Hash',
-        '  def deep_keys; end',
-        'end',
-        '',
-        'class Symbol',
-        '  def to_label; end',
-        'end',
-        '',
-        'class Integer',
-        '  def minutes; end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/page.rb': [
-        'class Page',
-        '  def render',
-        '    "Hello world".slugify',
-        "    'x'.slugify",
-        '    [1, 2].second',
-        '    %w[a b].second',
-        '    { a: 1 }.deep_keys',
-        '    :title.to_label',
-        '    5.minutes',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('literals');
     expect(callsOf(document)).toEqual([
-      'lib/page.rb#Page#render lib/core_ext.rb#String#slugify 3',
-      'lib/page.rb#Page#render lib/core_ext.rb#String#slugify 4',
-      'lib/page.rb#Page#render lib/core_ext.rb#Array#second 5',
-      'lib/page.rb#Page#render lib/core_ext.rb#Array#second 6',
-      'lib/page.rb#Page#render lib/core_ext.rb#Hash#deep_keys 7',
-      'lib/page.rb#Page#render lib/core_ext.rb#Symbol#to_label 8',
-      'lib/page.rb#Page#render lib/core_ext.rb#Integer#minutes 9',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#String#slugify 3',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#String#slugify 4',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#Array#second 5',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#Array#second 6',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#Hash#deep_keys 7',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#Symbol#to_label 8',
+      'rules/literals/lib/page.rb#Page#render rules/literals/lib/core_ext.rb#Integer#minutes 9',
     ]);
     expect(openEndsOf(document)).toEqual([]);
   });
 
   it('gives a library call for a call on a literal whose class the repo does not reopen, even when a def of the repo has its name', () => {
-    const repo = repoOf({
-      'lib/page.rb': [
-        'class Page',
-        '  def render',
-        '    "x".upcase',
-        '    [].first',
-        '  end',
-        '',
-        '  def upcase; end',
-        '  def first; end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('library-literals');
     expect(callsOf(document)).toEqual([]);
     expect(openEndsOf(document)).toEqual([]);
   });
 
   it('ties a call on Foo.new to the instance method of Foo, and keeps a value that its own new makes untyped', () => {
-    const repo = repoOf({
-      'lib/billing/invoice.rb': [
-        'module Billing',
-        '  class Invoice',
-        '    def total; end',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/cache.rb': 'class Cache\n  def self.new; end\n\n  def total; end\nend\n',
-      'lib/billing/run.rb': [
-        'module Billing',
-        '  class Run',
-        '    def call',
-        '      Invoice.new.total',
-        '      Invoice.new(1, 2).total',
-        '      Billing::Invoice.new { 1 }.total',
-        '      Cache.new.total',
-        '      Missing.new.total',
-        '    end',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('new');
     expect(callsOf(document)).toEqual([
-      'lib/billing/run.rb#Billing::Run#call lib/billing/invoice.rb#Billing::Invoice#total 4',
-      'lib/billing/run.rb#Billing::Run#call lib/billing/invoice.rb#Billing::Invoice#total 5',
-      'lib/billing/run.rb#Billing::Run#call lib/billing/invoice.rb#Billing::Invoice#total 6',
-      'lib/billing/run.rb#Billing::Run#call lib/cache.rb#Cache.new 7',
+      'rules/new/lib/billing/run.rb#Billing::Run#call rules/new/lib/billing/invoice.rb#Billing::Invoice#total 4',
+      'rules/new/lib/billing/run.rb#Billing::Run#call rules/new/lib/billing/invoice.rb#Billing::Invoice#total 5',
+      'rules/new/lib/billing/run.rb#Billing::Run#call rules/new/lib/billing/invoice.rb#Billing::Invoice#total 6',
+      'rules/new/lib/billing/run.rb#Billing::Run#call rules/new/lib/cache.rb#Cache.new 7',
     ]);
     expect(openEndsOf(document)).toEqual([
-      'lib/billing/run.rb#Billing::Run#call 7 Cache.new.total untyped',
-      'lib/billing/run.rb#Billing::Run#call 8 Missing.new.total untyped',
+      'rules/new/lib/billing/run.rb#Billing::Run#call 7 Cache.new.total untyped',
+      'rules/new/lib/billing/run.rb#Billing::Run#call 8 Missing.new.total untyped',
     ]);
   });
 });
 
-const TYPE_FLOW_REPO = {
-  'lib/invoice.rb': 'class Invoice\n  def total; end\nend\n',
-  'lib/refund.rb': 'class Refund\n  def total; end\nend\n',
-  'lib/core_ext.rb': 'class String\n  def slugify; end\nend\n',
-};
-
 describe('the local type flow of extractRuby', () => {
   it('ties a call on a local variable that each write of the def sets from Foo.new or a literal', () => {
-    const repo = repoOf({
-      ...TYPE_FLOW_REPO,
-      'lib/run.rb': [
-        'class Run',
-        '  def call(given, items)',
-        '    invoice = Invoice.new',
-        '    invoice.total',
-        '    items.each { invoice.total }',
-        '    name = "x"',
-        '    name.slugify',
-        '    cached ||= Invoice.new',
-        '    cached.total',
-        '    either = Invoice.new',
-        '    either = Refund.new',
-        '    either.total',
-        '    given.total',
-        '    first, second = Invoice.new, Invoice.new',
-        '    first.total',
-        '    shadowed = Invoice.new; items.each { |shadowed| shadowed.total }',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('local-variables');
     expect(callsOf(document)).toEqual([
-      'lib/run.rb#Run#call lib/invoice.rb#Invoice#total 4',
-      'lib/run.rb#Run#call lib/invoice.rb#Invoice#total 5',
-      'lib/run.rb#Run#call lib/core_ext.rb#String#slugify 7',
-      'lib/run.rb#Run#call lib/invoice.rb#Invoice#total 9',
+      'rules/local-variables/lib/run.rb#Run#call rules/local-variables/lib/invoice.rb#Invoice#total 4',
+      'rules/local-variables/lib/run.rb#Run#call rules/local-variables/lib/invoice.rb#Invoice#total 5',
+      'rules/local-variables/lib/run.rb#Run#call rules/local-variables/lib/core_ext.rb#String#slugify 7',
+      'rules/local-variables/lib/run.rb#Run#call rules/local-variables/lib/invoice.rb#Invoice#total 9',
     ]);
     expect(openEndsOf(document)).toEqual([
-      'lib/run.rb#Run#call 12 either.total untyped',
-      'lib/run.rb#Run#call 13 given.total untyped',
-      'lib/run.rb#Run#call 15 first.total untyped',
-      'lib/run.rb#Run#call 16 shadowed.total untyped',
+      'rules/local-variables/lib/run.rb#Run#call 12 either.total untyped',
+      'rules/local-variables/lib/run.rb#Run#call 13 given.total untyped',
+      'rules/local-variables/lib/run.rb#Run#call 15 first.total untyped',
+      'rules/local-variables/lib/run.rb#Run#call 16 shadowed.total untyped',
     ]);
   });
 
   it('ties a call on an instance variable that one method of the class alone sets from Foo.new', () => {
-    const repo = repoOf({
-      ...TYPE_FLOW_REPO,
-      'lib/checkout.rb': [
-        'class Checkout',
-        '  attr_accessor :note',
-        '',
-        '  def initialize',
-        '    @invoice = Invoice.new',
-        '    @note = Invoice.new',
-        '  end',
-        '',
-        '  def refund',
-        '    @refund ||= Refund.new',
-        '  end',
-        '',
-        '  def run',
-        '    @invoice.total',
-        '    @refund.total',
-        '    @note.total',
-        '    @other.total',
-        '  end',
-        '',
-        '  def first = @other = Invoice.new',
-        '  def second = @other = Invoice.new',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('instance-variables');
     expect(callsOf(document)).toEqual([
-      'lib/checkout.rb#Checkout#run lib/invoice.rb#Invoice#total 14',
-      'lib/checkout.rb#Checkout#run lib/refund.rb#Refund#total 15',
+      'rules/instance-variables/lib/checkout.rb#Checkout#run rules/instance-variables/lib/invoice.rb#Invoice#total 14',
+      'rules/instance-variables/lib/checkout.rb#Checkout#run rules/instance-variables/lib/refund.rb#Refund#total 15',
     ]);
     expect(openEndsOf(document)).toEqual([
-      'lib/checkout.rb#Checkout#run 16 @note.total untyped',
-      'lib/checkout.rb#Checkout#run 17 @other.total untyped',
+      'rules/instance-variables/lib/checkout.rb#Checkout#run 16 @note.total untyped',
+      'rules/instance-variables/lib/checkout.rb#Checkout#run 17 @other.total untyped',
     ]);
   });
 
   it('keeps an instance variable untyped when a subclass, a superclass or a module of the object writes it too', () => {
-    const repo = repoOf({
-      ...TYPE_FLOW_REPO,
-      'lib/base.rb': [
-        'class Base',
-        '  def setup',
-        '    @x = Invoice.new',
-        '  end',
-        '',
-        '  def run',
-        '    @x.total',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/child.rb': 'class Child < Base\n  def setup\n    @x = Refund.new\n  end\nend\n',
-      'lib/parent.rb': 'class Parent\n  def prepare\n    @y = Refund.new\n  end\nend\n',
-      'lib/settable.rb': 'module Settable\n  def assign\n    @z = Refund.new\n  end\nend\n',
-      'lib/writable.rb': 'module Writable\n  attr_writer :w\nend\n',
-      'lib/heir.rb': [
-        'class Heir < Parent',
-        '  include Settable',
-        '  include Writable',
-        '',
-        '  def initialize',
-        '    @y = Invoice.new',
-        '    @z = Invoice.new',
-        '    @w = Invoice.new',
-        '  end',
-        '',
-        '  def run',
-        '    @y.total',
-        '    @z.total',
-        '    @w.total',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('shared-instance-variables');
     expect(callsOf(document)).toEqual([]);
     expect(openEndsOf(document)).toEqual([
-      'lib/base.rb#Base#run 7 @x.total untyped',
-      'lib/heir.rb#Heir#run 12 @y.total untyped',
-      'lib/heir.rb#Heir#run 13 @z.total untyped',
-      'lib/heir.rb#Heir#run 14 @w.total untyped',
+      'rules/shared-instance-variables/lib/base.rb#Base#run 7 @x.total untyped',
+      'rules/shared-instance-variables/lib/heir.rb#Heir#run 12 @y.total untyped',
+      'rules/shared-instance-variables/lib/heir.rb#Heir#run 13 @z.total untyped',
+      'rules/shared-instance-variables/lib/heir.rb#Heir#run 14 @w.total untyped',
     ]);
   });
 
   it('ties a call on a value that a finder of the library makes, when the class is a model', () => {
-    const repo = repoOf({
-      'lib/application_record.rb': 'class ApplicationRecord < ActiveRecord::Base\nend\n',
-      'lib/account.rb': 'class Account < ApplicationRecord\n  def suspend; end\nend\n',
-      'lib/vault.rb': [
-        'class Vault < ApplicationRecord',
-        '  def self.create; end',
-        '',
-        '  def suspend; end',
-        'end',
-        '',
-      ].join('\n'),
-      'lib/ledger.rb': 'class Ledger\n  def self.find(id); end\n\n  def suspend; end\nend\n',
-      'lib/admin.rb': [
-        'class Admin',
-        '  def load(id)',
-        '    @account ||= Account.find(id)',
-        '  end',
-        '',
-        '  def run(id)',
-        '    Account.find(id).suspend',
-        '    account = Account.find_by name: id',
-        '    account.suspend',
-        '    @account.suspend',
-        '    Account.where(id).suspend',
-        '    Vault.create.suspend',
-        '    Ledger.find(id).suspend',
-        '  end',
-        'end',
-        '',
-      ].join('\n'),
-    });
-    const document = extractRuby({ repo });
+    const document = ruleCase('finders');
     expect(callsOf(document)).toEqual([
-      'lib/admin.rb#Admin#run lib/account.rb#Account#suspend 7',
-      'lib/admin.rb#Admin#run lib/account.rb#Account#suspend 9',
-      'lib/admin.rb#Admin#run lib/account.rb#Account#suspend 10',
-      'lib/admin.rb#Admin#run lib/vault.rb#Vault.create 12',
-      'lib/admin.rb#Admin#run lib/ledger.rb#Ledger.find 13',
+      'rules/finders/lib/admin.rb#Admin#run rules/finders/lib/account.rb#Account#suspend 7',
+      'rules/finders/lib/admin.rb#Admin#run rules/finders/lib/account.rb#Account#suspend 9',
+      'rules/finders/lib/admin.rb#Admin#run rules/finders/lib/account.rb#Account#suspend 10',
+      'rules/finders/lib/admin.rb#Admin#run rules/finders/lib/vault.rb#Vault.create 12',
+      'rules/finders/lib/admin.rb#Admin#run rules/finders/lib/ledger.rb#Ledger.find 13',
     ]);
     expect(openEndsOf(document)).toEqual([
-      'lib/admin.rb#Admin#run 11 Account.where(id).suspend untyped',
-      'lib/admin.rb#Admin#run 12 Vault.create.suspend untyped',
-      'lib/admin.rb#Admin#run 13 Ledger.find(id).suspend untyped',
+      'rules/finders/lib/admin.rb#Admin#run 11 Account.where(id).suspend untyped',
+      'rules/finders/lib/admin.rb#Admin#run 12 Vault.create.suspend untyped',
+      'rules/finders/lib/admin.rb#Admin#run 13 Ledger.find(id).suspend untyped',
     ]);
   });
 });
@@ -1063,13 +658,14 @@ describe('the checker and the files of extractRuby', () => {
   });
 
   it('claims a file that Ripper cannot parse with no functions, and keeps reading the others', () => {
-    const repo = repoOf({
-      'app/models/broken.rb': 'class Broken\n  def oops(\nend\n',
-      'app/models/cart.rb': 'class Cart\n  def add; end\nend\n',
-    });
-    const document = extractRuby({ repo });
-    expect(document.files).toEqual(['app/models/broken.rb', 'app/models/cart.rb']);
-    expect(document.functions.map(({ id }) => id)).toEqual(['app/models/cart.rb#Cart#add']);
+    const document = ruleCase('unparsed');
+    expect(document.files).toEqual([
+      'rules/unparsed/app/models/broken.rb',
+      'rules/unparsed/app/models/cart.rb',
+    ]);
+    expect(document.functions.map(({ id }) => id)).toEqual([
+      'rules/unparsed/app/models/cart.rb#Cart#add',
+    ]);
   });
 
   it('reports a repo it cannot read rather than emitting an empty document', () => {

@@ -47,6 +47,8 @@ The open ends by reason:
 
 Only `untyped` changes from one variant to the next.
 
+The 3 reads took 8.76 s in all, with a peak memory of 220,304 KB. The 1-minute load average was 23.66.
+
 ## The run after the commit `99206f9`
 
 The owner chose variant 3 on issue #12. The commit `99206f9` then changes the rule of an instance variable. An instance variable has a known class when one method alone writes it, among every method that an object of the class can run. These methods come from the class chain of the class and from the chain of each class below it, such as a subclass or a class that includes the module. So a write in a subclass, a superclass or a module counts. An `attr_writer` or `attr_accessor` in any of these chains makes the variable unknown. ADR-0032 records the choice and the rule.
@@ -59,8 +61,6 @@ The probe ran again on the same commit of mastodon, with the default scope and n
 | Variant 3 at `99bba6b`, new rule | 8,597          | 9,832     | 8,930               | 46.6% |
 
 The open ends rose by 11, and the `untyped` open ends rose by 11. To run it again, follow the steps below with the commit `99bba6b` in place of `824d8bf`. The 3 documents are then the same.
-
-The 3 reads took 8.76 s in all, with a peak memory of 220,304 KB. The 1-minute load average was 23.66.
 
 ## The steps to run the probe again
 
