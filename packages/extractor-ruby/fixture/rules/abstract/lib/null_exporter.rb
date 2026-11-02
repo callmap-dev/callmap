@@ -1,0 +1,2 @@
+class NullExporter < Exporter
+end

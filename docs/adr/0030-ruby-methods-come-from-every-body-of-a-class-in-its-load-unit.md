@@ -1,5 +1,7 @@
 # Ruby methods come from every body of a class in its load unit
 
+> Changed in part by ADR-0033. `super` in a module with several includers gives a one-of group, and a `def` in scope wins over a `def` out of scope.
+
 The Ruby spec makes the Ruby extractor emit a graph document, as ADR-0027 plans. This record holds the rules that ADR-0027 left to the spec. The owner made these decisions in a grilling on 2026-10-30.
 
 This changes in part ADR-0027. There, Zeitwerk naming tied a constant to one file. Now Zeitwerk naming decides which constants a Rails app has, and a class takes its methods from every body of that class in its load unit. Outside a Rails app, a constant ties through the same index, and is an open end only when the index does not hold it.

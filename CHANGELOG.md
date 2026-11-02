@@ -4,6 +4,8 @@ Each version of Callmap gets a section here. The changes that no version holds y
 
 ## Unreleased
 
+- `callmap review` also reads Ruby with the Callmap Ruby rules when `ruby` is on the `PATH`. Ripper parses each file, so the review needs no gem. A call that the rules do not prove is an open end.
+- The npm package carries the Ruby extractor and its Ripper script.
 - The repo is a Claude Code plugin marketplace. Its plugin `callmap` holds the skill `callmap-review`, so `/plugin install callmap --marketplace spasoye-json/callmap` installs the skill with no clone.
 
 ## 0.1.1

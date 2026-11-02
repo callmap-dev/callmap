@@ -29,11 +29,11 @@ The cause, from a fixed list, of why the language's tools cannot tie an open end
 _Avoid_: cause, error, why
 
 **Library call**:
-A call whose callee is code outside the repo, such as the standard library, a module, a gem or a framework. In Ruby, a call that the class chain passes to a framework class, and a call to a method that a framework macro makes, such as `has_many`, are library calls too. In Go, a call through an interface of the repo that only library types implement is a library call too. The call graph does not hold a library call, and the resolution rate does not count it.
+A call whose callee is code outside the repo, such as the standard library, a module, a gem or a framework. In Ruby, a call that the class chain passes to a framework class, and a call to a method that a framework macro makes, such as `has_many`, are library calls too. So is a call on a Ruby constant that does not resolve, when its first segment has 2 properties. No `class` or `module` body of its load unit has a segment of that name, and no Zeitwerk constant of the unit has one. When an alias on the path has a target that does not resolve, the rule reads the target in place of the alias. A first segment that resolves to a constant of the repo, directly or through an alias, gives an open end. In Go, a call through an interface of the repo that only library types implement is a library call too. The call graph does not hold a library call, and the resolution rate does not count it.
 _Avoid_: external call, vendor call, leaf
 
 **One-of call**:
-One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module and a call to an abstract method give one-of calls too. Only one of them runs.
+One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module, `super` in a module with several includers and a call to an abstract method give one-of calls too. Only one of them runs.
 _Avoid_: maybe call, possible call
 
 **One-of group**:
@@ -79,8 +79,8 @@ The tool of a language that proves the calls of a graph document, with its name 
 _Avoid_: compiler, type checker version, toolchain
 
 **Reference graph document**:
-What the extractors emit before spec 15: the files in scope and the import edges between them. The graph document replaces it for the review, and the Ruby extractor keeps it until it emits functions and calls.
-_Avoid_: graph document (that holds functions and calls)
+A retired term. It named what the extractors emitted before spec 15: the files in scope and the import edges between them. No extractor emits it now. Every extractor emits a graph document. A settled record, such as ADR-0011, still uses the term.
+_Avoid_: reference graph document, for any document that an extractor emits today
 
 **Scope**:
 The globs an extractor is run under, which limit which files enter its document, so a monorepo is read one subtree at a time. A glob that starts with `!` leaves out the files that it matches. The effective scope is the scope of the user with the test globs as `!` globs, unless `--tests` asks for the tests.
@@ -88,6 +88,10 @@ _Avoid_: filter, include path, root
 
 **Load unit**:
 The Ruby code that loads together, so that its constants share one set of names: one Rails app, the folder of one `.gemspec`, or else the rest of the repo. A constant ties only to a class or a module of its own load unit. A class takes its methods from every body of that class in its load unit.
+
+**Alias**:
+A Ruby constant that a `class` body, a `module` body or the top level sets to a constant path, such as `Plan = Services::Plan`. The path resolves in the nesting of the assignment, and the rules follow a chain of aliases. A call on the alias ties as a call on its target does.
+_Avoid_: another name, synonym
 _Avoid_: app, package, project
 
 **Test file**:

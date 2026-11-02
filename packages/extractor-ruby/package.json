@@ -17,7 +17,10 @@
     "callmap-extract-ruby": "./src/cli.ts"
   },
   "dependencies": {
-    "@callmap/reference-graph": "*",
+    "@callmap/graph-document": "*",
     "@callmap/scope": "*"
+  },
+  "devDependencies": {
+    "@callmap/review": "*"
   }
 }
