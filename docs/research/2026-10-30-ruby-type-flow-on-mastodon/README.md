@@ -62,23 +62,25 @@ The probe ran again on the same commit of mastodon, with the default scope and n
 
 The open ends rose by 11, and the `untyped` open ends rose by 11. To run it again, follow the steps below with the commit `99bba6b` in place of `824d8bf`. The 3 documents are then the same.
 
-The commit after `287a523` fixes 2 rules. A constant that a body or the top level sets to a constant path is another name of that constant. And `new` with no receiver or on `self` in a singleton method of a class ties as `Foo.new` does, and gives a value of `Foo`. The probe ran again on the same commit of mastodon, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`. Each run is variant 3.
+The commit `dbffec1` fixes 2 rules. A constant that a body or the top level sets to a constant path is an alias of that constant. And `new` with no receiver or on `self` in a singleton method of a class ties as `Foo.new` does, and gives a value of `Foo`. The probe ran again on the same commit of mastodon, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`. Each run is variant 3.
 
-| Extractor                    | Resolved calls | Open ends | `untyped` open ends | `other` open ends | Rate  |
-| ---------------------------- | -------------- | --------- | ------------------- | ----------------- | ----- |
-| `287a523`                    | 8,598          | 9,836     | 8,930               | 314               | 46.6% |
-| The commit after `287a523`   | 8,614          | 9,818     | 8,924               | 302               | 46.7% |
+| Extractor             | Resolved calls | Open ends | `untyped` open ends | `other` open ends | Rate  |
+| --------------------- | -------------- | --------- | ------------------- | ----------------- | ----- |
+| `8633d36`, rules 8    | 8,598          | 9,836     | 8,930               | 314               | 46.6% |
+| `dbffec1`, rules 8    | 8,614          | 9,818     | 8,924               | 302               | 46.7% |
 
-The resolved calls rose by 16, and the open ends fell by 18. The `missing-module` open ends stay at 373. To run it again, follow the steps below with the new commit in place of `824d8bf`. The 3 documents are then the same.
+The resolved calls rose by 16, and the open ends fell by 18. The `missing-module` open ends stay at 373. To run it again, follow the steps below with the commit `dbffec1` in place of `824d8bf`. The 3 documents are then the same.
 
-The next commit makes a constant that does not resolve a library call when no body of its load unit, and no Zeitwerk name, has a segment named as its first segment (ADR-0034). The extractor ran on the same commit of mastodon with `node packages/extractor-ruby/src/cli.ts`, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`.
+The commit `787052f` makes a constant that does not resolve a library call when no body of its load unit, and no Zeitwerk name, has a segment named as its first segment (ADR-0034). The extractor ran on the same commit of mastodon with `node packages/extractor-ruby/src/cli.ts`, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`.
 
-| Extractor                          | Resolved calls | Open ends | `missing-module` open ends | `untyped` open ends | `other` open ends | Rate  |
-| ---------------------------------- | -------------- | --------- | -------------------------- | ------------------- | ----------------- | ----- |
-| The commit after `287a523`         | 8,614          | 9,818     | 373                        | 8,924               | 302               | 46.7% |
-| The rule of the library constants  | 8,614          | 9,499     | 54                         | 8,924               | 302               | 47.6% |
+| Extractor             | Resolved calls | Open ends | `missing-module` open ends | `untyped` open ends | `other` open ends | Rate  |
+| --------------------- | -------------- | --------- | -------------------------- | ------------------- | ----------------- | ----- |
+| `dbffec1`, rules 8    | 8,614          | 9,818     | 373                        | 8,924               | 302               | 46.7% |
+| `787052f`, rules 8    | 8,614          | 9,499     | 54                         | 8,924               | 302               | 47.6% |
 
 The open ends fell by 319, and each of them was a `missing-module` open end. The resolved calls and the other reasons stay the same.
+
+The commits `8633d36`, `dbffec1` and `787052f` each have different rules, but each one prints the checker `Callmap Ruby rules 8`. So each row names its commit. The commit after `787052f` raises the version to 9 for its rules, and its run gives the same counts as `787052f`.
 
 ## The steps to run the probe again
 

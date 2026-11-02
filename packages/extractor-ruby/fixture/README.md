@@ -58,7 +58,8 @@ mix with the constants of the other folders.
 | `rules/constant-aliases/`          | Constants that a body and the top level set to a constant path of the repo, of a library, of another alias, and in a cycle through a path of the repo |
 | `rules/send/`                      | `send`, `public_send` and `try` with a literal name and with a computed name                                                     |
 | `rules/send-missing/`              | `send` with a literal name and with a computed name on a constant that does not resolve, and `Books::Ledger`, which no nesting of the call finds |
-| `rules/library-constants/` | Constants of a library, a library alias, a typo in a top name and in a later segment, and a name that only another nesting has |
+| `rules/library-constants/` | Constants of a library, a library alias, a typo in a first segment and in a later segment, a name that only another nesting has, and a missing segment under an alias of a repo class |
+| `rules/zeitwerk-aliases/` | A Rails app with a Zeitwerk constant that is an alias of a library constant, and the same alias in a class body |
 | `rules/function-value/`            | `yield`, `block.call`, `callable.()` and `method(:x).call`                                                                       |
 | `rules/send-splat/`                | `send` with a splat, and a mixin and a macro with a splat                                                                        |
 | `rules/method-missing/`            | A class that defines `method_missing`, and a call on `self` that finds no `def`                                                  |
@@ -71,7 +72,7 @@ mix with the constants of the other folders.
 | `rules/literals/`                  | Calls on literals, whose core classes the repo reopens                                                                           |
 | `rules/library-literals/`          | Calls on literals, whose core classes the repo does not reopen                                                                   |
 | `rules/new/`                       | `Foo.new` with arguments and a block, a class with its own `new`, and a missing constant                                         |
-| `rules/singleton-new/`             | `new` with no receiver and on `self` in a singleton method, in a subclass, and in a class with its own `new`                     |
+| `rules/singleton-new/`             | `new` with no receiver and on `self` in a singleton method, in a subclass, in a class with its own `new`, and in `def Helpers.x` of a module |
 | `rules/local-variables/`           | Local variables that each write sets from `Foo.new`, a literal or 2 classes, and a block parameter that hides a variable         |
 | `rules/instance-variables/`        | Instance variables that 1 method alone writes, that 2 methods write, and that `attr_accessor` makes                              |
 | `rules/shared-instance-variables/` | Instance variables that a subclass, a superclass, a module or an `attr_writer` of a module also writes                           |

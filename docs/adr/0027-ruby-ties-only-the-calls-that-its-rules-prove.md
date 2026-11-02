@@ -4,7 +4,7 @@
 
 > Changed in part by ADR-0032. The local type flow is variant 3, and an instance variable counts the writes of every chain of the object.
 
-> Changed in part by ADR-0034. A constant that does not resolve gives a library call when no body of its load unit has a segment named as its first segment.
+> Changed in part by ADR-0034, in decision 4 and decision 6. A constant that does not resolve gives a library call when no `class` or `module` body of its load unit and no Zeitwerk constant of the unit has a segment named as its first segment. When an alias on the path has a target that does not resolve, the rule reads the target in place of the alias. A first segment that resolves to a constant of the repo, directly or through an alias, still gives `missing-module`. This is true outside a Rails app too.
 
 The Ruby extractor emits a graph document. Ruby has no type checker, so Callmap's own static rules tie the calls: Zeitwerk naming for constants, the class chain for methods, and a local type flow that the first ticket of the Ruby spec chooses. A call that the rules do not prove is an open end, even when only one `def` in the repo has its name. The owner made these decisions in a grilling on 2026-10-23 and 2026-10-24.
 

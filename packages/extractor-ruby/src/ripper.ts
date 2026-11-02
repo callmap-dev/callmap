@@ -24,8 +24,16 @@ export interface ConstantReference {
   readonly absolute: boolean;
 }
 
+/**
+ * Set on the owner of `def Foo.x` when the code is `new` on `self` in that def. It names Foo only
+ * when Foo is a class, as a module keeps the rule of `self`.
+ */
+interface SelfNew {
+  readonly selfNew?: true;
+}
+
 /** A value whose class the code shows, such as a literal or `Foo.new`. */
-export interface MadeValue extends ConstantReference {
+export interface MadeValue extends ConstantReference, SelfNew {
   /** The method of the class that made the value, such as `new`, or null for a literal. */
   readonly by: string | null;
 }
@@ -45,7 +53,7 @@ export type Receiver =
   | { readonly kind: 'self' }
   | { readonly kind: 'super' }
   | { readonly kind: 'value' }
-  | ({ readonly kind: 'constant' } & ConstantReference)
+  | ({ readonly kind: 'constant' } & ConstantReference & SelfNew)
   | ({ readonly kind: 'made' } & MadeValue)
   /** A local variable, or an instance variable when its name starts with `@`. */
   | { readonly kind: 'variable'; readonly name: string };
@@ -91,7 +99,11 @@ export type Side = 'instance' | 'singleton';
 export const sideOf = ({ singleton }: { readonly singleton: boolean }): Side =>
   singleton ? 'singleton' : 'instance';
 
-/** A `def`. The owner is the full name of the class or module body around it, or '' at the top. */
+/**
+ * A `def`. The owner is the full name of the class or module body around it, or '' at the top.
+ * For `def Foo.x`, the Ripper script writes the path of `Foo`, and the extractor replaces it with
+ * the full name that `Foo` resolves to in the load unit.
+ */
 export interface RubyMethod {
   readonly owner: string;
   /** The constant of `def Foo.x`, which names the owner in place of the body around it. */

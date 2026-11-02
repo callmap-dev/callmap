@@ -413,17 +413,24 @@ describe('the metaprogramming of extractRuby', () => {
     expect(openEndsOf(document)).toEqual([`${copier}#loop 15 Loop.build missing-module`]);
   });
 
-  it('gives a library call for a constant that does not resolve when no body of the load unit has its top name', () => {
+  it('gives a library call for a constant that does not resolve when no body and no Zeitwerk constant of the load unit has its first segment, and the first segment resolves to no repo constant', () => {
     const checkout = 'rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run';
     const document = ruleCase('library-constants');
     expect(callsOf(document)).toEqual([
-      `${checkout} rules/library-constants/lib/payments/gateway.rb#Payments::Gateway.charge 15`,
+      `${checkout} rules/library-constants/lib/payments/gateway.rb#Payments::Gateway.charge 16`,
     ]);
     expect(openEndsOf(document)).toEqual([
-      `${checkout} 12 Payments::Gatewy.charge missing-module`,
-      `${checkout} 13 Bar.x missing-module`,
-      `${checkout} 14 Absent.build missing-module`,
+      `${checkout} 13 Payments::Gatewy.charge missing-module`,
+      `${checkout} 14 Bar.x missing-module`,
+      `${checkout} 15 Absent.build missing-module`,
+      `${checkout} 17 Gate::Missin.charge missing-module`,
     ]);
+  });
+
+  it('reads the library target in place of a Zeitwerk constant that is an alias of a library constant', () => {
+    const document = ruleCase('zeitwerk-aliases');
+    expect(callsOf(document)).toEqual([]);
+    expect(openEndsOf(document)).toEqual([]);
   });
 
   it('ties send, public_send and try with a literal name like a direct call, and gives dynamic-key for a computed name', () => {
@@ -571,7 +578,7 @@ describe('the receivers of a known class in extractRuby', () => {
     ]);
   });
 
-  it('ties new with no receiver or on self in a singleton method as Foo.new of its class, and gives its value that class', () => {
+  it('ties new with no receiver or on self in a singleton method as Foo.new of its class, and gives its value that class, but not in a module', () => {
     const document = ruleCase('singleton-new');
     expect(callsOf(document)).toEqual([
       'rules/singleton-new/lib/copier.rb#Copier.call rules/singleton-new/lib/copier.rb#Copier#call 3',
@@ -583,6 +590,12 @@ describe('the receivers of a known class in extractRuby', () => {
       'rules/singleton-new/lib/special_copier.rb#SpecialCopier.make rules/singleton-new/lib/copier.rb#Copier#initialize 4',
     ]);
     expect(openEndsOf(document)).toEqual([
+      'rules/singleton-new/lib/helpers.rb#Helpers.make 3 new other',
+      'rules/singleton-new/lib/helpers.rb#Helpers.make 4 made.go untyped',
+      'rules/singleton-new/lib/helpers.rb#Helpers.make 5 new.go untyped',
+      'rules/singleton-new/lib/helpers.rb#Helpers.make 5 new other',
+      'rules/singleton-new/lib/helpers.rb#Helpers.build 12 new.go untyped',
+      'rules/singleton-new/lib/helpers.rb#Helpers.build 12 new other',
       'rules/singleton-new/lib/pool.rb#Pool.checkout 5 new.call untyped',
     ]);
   });
@@ -671,13 +684,15 @@ describe('the Zeitwerk names of a Rails app', () => {
       ),
       'config/initializers/zeitwerk.rb':
         'Rails.autoloaders.each do |autoloader|\n  autoloader.inflector.inflect("html_parser" => "HTMLParser")\nend\n',
-      'app/models/html_parser.rb': 'HTMLParser = Nokogiri::HTML\n',
-      'app/models/csv_export.rb': 'CSVExport = CSV::Table\n',
+      'app/models/remote/html_parser.rb': 'Remote::HTMLParser = Struct.new(:document)\n',
+      'app/models/remote/csv_export.rb': 'Remote::CSVExport = Struct.new(:rows)\n',
       'app/models/socket.rb': 'class Socket\n  def connect; end\nend\n',
       'app/models/sync.rb':
-        'class Sync\n  def run\n    HTMLParser.connect\n    CSVExport.connect\n  end\nend\n',
+        'class Sync\n  def run\n    Remote::HTMLParser.connect\n    Remote::CSVExport.connect\n    Remote::HtmlParser.connect\n  end\nend\n',
     });
-    expect(openEndsOf(extractRuby({ repo }))).toEqual([]);
+    expect(openEndsOf(extractRuby({ repo }))).toEqual([
+      'app/models/sync.rb#Sync#run 5 Remote::HtmlParser.connect missing-module',
+    ]);
   });
 
   it('names the constants of lib when the app autoloads it', () => {

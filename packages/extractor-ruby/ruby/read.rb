@@ -191,7 +191,7 @@ class FileReader
     visit(block, Context.new(nesting, false, nil, open_body(nesting.first, superclass)))
   end
 
-  # `Plan = Services::Plan` in a body or at the top level makes `Plan` another name of the
+  # `Plan = Services::Plan` in a body or at the top level makes `Plan` an alias of the
   # constant on its right, which the TypeScript half resolves in the nesting of the assignment.
   def alias?(field, value, context)
     context.method.nil? && declared_path(field) && constant_path(value)
@@ -522,12 +522,13 @@ class FileReader
 
   # In a singleton method of a class, `new` with no receiver or on `self` is `Foo.new` of that
   # class. A module has no `new`, so a singleton method of a module keeps the rule of `self`.
+  # Only the TypeScript half knows if the owner of `def Foo.x` is a module, so it reads `selfNew`.
   def own_class_of_new(receiver, called, context)
     return unless called == "new" && (receiver.nil? || self?(receiver))
     return unless context.method && context.singleton
 
     owner = @methods[context.method]["ownerReference"]
-    return owner if owner
+    return owner.merge("selfNew" => true) if owner
     return if context.body.nil? || @bodies[context.body]["module"]
 
     { "nesting" => [], "path" => context.nesting.first, "absolute" => true }

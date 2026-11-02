@@ -13,6 +13,7 @@ export interface ClassIndex {
     side: Side,
   ) => readonly { readonly name: string; readonly side: Side }[];
   readonly findIn: (chain: readonly Ancestor[], name: string) => Found;
+  readonly isModule: (name: string) => boolean;
 }
 
 /** A value with a proved class, and the code that made it. */
@@ -47,7 +48,7 @@ const FINDERS = new Set([
 type Written = MadeValue | null;
 
 export const typeFlowOf = (index: ClassIndex, methods: readonly IndexedMethod[]): TypeFlow => {
-  const { classes, constantOf, superclassOf, chainFor, classesBelow, findIn } = index;
+  const { classes, constantOf, superclassOf, chainFor, classesBelow, findIn, isModule } = index;
 
   const isModel = (name: string, seen: Set<string>): boolean => {
     if (name === ACTIVE_RECORD) return true;
@@ -65,7 +66,7 @@ export const typeFlowOf = (index: ClassIndex, methods: readonly IndexedMethod[])
   const classOfMade = (value: MadeValue): string | undefined => {
     if (value.by === null) return value.path.join('::');
     const maker = constantOf(value);
-    if (maker === undefined) return undefined;
+    if (maker === undefined || (value.selfNew === true && isModule(maker))) return undefined;
     const finder = FINDERS.has(value.by) && isModel(maker, new Set());
     if (value.by !== 'new' && !finder) return undefined;
     return typeof findIn(chainFor(maker, 'singleton'), value.by) === 'string' ? maker : undefined;

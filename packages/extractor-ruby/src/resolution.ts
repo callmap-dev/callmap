@@ -71,7 +71,8 @@ export interface Constants {
   readonly constantOf: (reference: ConstantReference) => string | undefined;
   /**
    * Whether a reference that does not resolve names a constant of a library: no body of the unit
-   * and no Zeitwerk name has a segment named as its top name. An alias stands for its target.
+   * and no Zeitwerk name has a segment named as its first segment, and the first segment resolves
+   * to no constant of the repo. An alias whose target does not resolve stands for its target.
    */
   readonly isLibrary: (reference: ConstantReference) => boolean;
 }
@@ -127,6 +128,13 @@ export const constantIndexOf = (
     );
   };
 
+  /** A Zeitwerk name can also be an alias, so a broken alias can still resolve as a name. */
+  const isBroken = (name: string, seen: ReadonlySet<string>): boolean => {
+    const target = targets.get(name);
+    if (target === undefined) return false;
+    return seen.has(name) || resolved(target, new Set([...seen, name])) === undefined;
+  };
+
   /** The first alias on the path of a reference whose target does not resolve, if any. */
   const brokenAliasOf = (
     reference: ConstantReference,
@@ -135,11 +143,14 @@ export const constantIndexOf = (
     let name = lexicalOf(reference, seen);
     for (const segment of reference.path.slice(1)) {
       if (name === undefined) return undefined;
+      if (isBroken(name, seen)) return name;
       const outer = followed(name, seen);
-      if (outer === undefined) return name;
-      name = constants.has(`${outer}::${segment}`) ? `${outer}::${segment}` : undefined;
+      name =
+        outer !== undefined && constants.has(`${outer}::${segment}`)
+          ? `${outer}::${segment}`
+          : undefined;
     }
-    return name !== undefined && followed(name, seen) === undefined ? name : undefined;
+    return name !== undefined && isBroken(name, seen) ? name : undefined;
   };
 
   const isLibrary = (reference: ConstantReference, seen: ReadonlySet<string>): boolean => {
@@ -147,6 +158,9 @@ export const constantIndexOf = (
     const target = broken === undefined ? undefined : targets.get(broken);
     if (broken !== undefined && target !== undefined && !seen.has(broken))
       return isLibrary(target, new Set([...seen, broken]));
+    const first = lexicalOf(reference, seen);
+    const firstConstant = first === undefined ? undefined : followed(first, seen);
+    if (firstConstant !== undefined && declared.has(firstConstant)) return false;
     const [head] = reference.path;
     return head !== undefined && !segments.has(head);
   };
@@ -307,7 +321,7 @@ export const resolverOf = (
     typeof found !== 'string' && found.abstract ? oneOfBelow(owner, side, name) : found;
 
   const typeFlow = typeFlowOf(
-    { classes, constantOf, superclassOf, chainFor, classesBelow, findIn },
+    { classes, constantOf, superclassOf, chainFor, classesBelow, findIn, isModule },
     unit.methods,
   );
 
@@ -368,7 +382,15 @@ export const resolverOf = (
     return { kind: 'open-end', reason: 'no-implementation' };
   };
 
-  return (site: CallSite, caller: RubyMethod): Resolution => {
+  const moduleNewAsSelf = (site: CallSite): CallSite => {
+    const { receiver } = site;
+    if (receiver.kind !== 'constant' || receiver.selfNew !== true) return site;
+    const owner = constantOf(receiver);
+    return owner !== undefined && isModule(owner) ? { ...site, receiver: { kind: 'self' } } : site;
+  };
+
+  return (written: CallSite, caller: RubyMethod): Resolution => {
+    const site = moduleNewAsSelf(written);
     if (site.open !== undefined) {
       const missing = site.receiver.kind === 'constant' && constantOf(site.receiver) === undefined;
       if (missing && isLibrary(site.receiver)) return LIBRARY;

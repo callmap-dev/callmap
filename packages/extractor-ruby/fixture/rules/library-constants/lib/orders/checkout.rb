@@ -2,6 +2,7 @@ module Orders
   class Checkout
     RequestError = ::Faraday::Error
     Absent = Payments::Absent
+    Gate = Payments::Gateway
 
     def run
       Time.current
@@ -13,6 +14,7 @@ module Orders
       Bar.x
       Absent.build
       Payments::Gateway.charge
+      Gate::Missin.charge
     end
 
     def current; end
