@@ -410,10 +410,19 @@ describe('the metaprogramming of extractRuby', () => {
       `${copier}#chained ${plan} 12`,
       `rules/constant-aliases/lib/report.rb#Report#code ${index} 5`,
     ]);
+    expect(openEndsOf(document)).toEqual([`${copier}#loop 15 Loop.build missing-module`]);
+  });
+
+  it('gives a library call for a constant that does not resolve when no body of the load unit has its top name', () => {
+    const checkout = 'rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run';
+    const document = ruleCase('library-constants');
+    expect(callsOf(document)).toEqual([
+      `${checkout} rules/library-constants/lib/payments/gateway.rb#Payments::Gateway.charge 15`,
+    ]);
     expect(openEndsOf(document)).toEqual([
-      `${copier}#failure 13 RequestError.build missing-module`,
-      `${copier}#direct_failure 14 Faraday::Error.build missing-module`,
-      `${copier}#loop 15 Loop.build missing-module`,
+      `${checkout} 12 Payments::Gatewy.charge missing-module`,
+      `${checkout} 13 Bar.x missing-module`,
+      `${checkout} 14 Absent.build missing-module`,
     ]);
   });
 
@@ -644,13 +653,13 @@ describe('the Zeitwerk names of a Rails app', () => {
       'config/application.rb': APPLICATION,
       'config/initializers/inflections.rb':
         'ActiveSupport::Inflector.inflections(:en) do |inflect|\n  inflect.acronym "API"\nend\n',
-      'app/models/api_client.rb': 'APIClient = Struct.new(:key)\n',
+      'app/models/remote/api_client.rb': 'Remote::APIClient = Struct.new(:key)\n',
       'app/models/socket.rb': 'class Socket\n  def connect; end\nend\n',
       'app/models/sync.rb':
-        'class Sync\n  def run\n    APIClient.connect\n    ApiClient.connect\n  end\nend\n',
+        'class Sync\n  def run\n    Remote::APIClient.connect\n    Remote::ApiClient.connect\n  end\nend\n',
     });
     expect(openEndsOf(extractRuby({ repo }))).toEqual([
-      'app/models/sync.rb#Sync#run 4 ApiClient.connect missing-module',
+      'app/models/sync.rb#Sync#run 4 Remote::ApiClient.connect missing-module',
     ]);
   });
 
@@ -673,7 +682,8 @@ describe('the Zeitwerk names of a Rails app', () => {
 
   it('names the constants of lib when the app autoloads it', () => {
     const files = {
-      'lib/payments/gateway.rb': 'Payments::Gateway = ActiveMerchant::Gateway\n',
+      'lib/payments/gateway.rb': 'Payments::Gateway = ActiveMerchant::Gateway.new\n',
+      'app/models/payments/charge.rb': 'Payments::Charge = Struct.new(:amount)\n',
       'app/models/order.rb':
         'class Order\n  def pay\n    Payments::Gateway.connect\n  end\n\n  def connect; end\nend\n',
     };
@@ -701,6 +711,8 @@ describe('the Zeitwerk names of a Rails app', () => {
         'module Payments\n  class Charge\n    def self.create; end\n  end\nend\n',
       'engines/payments/app/models/payments/refund.rb':
         'module Payments\n  class Refund\n    def self.issue\n      Order.find_open\n    end\n  end\nend\n',
+      'engines/payments/app/models/payments/archive/order.rb':
+        'module Payments\n  module Archive\n    class Order\n    end\n  end\nend\n',
       'app/models/order.rb':
         'class Order\n  def self.find_open; end\n\n  def pay\n    Payments::Charge.create\n  end\nend\n',
     });

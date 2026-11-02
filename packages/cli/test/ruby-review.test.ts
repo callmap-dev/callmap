@@ -111,7 +111,7 @@ describe('callmap review of a Ruby constant that does not resolve', () => {
     commitFile(
       root,
       'app/services/refund.rb',
-      'class Refund\n  def run\n    Ledger.total\n  end\nend\n',
+      'class Refund\n  def run\n    Ledger.total\n  end\nend\n\nmodule Books\n  class Ledger\n  end\nend\n',
     );
     const page = await loadReaderPage(reviewOf(root, tempDir('callmap-cache-')).html);
     const region = within(getByRole(page.window.document.body, 'region', { name: 'Open ends' }));

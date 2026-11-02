@@ -71,6 +71,15 @@ The commit after `287a523` fixes 2 rules. A constant that a body or the top leve
 
 The resolved calls rose by 16, and the open ends fell by 18. The `missing-module` open ends stay at 373. To run it again, follow the steps below with the new commit in place of `824d8bf`. The 3 documents are then the same.
 
+The next commit makes a constant that does not resolve a library call when no body of its load unit, and no Zeitwerk name, has a segment named as its first segment (ADR-0034). The extractor ran on the same commit of mastodon with `node packages/extractor-ruby/src/cli.ts`, with the default scope and no tests, and with the checker `Callmap Ruby rules 8`.
+
+| Extractor                          | Resolved calls | Open ends | `missing-module` open ends | `untyped` open ends | `other` open ends | Rate  |
+| ---------------------------------- | -------------- | --------- | -------------------------- | ------------------- | ----------------- | ----- |
+| The commit after `287a523`         | 8,614          | 9,818     | 373                        | 8,924               | 302               | 46.7% |
+| The rule of the library constants  | 8,614          | 9,499     | 54                         | 8,924               | 302               | 47.6% |
+
+The open ends fell by 319, and each of them was a `missing-module` open end. The resolved calls and the other reasons stay the same.
+
 ## The steps to run the probe again
 
 `probe.sh` beside this record runs the extractor of a callmap folder on a Ruby repo, once for each variant. It writes `variant-1.json`, `variant-2.json` and `variant-3.json` to the out folder. Then it prints one line for each variant with the counts above. It needs `node` 22.18 or later, `ruby`, `git` and `tar`. It runs no code of the Ruby repo, and it loads no gem.

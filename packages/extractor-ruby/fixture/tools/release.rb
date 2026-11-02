@@ -5,3 +5,8 @@ class Release
 end
 
 Release.new.run
+
+module Archive
+  class Order
+  end
+end

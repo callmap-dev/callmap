@@ -22,6 +22,7 @@ from the tree what the tests assert.
 | `shop/app/jobs/receipt_job.rb`                     | `Shipping::Label.new`, which ties to `initialize`, a call on its result, and `super`                                                                 |
 | `shop/app/jobs/refund_job.rb`                      | `super`, which a module of a gem reaches before `ApplicationJob#perform`                                                                             |
 | `shop/app/services/shipping/label.rb`              | `Shipping::Label#initialize`, a method of a nested class                                                                                             |
+| `shop/app/services/shipping/invoice.rb` | `Shipping::Invoice`, so `Invoice` in `Admin` is a missing constant of the shop and not a library constant |
 | `shop/lib/reconcile.rb`                            | Code inside an app but outside its autoload roots                                                                                                    |
 | `shop/config/initializers/slug.rb`                 | `String#slugify`, a method that the app adds to a class of Ruby                                                                                      |
 | `shop/lib/core_ext/string.rb`                      | A second body of `String`, whose method `slugify` calls                                                                                              |
@@ -31,7 +32,8 @@ from the tree what the tests assert.
 | `gems/pricing/pricing.gemspec`                     | The file that makes `gems/pricing/` a load unit of its own                                                                                           |
 | `gems/pricing/lib/pricing.rb`                      | A constant of the gem, and `Order`, which the gem does not define                                                                                    |
 | `gems/pricing/lib/pricing/tax.rb`                  | `Pricing::Tax.rate`, which the gem ties through its own index                                                                                        |
-| `tools/release.rb`                                 | Code outside every app, and a call outside any `def`, which draws nothing                                                                            |
+| `gems/pricing/lib/pricing/archive/order.rb` | `Pricing::Archive::Order`, so `Order` in `Pricing` is a missing constant of the gem and not a library constant |
+| `tools/release.rb`                                 | Code outside every app, a call outside any `def`, which draws nothing, and `Archive::Order`, so `Order` is a missing constant |
 
 Each folder in `rules/` holds a `.gemspec`, so it is a load unit of its own. Its constants do not
 mix with the constants of the other folders.
@@ -53,9 +55,10 @@ mix with the constants of the other folders.
 | `rules/module-function/`           | `module_function` with a name, with a `def` and with no argument                                                                 |
 | `rules/define-method/`             | `define_method` with a literal name, in the class and in `class << self`, and with a computed name                               |
 | `rules/made-classes/`              | A `def` in the block of `Struct.new`, `Data.define` and `Class.new(Base)`                                                        |
-| `rules/constant-aliases/`          | Constants that a body and the top level set to a constant path of the repo, of a library, of another alias, and in a cycle       |
+| `rules/constant-aliases/`          | Constants that a body and the top level set to a constant path of the repo, of a library, of another alias, and in a cycle through a path of the repo |
 | `rules/send/`                      | `send`, `public_send` and `try` with a literal name and with a computed name                                                     |
-| `rules/send-missing/`              | `send` with a literal name and with a computed name on a constant that does not resolve                                          |
+| `rules/send-missing/`              | `send` with a literal name and with a computed name on a constant that does not resolve, and `Books::Ledger`, which no nesting of the call finds |
+| `rules/library-constants/` | Constants of a library, a library alias, a typo in a top name and in a later segment, and a name that only another nesting has |
 | `rules/function-value/`            | `yield`, `block.call`, `callable.()` and `method(:x).call`                                                                       |
 | `rules/send-splat/`                | `send` with a splat, and a mixin and a macro with a splat                                                                        |
 | `rules/method-missing/`            | A class that defines `method_missing`, and a call on `self` that finds no `def`                                                  |

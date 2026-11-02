@@ -4,8 +4,8 @@ module Accounts::Billing
     Index = ::Shared::Services::LedgerIndex
     Chained = Plan
     RequestError = ::Faraday::Error
-    Loop = Cycle
-    Cycle = Loop
+    Loop = Services::InvoiceCopier::Cycle
+    Cycle = Services::InvoiceCopier::Loop
 
     def plan; Plan.build(1); end
     def code; Index.code_for(2); end

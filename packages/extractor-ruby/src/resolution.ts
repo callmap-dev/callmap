@@ -65,20 +65,33 @@ const namespacesOf = (name: string): readonly string[] => {
   return segments.map((_, index) => segments.slice(0, index + 1).join('::'));
 };
 
+/** What a load unit knows of its constant references. */
+export interface Constants {
+  /** The full name of the unit that a reference resolves to, if any. */
+  readonly constantOf: (reference: ConstantReference) => string | undefined;
+  /**
+   * Whether a reference that does not resolve names a constant of a library: no body of the unit
+   * and no Zeitwerk name has a segment named as its top name. An alias stands for its target.
+   */
+  readonly isLibrary: (reference: ConstantReference) => boolean;
+}
+
 /**
  * Resolves a constant reference in the lexical nesting to a full name of the load unit. A name
  * that an alias makes stands for the constant that its target resolves to, through a chain of
  * aliases. When the target does not resolve, as in a cycle of aliases, the name resolves as it
  * would with no alias.
  */
-export const constantsOf = (
+export const constantIndexOf = (
   bodies: readonly RubyBody[],
   names: readonly string[],
   aliases: readonly ConstantAlias[],
-): ((reference: ConstantReference) => string | undefined) => {
+): Constants => {
   const targets = new Map(aliases.map(({ name, target }) => [name, target]));
-  const declared = new Set([...bodies.map(({ name }) => name), ...names].flatMap(namespacesOf));
+  const fullNames = [...bodies.map(({ name }) => name), ...names];
+  const declared = new Set(fullNames.flatMap(namespacesOf));
   const constants = new Set([...declared, ...[...targets.keys()].flatMap(namespacesOf)]);
+  const segments = new Set(fullNames.flatMap((name) => name.split('::')));
 
   const followed = (name: string, seen: ReadonlySet<string>): string | undefined => {
     const target = targets.get(name);
@@ -88,17 +101,24 @@ export const constantsOf = (
   };
 
   /** A constant is not set yet while its own assignment reads its target, so the lookup skips it. */
-  const resolved = (
+  const lexicalOf = (
     { nesting, path, absolute }: ConstantReference,
     seen: ReadonlySet<string>,
   ): string | undefined => {
-    const [head, ...rest] = path;
+    const [head] = path;
     if (head === undefined) return undefined;
     const lexical = absolute
       ? [head]
       : [...nesting.map((namespace) => [...namespace, head].join('::')), head];
-    const found = lexical.find((candidate) => constants.has(candidate) && !seen.has(candidate));
-    return rest.reduce<string | undefined>(
+    return lexical.find((candidate) => constants.has(candidate) && !seen.has(candidate));
+  };
+
+  const resolved = (
+    reference: ConstantReference,
+    seen: ReadonlySet<string>,
+  ): string | undefined => {
+    const found = lexicalOf(reference, seen);
+    return reference.path.slice(1).reduce<string | undefined>(
       (outer, segment) => {
         const full = `${outer}::${segment}`;
         return outer !== undefined && constants.has(full) ? followed(full, seen) : undefined;
@@ -107,7 +127,34 @@ export const constantsOf = (
     );
   };
 
-  return (reference) => resolved(reference, new Set());
+  /** The first alias on the path of a reference whose target does not resolve, if any. */
+  const brokenAliasOf = (
+    reference: ConstantReference,
+    seen: ReadonlySet<string>,
+  ): string | undefined => {
+    let name = lexicalOf(reference, seen);
+    for (const segment of reference.path.slice(1)) {
+      if (name === undefined) return undefined;
+      const outer = followed(name, seen);
+      if (outer === undefined) return name;
+      name = constants.has(`${outer}::${segment}`) ? `${outer}::${segment}` : undefined;
+    }
+    return name !== undefined && followed(name, seen) === undefined ? name : undefined;
+  };
+
+  const isLibrary = (reference: ConstantReference, seen: ReadonlySet<string>): boolean => {
+    const broken = brokenAliasOf(reference, seen);
+    const target = broken === undefined ? undefined : targets.get(broken);
+    if (broken !== undefined && target !== undefined && !seen.has(broken))
+      return isLibrary(target, new Set([...seen, broken]));
+    const [head] = reference.path;
+    return head !== undefined && !segments.has(head);
+  };
+
+  return {
+    constantOf: (reference) => resolved(reference, new Set()),
+    isLibrary: (reference) => isLibrary(reference, new Set()),
+  };
 };
 
 export const resolverOf = (
@@ -141,7 +188,7 @@ export const resolverOf = (
     if (known === undefined || claimed.has(method.file) || !claimed.has(known.file))
       methods.set(method.name, method);
   }
-  const constantOf = constantsOf(unit.bodies, unit.names, unit.aliases);
+  const { constantOf, isLibrary } = constantIndexOf(unit.bodies, unit.names, unit.aliases);
 
   const mixinsOf = (owner: RubyClass, kind: Mixin['kind']) =>
     owner.bodies
@@ -294,7 +341,7 @@ export const resolverOf = (
       return overridesOf(found, known.className, 'instance', name);
     }
     const constant = constantOf(receiver);
-    if (constant === undefined) return 'missing-module';
+    if (constant === undefined) return isLibrary(receiver) ? 'library' : 'missing-module';
     if (name !== 'new')
       return overridesOf(
         findIn(chainFor(constant, 'singleton'), name),
@@ -324,6 +371,7 @@ export const resolverOf = (
   return (site: CallSite, caller: RubyMethod): Resolution => {
     if (site.open !== undefined) {
       const missing = site.receiver.kind === 'constant' && constantOf(site.receiver) === undefined;
+      if (missing && isLibrary(site.receiver)) return LIBRARY;
       return { kind: 'open-end', reason: missing ? 'missing-module' : site.open };
     }
     const callee = calleeOf(site, caller);

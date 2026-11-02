@@ -10,7 +10,7 @@ import type { Call, GraphDocument, GraphFunction, OpenEnd } from '@callmap/graph
 import { inScope } from '@callmap/scope';
 import { readRubyFiles } from './ripper.ts';
 import type { ConstantAlias, ConstantReference, RubyBody, RubyMethod } from './ripper.ts';
-import { constantsOf, resolverOf } from './resolution.ts';
+import { constantIndexOf, resolverOf } from './resolution.ts';
 import type { IndexedMethod, Resolver } from './resolution.ts';
 import { loadUnitsOf } from './units.ts';
 import type { LoadUnit } from './units.ts';
@@ -70,7 +70,8 @@ export const readRuby = (options: ExtractOptions): RubyRead => {
     if (ownerReference === null) return owner;
     const unit = unitOf(path);
     const constantOf =
-      constantsIn.get(unit) ?? constantsOf(bodiesOf(unit), unit.names, aliasesOf(unit));
+      constantsIn.get(unit) ??
+      constantIndexOf(bodiesOf(unit), unit.names, aliasesOf(unit)).constantOf;
     constantsIn.set(unit, constantOf);
     return constantOf(ownerReference) ?? owner;
   };
