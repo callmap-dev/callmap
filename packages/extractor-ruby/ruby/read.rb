@@ -214,7 +214,9 @@ class FileReader
     body = @bodies[context.body]
     if MIXINS.include?(name[1])
       kind = context.singleton && name[1] == "include" ? "extend" : name[1]
-      arguments_of(arguments).each do |argument|
+      # Ruby mixes in the arguments of one call from the last to the first, so `include A, B`
+      # puts A before B, as `include B` then `include A` does.
+      arguments_of(arguments).reverse_each do |argument|
         body["mixins"] << { "kind" => kind }.merge(reference_of(argument, context.nesting))
       end
     elsif MACROS.include?(name[1])

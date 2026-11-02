@@ -111,8 +111,9 @@ export const resolverOf = (
     const name = constantOf(reference);
     const owner = name === undefined ? undefined : classes.get(name);
     if (owner === undefined) return ['library'];
-    if (seen.has(owner.name)) return [];
-    seen.add(owner.name);
+    const step = `instance ${owner.name}`;
+    if (seen.has(step)) return [];
+    seen.add(step);
     return [
       ...mixinsOf(owner, 'prepend').flatMap((mixin) => moduleChainOf(mixin, seen)),
       { owner, side: 'instance' },
@@ -134,8 +135,9 @@ export const resolverOf = (
   const chainOf = (name: string, side: Side, seen: Set<string>): readonly Ancestor[] => {
     const owner = classes.get(name);
     if (owner === undefined) return ['library'];
-    if (seen.has(name)) return [];
-    seen.add(name);
+    const step = `${side} ${name}`;
+    if (seen.has(step)) return [];
+    seen.add(step);
     const own: Ancestor[] =
       side === 'instance'
         ? [
@@ -197,6 +199,15 @@ export const resolverOf = (
     return 'none';
   };
 
+  /** What `super` in a method of the owner finds: the first def of the name after the owner. */
+  const superOf = (chain: readonly Ancestor[], owner: string, side: Side, name: string): Found => {
+    const own = chain.findIndex(
+      (ancestor) =>
+        ancestor !== 'library' && ancestor.owner.name === owner && ancestor.side === side,
+    );
+    return findIn(chain.slice(own + 1), name);
+  };
+
   const oneOfBelow = (owner: string, side: Side, name: string): OneOf => ({
     oneOf: classesBelow(owner, side).map((each) => findIn(chainFor(each.name, each.side), name)),
   });
@@ -219,12 +230,16 @@ export const resolverOf = (
       return overridesOf(found, caller.owner, callerSide, name);
     }
     if (receiver.kind === 'super') {
-      const chain = chainFor(caller.owner, callerSide);
-      const own = chain.findIndex(
-        (ancestor) => ancestor !== 'library' && ancestor.owner.name === caller.owner,
+      const found = superOf(chainFor(caller.owner, callerSide), caller.owner, callerSide, name);
+      if (found !== 'none') return found;
+      if (callerSide !== 'instance' || !isModule(caller.owner)) return 'library';
+      const below = new Set(
+        classesBelow(caller.owner, callerSide).map((each) =>
+          superOf(chainFor(each.name, each.side), caller.owner, callerSide, name),
+        ),
       );
-      const found = findIn(chain.slice(own + 1), name);
-      return found === 'none' ? 'library' : found;
+      const [only] = below;
+      return below.size === 1 && only !== undefined && only !== 'none' ? only : 'library';
     }
     if (receiver.kind === 'value') return 'untyped';
     if (receiver.kind === 'made' || receiver.kind === 'variable') {

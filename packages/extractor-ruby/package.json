@@ -19,5 +19,8 @@
   "dependencies": {
     "@callmap/graph-document": "*",
     "@callmap/scope": "*"
+  },
+  "devDependencies": {
+    "@callmap/review": "*"
   }
 }

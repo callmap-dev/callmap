@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
+import { reviewGraphsOf, reviewOf } from '@callmap/review';
 import { extractRuby } from '../src/index.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
@@ -174,6 +175,20 @@ describe('the calls of extractRuby', () => {
     ).toEqual([]);
   });
 
+  it('ties super in a prepended or included module to the method of the same name in the class chain after the module', () => {
+    const repo = repoOf({
+      'lib/loud.rb': 'module Loud\n  def greet\n    super\n  end\nend\n',
+      'lib/polite.rb': 'module Polite\n  def greet\n    super\n  end\nend\n',
+      'lib/person.rb': 'class Person\n  prepend Loud\n\n  def greet; end\nend\n',
+      'lib/base.rb': 'class Base\n  def greet; end\nend\n',
+      'lib/guest.rb': 'class Guest < Base\n  include Polite\nend\n',
+    });
+    expect(callsOf(extractRuby({ repo }))).toEqual([
+      'lib/loud.rb#Loud#greet lib/person.rb#Person#greet 3',
+      'lib/polite.rb#Polite#greet lib/base.rb#Base#greet 3',
+    ]);
+  });
+
   it('ties a call on self to a prepended module before the class, and to an extended module on the class', () => {
     const repo = repoOf({
       'lib/loud.rb': 'module Loud\n  def greet; end\nend\n',
@@ -200,6 +215,29 @@ describe('the calls of extractRuby', () => {
       'lib/person.rb#Person#hello lib/loud.rb#Loud#greet 8',
       'lib/person.rb#Person.load lib/finders.rb#Finders#find_all 12',
     ]);
+  });
+
+  it('ties a call on self to the first module of one include or prepend with several modules', () => {
+    const repo = repoOf({
+      'lib/a.rb': 'module A\n  def x; end\nend\n',
+      'lib/b.rb': 'module B\n  def x; end\nend\n',
+      'lib/c.rb': 'class C\n  include A, B\n\n  def run\n    x\n  end\nend\n',
+      'lib/d.rb': 'class D\n  prepend B, A\n\n  def x; end\n\n  def run\n    x\n  end\nend\n',
+    });
+    expect(callsOf(extractRuby({ repo }))).toEqual([
+      'lib/c.rb#C#run lib/a.rb#A#x 5',
+      'lib/d.rb#D#run lib/b.rb#B#x 7',
+    ]);
+  });
+
+  it('ties a call on a module that extends self to the instance method of the module', () => {
+    const repo = repoOf({
+      'lib/m.rb': 'module M\n  extend self\n\n  def a; end\nend\n',
+      'lib/runner.rb': 'class Runner\n  def run\n    M.a\n  end\nend\n',
+    });
+    const document = extractRuby({ repo });
+    expect(callsOf(document)).toEqual(['lib/runner.rb#Runner#run lib/m.rb#M#a 3']);
+    expect(openEndsOf(document)).toEqual([]);
   });
 
   it('ties a call on the class of a Rails concern to a method of its class_methods block', () => {
@@ -556,10 +594,16 @@ describe('the one-of groups of extractRuby', () => {
       'app/models/cart.rb': 'class Cart\n  def total; end\nend\n',
     });
     const group = 'app/models/concerns/billable.rb:3:5';
-    expect(oneOfCallsOf(extractRuby({ repo }))).toEqual([
+    const document = extractRuby({ repo });
+    expect(oneOfCallsOf(document)).toEqual([
       `app/models/concerns/billable.rb#Billable#invoice app/models/order.rb#Order#total 3 ${group}`,
       `app/models/concerns/billable.rb#Billable#invoice app/models/refund.rb#Refund#total 3 ${group}`,
     ]);
+    expect(
+      reviewOf(reviewGraphsOf({ base: [], branch: [document] })).resolutionRates.map(
+        ({ resolved, open }) => ({ resolved, open }),
+      ),
+    ).toEqual([{ resolved: 1, open: 0 }]);
   });
 
   it('gives a one-of group over the overrides of the subclasses for a call to an abstract method', () => {
@@ -937,6 +981,23 @@ describe('the Zeitwerk names of a Rails app', () => {
     expect(openEndsOf(extractRuby({ repo }))).toEqual([
       'app/models/sync.rb#Sync#run 4 ApiClient.connect missing-module',
     ]);
+  });
+
+  it('names a constant after its file with an inflection of the Zeitwerk inflector', () => {
+    const repo = repoOf({
+      'config/application.rb': APPLICATION.replace(
+        'Rails::Application\n',
+        'Rails::Application\n    config.autoloaders.main.inflector.inflect("csv_export" => "CSVExport")\n',
+      ),
+      'config/initializers/zeitwerk.rb':
+        'Rails.autoloaders.each do |autoloader|\n  autoloader.inflector.inflect("html_parser" => "HTMLParser")\nend\n',
+      'app/models/html_parser.rb': 'HTMLParser = Nokogiri::HTML\n',
+      'app/models/csv_export.rb': 'CSVExport = CSV::Table\n',
+      'app/models/socket.rb': 'class Socket\n  def connect; end\nend\n',
+      'app/models/sync.rb':
+        'class Sync\n  def run\n    HTMLParser.connect\n    CSVExport.connect\n  end\nend\n',
+    });
+    expect(openEndsOf(extractRuby({ repo }))).toEqual([]);
   });
 
   it('names the constants of lib when the app autoloads it', () => {

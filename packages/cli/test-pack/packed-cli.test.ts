@@ -118,7 +118,11 @@ describe('the packed @callmap/cli', () => {
 
   it('holds the Ruby extractor with its Ripper script', () => {
     expect(tarball.files).toEqual(
-      expect.arrayContaining(['dist/extract-ruby.js', 'dist/ruby/read.rb']),
+      expect.arrayContaining([
+        'dist/extract-ruby.js',
+        'dist/ruby-extractor-source.sha256',
+        'dist/ruby/read.rb',
+      ]),
     );
   });
 
@@ -243,5 +247,21 @@ describe('the packed @callmap/cli', () => {
       ]),
     );
     expect(review.resolutionRates.map(({ language }) => language)).toEqual(['ruby', 'typescript']);
+  });
+
+  it('reads the Ruby base again after a build from a changed Ruby extractor source', () => {
+    const repo = installedRepo(tarball.path, rubyRepo());
+    const cacheHome = tempDir('callmap-cache-');
+    const out = join(tempDir('callmap-out-'), 'review.html');
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
+
+    writeFileSync(
+      join(repo, 'node_modules', '@callmap', 'cli', 'dist', 'ruby-extractor-source.sha256'),
+      '0'.repeat(64),
+    );
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(cacheEntriesOf(cacheHome)).toHaveLength(3);
   });
 });

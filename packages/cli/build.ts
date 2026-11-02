@@ -16,6 +16,7 @@ import {
   goSourceFiles,
   isGoTestFile,
   RUBY_SCRIPTS,
+  rubySourceFiles,
 } from './src/clone-assets.ts';
 import { sha256OfFiles } from './src/file-hash.ts';
 import { packageManifestAt } from './src/package-manifest.ts';
@@ -116,6 +117,7 @@ cpSync(GO_PROGRAM, join(DIST, 'go'), {
 });
 writeFileSync(join(DIST, 'go-extractor-source.sha256'), sha256OfFiles(goSourceFiles()));
 cpSync(RUBY_SCRIPTS, join(DIST, 'ruby'), { recursive: true });
+writeFileSync(join(DIST, 'ruby-extractor-source.sha256'), sha256OfFiles(rubySourceFiles()));
 writeFileSync(
   join(DIST, 'THIRD-PARTY-NOTICES.txt'),
   noticesOf([

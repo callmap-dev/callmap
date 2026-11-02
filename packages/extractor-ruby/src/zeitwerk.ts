@@ -11,7 +11,12 @@ import { join, posix } from 'node:path';
 /** A Rails app is a directory that holds the file that boots one. */
 const APP_MARKER = 'config/application.rb';
 
-const INFLECTIONS = 'config/initializers/inflections.rb';
+/** The files where an app sets the inflections of Active Support or of the Zeitwerk inflector. */
+const INFLECTION_FILES = [
+  'config/initializers/inflections.rb',
+  'config/initializers/zeitwerk.rb',
+  APP_MARKER,
+];
 
 /** The directories under `app/` that Rails leaves out of its autoload roots. */
 const NOT_AUTOLOADED = new Set(['assets', 'javascript', 'views']);
@@ -103,7 +108,9 @@ export const zeitwerkNamesOf = (
   engines: readonly string[],
   files: readonly string[],
 ): readonly string[] => {
-  const inflections = inflectionsOf(textOf(repo, `${prefixOf(app)}${INFLECTIONS}`));
+  const inflections = inflectionsOf(
+    INFLECTION_FILES.map((path) => textOf(repo, `${prefixOf(app)}${path}`)).join('\n'),
+  );
   const roots = [app, ...engines].flatMap((directory) => appRootsOf(directory, files));
   if (AUTOLOADS_LIB.test(textOf(repo, `${prefixOf(app)}${APP_MARKER}`)))
     roots.push(`${prefixOf(app)}lib`);
