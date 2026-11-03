@@ -59,8 +59,8 @@ func repoFilenameOf(pkg *packages.Package, syntax *ast.File, filename string) st
 	return filename
 }
 
-// A file that a build tag leaves out is in no package, so it never enters the document. A file of a
-// loaded package that git ignores does not enter it either.
+// A file that a build tag leaves out is in no package, so it never enters the document. The go tool
+// loads each package folder in full, so a file that the walk left out can still be in pkg.Syntax.
 func sourceFilesOf(repo string, scope []string, found tree, loaded []*packages.Package) []sourceFile {
 	best := map[string]sourceFile{}
 	rankOf := map[string]variantRank{}
