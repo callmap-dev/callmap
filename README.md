@@ -43,7 +43,7 @@ callmap review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>
 | ------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | `<repo>`            | The repo to review. Any folder inside it works.                                         | The current folder                               |
 | `--base <commit>`   | The commit to compare the branch with.                                                  | The merge base with the default branch           |
-| `--scope <glob>`    | Limits the review to the files that the glob matches. Give it once for each glob.       | Every file of the repo                           |
+| `--scope <glob>`    | Limits the review to the files that the glob matches. Give it once for each glob.       | Every file of the repo that git does not ignore  |
 | `--scope '!<glob>'` | Leaves out the files that the glob matches, also when another glob takes them.          | Nothing left out                                 |
 | `--tsconfig <file>` | The TypeScript config to read, as an absolute path or a path relative to the repo root. | `tsconfig.json` at the repo root, if it exists   |
 | `--out <file>`      | Where the page is written.                                                              | `review-<repo folder>.html` in `$TMPDIR/callmap` |

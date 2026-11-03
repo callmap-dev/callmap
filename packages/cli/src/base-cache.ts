@@ -10,6 +10,7 @@ import {
   utimesSync,
   writeFileSync,
 } from 'node:fs';
+import type { Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
@@ -37,8 +38,20 @@ export interface BaseKey {
 
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex');
 
+const isUnreadable = (error: unknown): boolean =>
+  error instanceof Error && 'code' in error && (error.code === 'EACCES' || error.code === 'EPERM');
+
+const entriesOf = (folder: string, prefix: string): readonly Dirent[] => {
+  try {
+    return readdirSync(folder, { withFileTypes: true });
+  } catch (error) {
+    if (prefix !== '' && isUnreadable(error)) return [];
+    throw error;
+  }
+};
+
 const filesBelow = (folder: string, prefix = ''): readonly string[] =>
-  readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
+  entriesOf(folder, prefix).flatMap((entry) => {
     const path = `${prefix}${entry.name}`;
     if (entry.isDirectory()) {
       return isSkippedDirectory(entry.name) ? [] : filesBelow(join(folder, entry.name), `${path}/`);

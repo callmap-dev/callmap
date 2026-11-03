@@ -59,8 +59,9 @@ func repoFilenameOf(pkg *packages.Package, syntax *ast.File, filename string) st
 	return filename
 }
 
-// A file that a build tag leaves out is in no package, so it never enters the document.
-func sourceFilesOf(repo string, scope []string, loaded []*packages.Package) []sourceFile {
+// A file that a build tag leaves out is in no package, so it never enters the document. The go tool
+// loads each package folder in full, so a file that the walk left out can still be in pkg.Syntax.
+func sourceFilesOf(repo string, scope []string, found tree, loaded []*packages.Package) []sourceFile {
 	best := map[string]sourceFile{}
 	rankOf := map[string]variantRank{}
 	for _, pkg := range loaded {
@@ -72,7 +73,7 @@ func sourceFilesOf(repo string, scope []string, loaded []*packages.Package) []so
 			filename := pkg.Fset.File(syntax.FileStart).Name()
 			repoFilename := repoFilenameOf(pkg, syntax, filename)
 			path, inRepo := repoPathOf(repo, repoFilename)
-			if !inRepo || !inScope(path, scope) || rankOf[path] >= rank {
+			if !inRepo || found.ignores(path) || !inScope(path, scope) || rankOf[path] >= rank {
 				continue
 			}
 			best[path] = sourceFile{path: path, filename: filename, repoFilename: repoFilename, syntax: syntax, pkg: pkg}

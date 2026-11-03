@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { readGraphDocument } from '@callmap/graph-document';
@@ -388,6 +388,56 @@ describe('extractGo', () => {
       }),
     });
     expect(files).toEqual(['money/money.go']);
+  });
+
+  it('leaves out a file that git ignores and does not track, and adds no call into it', () => {
+    const repo = repoOf({
+      '.gitignore': lines('gen/', '*_gen.go'),
+      'money/money.go': MONEY,
+      'money/money_gen.go': lines('package money', '', 'func Generated() {}'),
+      'gen/kept.go': lines('package gen', '', 'func K() { D() }'),
+      'gen/dropped.go': lines('package gen', '', 'func D() {}'),
+    });
+    const git = (...args: readonly string[]): void => {
+      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], {
+        cwd: repo,
+        stdio: 'ignore',
+      });
+    };
+    git('init', '-q');
+    git('add', '-f', 'gen/kept.go');
+    git('commit', '-q', '-m', 'kept');
+    const { files, functions, calls, openEnds } = extractGo({ repo });
+    expect(files).toEqual(['gen/kept.go', 'money/money.go']);
+    expect(functions.map(({ id }) => id)).toEqual([
+      'gen/kept.go#K',
+      'money/money.go#Format',
+      'money/money.go#digits',
+    ]);
+    expect(calls).toEqual([
+      { caller: 'money/money.go#Format', callee: 'money/money.go#digits', line: 5 },
+    ]);
+    expect(openEnds).toEqual([]);
+  });
+
+  it('keeps a symlinked file that git tracks in a package folder', () => {
+    const repo = repoOf({
+      'money/money.go': MONEY,
+      'shared/rounding.txt': lines('package money', '', 'func Round() {}'),
+    });
+    symlinkSync('../shared/rounding.txt', join(repo, 'money/rounding.go'));
+    const git = (...args: readonly string[]): void => {
+      execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], {
+        cwd: repo,
+        stdio: 'ignore',
+      });
+    };
+    git('init', '-q');
+    git('add', '.');
+    git('commit', '-q', '-m', 'linked');
+    const { files, functions } = extractGo({ repo });
+    expect(files).toEqual(['money/money.go', 'money/rounding.go']);
+    expect(functions.map(({ id }) => id)).toContain('money/rounding.go#Round');
   });
 
   it('leaves out a file that a build tag excludes', () => {

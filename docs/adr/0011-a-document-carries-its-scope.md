@@ -1,5 +1,7 @@
 # A reference graph document carries the scope it was built under
 
+> Changed in part by ADR-0035. A file that git ignores and does not track is left out of the document, and the `scope` field does not show it.
+
 An extractor takes scope globs (ADR-0009), so what it emits is a claim about one subtree and not about the repo. The globs travel in the document, alongside its files, its reference edges and its language tag. A reader that does not know the scope cannot tell a file the extractor left out from a file the repo does not hold, and those are two different statements: the first says nothing about the file, the second says it is not there. The core owns the contract, so a document that names no scope is refused rather than read as none. A scope of no globs is a document built over the whole repo, which is a claim the extractor makes, not a field it left out.
 
 The alternative was to keep the scope on the host that ran the extractor, out of the document, which holds the contract at three fields. It fails as soon as a document is written to a file or merged with another one: the run that knew the globs is gone, and the merged graph cannot say which of its silences were narrowed by a glob and which are the repo. A field that has to be remembered next to a document belongs in the document.

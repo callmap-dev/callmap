@@ -1,5 +1,12 @@
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, utimesSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -203,7 +210,9 @@ const documentOf = (language: string, file: string): GraphDocument => ({
 
 describe('the base cache with one entry for each language', () => {
   const previousCacheHome = process.env['XDG_CACHE_HOME'];
+  const locked: string[] = [];
   afterEach(() => {
+    for (const folder of locked.splice(0)) chmodSync(folder, 0o755);
     vi.unstubAllEnvs();
     if (previousCacheHome === undefined) delete process.env['XDG_CACHE_HOME'];
     else process.env['XDG_CACHE_HOME'] = previousCacheHome;
@@ -280,6 +289,45 @@ describe('the base cache with one entry for each language', () => {
       expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual(['go']);
     },
   );
+
+  it('misses the Go entry after a change of a go.sum in a folder that git ignores', async () => {
+    const checkout = newCheckout();
+    writeFileSync(join(checkout, '.gitignore'), 'var/\n');
+    spawnSync('git', ['init', '-q'], { cwd: checkout });
+    mkdirSync(join(checkout, 'var'));
+    writeFileSync(join(checkout, 'var/go.sum'), 'example.com/a v1.0.0 h1:a=\n');
+    await reviewBase(checkout, [TYPESCRIPT, GO]);
+    writeFileSync(join(checkout, 'var/go.sum'), 'example.com/a v1.0.1 h1:b=\n');
+    expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual(['go']);
+  });
+
+  it('misses the Go entry after a change of a go.work.sum at the root that git ignores', async () => {
+    const checkout = newCheckout();
+    writeFileSync(join(checkout, '.gitignore'), 'go.work\ngo.work.sum\n');
+    spawnSync('git', ['init', '-q'], { cwd: checkout });
+    writeFileSync(join(checkout, 'go.work'), 'go 1.22\n\nuse ./a\n');
+    writeFileSync(join(checkout, 'go.work.sum'), 'example.com/a v1.0.0 h1:a=\n');
+    await reviewBase(checkout, [TYPESCRIPT, GO]);
+    writeFileSync(join(checkout, 'go.work.sum'), 'example.com/a v1.0.1 h1:b=\n');
+    expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual(['go']);
+  });
+
+  it('reads the Go entry of a checkout with a folder below its root that it cannot read', async () => {
+    const checkout = newCheckout();
+    const folder = join(checkout, 'var');
+    mkdirSync(folder);
+    chmodSync(folder, 0o000);
+    locked.push(folder);
+    await reviewBase(checkout, [GO]);
+    expect((await reviewBase(checkout, [GO])).read).toEqual([]);
+  });
+
+  it('fails on a checkout whose root it cannot read', async () => {
+    const checkout = newCheckout();
+    chmodSync(checkout, 0o000);
+    locked.push(checkout);
+    await expect(reviewBase(checkout, [GO])).rejects.toThrow(/EACCES/);
+  });
 
   it('misses the Go entry after the go.work at the root of the checkout is added or changed', async () => {
     const checkout = newCheckout();

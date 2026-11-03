@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"io/fs"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -15,19 +17,55 @@ func skipped(name string) bool {
 		strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_")
 }
 
-// tree is what one walk of the repo finds: every Go file, and the directory of every go.mod, both
-// by repo-relative path. The root directory is the empty path.
+// tree is what one walk of the repo finds: every Go file, the directory of every go.mod, and the
+// untracked paths that git ignores, all by repo-relative path. The root directory is the empty
+// path.
 type tree struct {
 	files      []string
 	moduleDirs []string
+	ignored    map[string]bool
 }
 
-// walk reads the repo once. A symbolic link is not followed, so a link out of the repo cannot pull
-// a foreign file in and a link back into it cannot walk forever.
+// ignores tells whether git ignores the path or one of its folders below the root.
+func (found tree) ignores(path string) bool {
+	for ; path != "." && path != "/"; path = filepath.ToSlash(filepath.Dir(path)) {
+		if found.ignored[path] {
+			return true
+		}
+	}
+	return false
+}
+
+// ignoredPathsOf is the set of untracked paths that git ignores, by repo-relative path. A repo that
+// is not a git repo ignores nothing. An ignored folder can hold the data of a container that
+// another user owns, so the walk must not open it. The TypeScript and Ruby extractors have their
+// own copies of this reader.
+func ignoredPathsOf(repo string) map[string]bool {
+	command := exec.Command("git", "ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z")
+	command.Dir = repo
+	output, err := command.Output()
+	ignored := map[string]bool{}
+	if err != nil {
+		return ignored
+	}
+	for _, path := range strings.Split(string(output), "\x00") {
+		if path != "" {
+			ignored[strings.TrimSuffix(path, "/")] = true
+		}
+	}
+	return ignored
+}
+
+// walk reads the repo once. It does not enter a path that git ignores, or a folder below the root
+// that it cannot read. A symbolic link is not followed, so a link out of the repo cannot pull a
+// foreign file in and a link back into it cannot walk forever.
 func walk(repo string) (tree, error) {
-	found := tree{files: []string{}, moduleDirs: []string{}}
+	found := tree{files: []string{}, moduleDirs: []string{}, ignored: ignoredPathsOf(repo)}
 	err := filepath.WalkDir(repo, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
+			if path != repo && entry != nil && entry.IsDir() && errors.Is(err, fs.ErrPermission) {
+				return filepath.SkipDir
+			}
 			return err
 		}
 		relative, err := filepath.Rel(repo, path)
@@ -35,6 +73,12 @@ func walk(repo string) (tree, error) {
 			return err
 		}
 		relative = filepath.ToSlash(relative)
+		if relative != "." && found.ignored[relative] {
+			if entry.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
 		if entry.IsDir() {
 			if relative != "." && skipped(entry.Name()) {
 				return filepath.SkipDir
