@@ -1,0 +1,15 @@
+{
+  "name": "callmap-sandcastle",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@ai-hero/sandcastle": "^0.6.5",
+    "@standard-schema/spec": "^1.1.0",
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.0"
+  }
+}
