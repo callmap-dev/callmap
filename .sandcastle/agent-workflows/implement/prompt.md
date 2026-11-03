@@ -16,7 +16,7 @@ Read the project's domain and architecture docs before changing code:
 
 - `.sandcastle/PROJECT.md` — the project map: layout, docs to read first, the check commands per package, and known pre-existing failures
 - `docs/adr/` if relevant
-- `.sandcastle/CODING_STANDARDS.md`
+- `CODING_STANDARDS.md`
 
 Explore the repo and relevant tests before editing.
 

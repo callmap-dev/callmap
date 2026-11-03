@@ -15,6 +15,7 @@ Shared tests are in `test/`.
 ## Docs to read first
 
 - `CONTRIBUTING.md`: the checks, the branch names and the commit format.
+- `CODING_STANDARDS.md`: the rules that a review checks.
 - `GLOSSARY.md`: the words of the project. Use them in code, tests and commits.
 - `docs/adr/`: the decisions. Read the ADRs of the part that you change. Do not rewrite a settled ADR.
 - `docs/product.md`: what Callmap is for.

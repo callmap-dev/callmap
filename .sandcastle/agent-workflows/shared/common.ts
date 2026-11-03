@@ -76,8 +76,8 @@ export const writeText = (filename: string, value: string): void => {
   fs.writeFileSync(path.join(outputDir(), filename), value);
 };
 
-export const claudeAgent = (model: string = config.defaultModel) =>
-  sandcastle.claudeCode(model, {
+export const claudeAgent = () =>
+  sandcastle.claudeCode(config.model, {
     env: {
       CLAUDE_CODE_OAUTH_TOKEN: required('CLAUDE_CODE_OAUTH_TOKEN'),
     },

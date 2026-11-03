@@ -6,7 +6,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@ai-hero/sandcastle": "^0.6.5",
+    "@ai-hero/sandcastle": "^0.14.0",
     "@standard-schema/spec": "^1.1.0",
     "@types/node": "^22.15.0",
     "tsx": "^4.19.4",
