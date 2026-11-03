@@ -10,12 +10,14 @@ import {
   utimesSync,
   writeFileSync,
 } from 'node:fs';
+import type { Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
 import { inScope, isSkippedDirectory } from '@callmap/scope';
 import { callmapCacheFolder } from './cache-folder.ts';
 import { sha256OfFiles } from './file-hash.ts';
+import { ignoredPathsOf } from './git.ts';
 import type { NamedFile } from './file-hash.ts';
 
 const ENTRIES_FOR_EACH_REPO = 20;
@@ -37,14 +39,31 @@ export interface BaseKey {
 
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex');
 
-const filesBelow = (folder: string, prefix = ''): readonly string[] =>
-  readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
-    const path = `${prefix}${entry.name}`;
-    if (entry.isDirectory()) {
-      return isSkippedDirectory(entry.name) ? [] : filesBelow(join(folder, entry.name), `${path}/`);
-    }
-    return entry.isFile() ? [path] : [];
-  });
+const isUnreadable = (error: unknown): boolean =>
+  error instanceof Error && 'code' in error && (error.code === 'EACCES' || error.code === 'EPERM');
+
+const entriesOf = (folder: string, prefix: string): readonly Dirent[] => {
+  try {
+    return readdirSync(folder, { withFileTypes: true });
+  } catch (error) {
+    if (prefix !== '' && isUnreadable(error)) return [];
+    throw error;
+  }
+};
+
+const filesBelow = (checkout: string): readonly string[] => {
+  const ignored = ignoredPathsOf(checkout);
+  const below = (folder: string, prefix: string): readonly string[] =>
+    entriesOf(folder, prefix).flatMap((entry) => {
+      const path = `${prefix}${entry.name}`;
+      if (ignored.has(path)) return [];
+      if (entry.isDirectory()) {
+        return isSkippedDirectory(entry.name) ? [] : below(join(folder, entry.name), `${path}/`);
+      }
+      return entry.isFile() ? [path] : [];
+    });
+  return below(checkout, '');
+};
 
 const isPattern = (glob: string): boolean => /[*?]/.test(glob);
 

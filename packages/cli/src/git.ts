@@ -105,6 +105,26 @@ export const shortCommitOf = (root: string, commit: string): string =>
 const pathsOf = (listing: string): readonly string[] =>
   listing.split('\0').filter((path) => path !== '');
 
+export const ignoredPathsOf = (root: string): ReadonlySet<string> => {
+  try {
+    return new Set(
+      pathsOf(
+        gitOutput(
+          root,
+          'ls-files',
+          '--others',
+          '--ignored',
+          '--exclude-standard',
+          '--directory',
+          '-z',
+        ),
+      ).map((path) => path.replace(/\/$/, '')),
+    );
+  } catch {
+    return new Set();
+  }
+};
+
 export const workingTreeFilesOf = (root: string): readonly string[] =>
   pathsOf(gitOutput(root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z'));
 

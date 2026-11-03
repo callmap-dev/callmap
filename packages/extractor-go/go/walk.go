@@ -62,7 +62,7 @@ func walk(repo string) (tree, error) {
 			return err
 		}
 		relative = filepath.ToSlash(relative)
-		if ignored[relative] {
+		if relative != "." && ignored[relative] {
 			if entry.IsDir() {
 				return filepath.SkipDir
 			}

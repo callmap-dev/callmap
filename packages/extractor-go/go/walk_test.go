@@ -79,3 +79,10 @@ func TestTheWalkDoesNotEnterAFolderThatItCannotRead(t *testing.T) {
 		t.Fatalf("walked %v", files)
 	}
 }
+
+func TestTheWalkTakesTheFilesOfARootThatAnOuterRepoIgnores(t *testing.T) {
+	outer := ignoringRepoOf(t, map[string]string{"sub/src/a.go": ""}, "sub/\n")
+	if files := walkedFiles(t, filepath.Join(outer, "sub")); !slices.Equal(files, []string{"src/a.go"}) {
+		t.Fatalf("walked %v", files)
+	}
+}
