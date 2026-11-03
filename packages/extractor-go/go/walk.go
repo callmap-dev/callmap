@@ -17,11 +17,23 @@ func skipped(name string) bool {
 		strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_")
 }
 
-// tree is what one walk of the repo finds: every Go file, and the directory of every go.mod, both
-// by repo-relative path. The root directory is the empty path.
+// tree is what one walk of the repo finds: every Go file, the directory of every go.mod, and the
+// untracked paths that git ignores, all by repo-relative path. The root directory is the empty
+// path.
 type tree struct {
 	files      []string
 	moduleDirs []string
+	ignored    map[string]bool
+}
+
+// ignores tells whether git ignores the path or one of its folders below the root.
+func (found tree) ignores(path string) bool {
+	for ; path != "." && path != "/"; path = filepath.ToSlash(filepath.Dir(path)) {
+		if found.ignored[path] {
+			return true
+		}
+	}
+	return false
 }
 
 // ignoredPathsOf is the set of untracked paths that git ignores, by repo-relative path. A repo that
@@ -48,8 +60,7 @@ func ignoredPathsOf(repo string) map[string]bool {
 // that it cannot read. A symbolic link is not followed, so a link out of the repo cannot pull a
 // foreign file in and a link back into it cannot walk forever.
 func walk(repo string) (tree, error) {
-	found := tree{files: []string{}, moduleDirs: []string{}}
-	ignored := ignoredPathsOf(repo)
+	found := tree{files: []string{}, moduleDirs: []string{}, ignored: ignoredPathsOf(repo)}
 	err := filepath.WalkDir(repo, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			if path != repo && entry != nil && entry.IsDir() && errors.Is(err, fs.ErrPermission) {
@@ -62,7 +73,7 @@ func walk(repo string) (tree, error) {
 			return err
 		}
 		relative = filepath.ToSlash(relative)
-		if relative != "." && ignored[relative] {
+		if relative != "." && found.ignored[relative] {
 			if entry.IsDir() {
 				return filepath.SkipDir
 			}

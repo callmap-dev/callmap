@@ -290,7 +290,7 @@ describe('the base cache with one entry for each language', () => {
     },
   );
 
-  it('keeps the Go entry after a change of a go.sum in a folder that git ignores', async () => {
+  it('misses the Go entry after a change of a go.sum in a folder that git ignores', async () => {
     const checkout = newCheckout();
     writeFileSync(join(checkout, '.gitignore'), 'var/\n');
     spawnSync('git', ['init', '-q'], { cwd: checkout });
@@ -298,7 +298,18 @@ describe('the base cache with one entry for each language', () => {
     writeFileSync(join(checkout, 'var/go.sum'), 'example.com/a v1.0.0 h1:a=\n');
     await reviewBase(checkout, [TYPESCRIPT, GO]);
     writeFileSync(join(checkout, 'var/go.sum'), 'example.com/a v1.0.1 h1:b=\n');
-    expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual([]);
+    expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual(['go']);
+  });
+
+  it('misses the Go entry after a change of a go.work.sum at the root that git ignores', async () => {
+    const checkout = newCheckout();
+    writeFileSync(join(checkout, '.gitignore'), 'go.work\ngo.work.sum\n');
+    spawnSync('git', ['init', '-q'], { cwd: checkout });
+    writeFileSync(join(checkout, 'go.work'), 'go 1.22\n\nuse ./a\n');
+    writeFileSync(join(checkout, 'go.work.sum'), 'example.com/a v1.0.0 h1:a=\n');
+    await reviewBase(checkout, [TYPESCRIPT, GO]);
+    writeFileSync(join(checkout, 'go.work.sum'), 'example.com/a v1.0.1 h1:b=\n');
+    expect((await reviewBase(checkout, [TYPESCRIPT, GO])).read).toEqual(['go']);
   });
 
   it('reads the Go entry of a checkout with a folder below its root that it cannot read', async () => {

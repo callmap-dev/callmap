@@ -50,7 +50,7 @@ func extract(repo string, scope []string) (document, error) {
 	if err != nil {
 		return document{}, err
 	}
-	files := sourceFilesOf(root, scope, found.files, loaded)
+	files := sourceFilesOf(root, scope, found, loaded)
 	declared, err := declarationsOf(files)
 	if err != nil {
 		return document{}, err

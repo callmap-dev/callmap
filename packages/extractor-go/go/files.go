@@ -60,12 +60,8 @@ func repoFilenameOf(pkg *packages.Package, syntax *ast.File, filename string) st
 }
 
 // A file that a build tag leaves out is in no package, so it never enters the document. A file of a
-// loaded package that the walk did not take, such as one that git ignores, does not enter it either.
-func sourceFilesOf(repo string, scope []string, walked []string, loaded []*packages.Package) []sourceFile {
-	taken := map[string]bool{}
-	for _, path := range walked {
-		taken[path] = true
-	}
+// loaded package that git ignores does not enter it either.
+func sourceFilesOf(repo string, scope []string, found tree, loaded []*packages.Package) []sourceFile {
 	best := map[string]sourceFile{}
 	rankOf := map[string]variantRank{}
 	for _, pkg := range loaded {
@@ -77,7 +73,7 @@ func sourceFilesOf(repo string, scope []string, walked []string, loaded []*packa
 			filename := pkg.Fset.File(syntax.FileStart).Name()
 			repoFilename := repoFilenameOf(pkg, syntax, filename)
 			path, inRepo := repoPathOf(repo, repoFilename)
-			if !inRepo || !taken[path] || !inScope(path, scope) || rankOf[path] >= rank {
+			if !inRepo || found.ignores(path) || !inScope(path, scope) || rankOf[path] >= rank {
 				continue
 			}
 			best[path] = sourceFile{path: path, filename: filename, repoFilename: repoFilename, syntax: syntax, pkg: pkg}
