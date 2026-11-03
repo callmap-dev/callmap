@@ -8,6 +8,12 @@ import type { Dirent } from 'node:fs';
 import { readdirSync } from 'node:fs';
 import { isSkippedDirectory } from '@callmap/scope';
 
+export interface RubyTree {
+  readonly files: readonly string[];
+  /** Each `.gemspec`, whose folder is a load unit of its own. */
+  readonly gemspecs: readonly string[];
+}
+
 /**
  * The untracked paths that git ignores, by repo-relative path. A repo that is not a git repo
  * ignores nothing. An ignored folder can hold the data of a container that another user owns, so
@@ -32,16 +38,17 @@ const isUnreadable = (error: unknown): boolean =>
   error instanceof Error && 'code' in error && (error.code === 'EACCES' || error.code === 'EPERM');
 
 /**
- * Every Ruby file of the repo by repo-relative path, in path order, whatever the scope. Zeitwerk
- * names a constant by where its file sits, so which constants an app defines is a question about
- * the whole app, and the scope only decides which of them the document claims. The walk does not
- * enter a path that git ignores, or a folder below the root that it cannot read. A symbolic link is
- * not followed, so a link out of the repo cannot pull a foreign file in and a link back into it
- * cannot walk forever.
+ * Every Ruby file of the repo by repo-relative path, in path order, whatever the scope. A class
+ * takes its methods from every body in its load unit, so which methods a class has is a question
+ * about the whole unit, and the scope only decides which of them the document claims. The walk
+ * does not enter a path that git ignores, or a folder below the root that it cannot read. A
+ * symbolic link is not followed, so a link out of the repo cannot pull a foreign file in and a link
+ * back into it cannot walk forever.
  */
-export const rubyFilesOf = (repo: string): readonly string[] => {
+export const rubyTreeOf = (repo: string): RubyTree => {
   const ignored = ignoredPathsOf(repo);
   const found: string[] = [];
+  const gemspecs: string[] = [];
 
   const entriesOf = (directory: string): readonly Dirent[] => {
     try {
@@ -59,9 +66,10 @@ export const rubyFilesOf = (repo: string): readonly string[] => {
       if (ignored.has(path)) continue;
       if (entry.isDirectory()) walk(path);
       else if (entry.isFile() && entry.name.endsWith('.rb')) found.push(path);
+      else if (entry.isFile() && entry.name.endsWith('.gemspec')) gemspecs.push(path);
     }
   };
 
   walk('');
-  return found.sort();
+  return { files: found.sort(), gemspecs: gemspecs.sort() };
 };

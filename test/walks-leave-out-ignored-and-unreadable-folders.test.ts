@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { rubyFilesOf } from '../packages/extractor-ruby/src/walk.ts';
+import { rubyTreeOf } from '../packages/extractor-ruby/src/walk.ts';
 import { sourceFilesInScope } from '../packages/extractor-typescript/src/walk.ts';
 import { tempDir } from './temp-dir.ts';
 
@@ -40,7 +40,7 @@ const WALKS = [
     extension: 'ts',
     filesOf: (repo: string) => sourceFilesInScope(repo, []),
   },
-  { walk: 'the Ruby walk', extension: 'rb', filesOf: rubyFilesOf },
+  { walk: 'the Ruby walk', extension: 'rb', filesOf: (repo: string) => rubyTreeOf(repo).files },
 ];
 
 describe.each(WALKS)('$walk', ({ extension, filesOf }) => {

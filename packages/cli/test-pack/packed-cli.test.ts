@@ -5,7 +5,7 @@ import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { tempDir } from '../../../test/temp-dir.ts';
-import { featureBranchRepo, goRepo } from '../test/fixture-repo.ts';
+import { featureBranchRepo, goRepo, rubyRepo } from '../test/fixture-repo.ts';
 import { pageDataOf } from '../test/reader-page.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
@@ -33,7 +33,7 @@ const packedCli = (): Tarball => {
 };
 
 const PACKAGE_FILE =
-  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|css|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS)))$/;
+  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|css|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS))|dist\/ruby\/[^/]+\.rb)$/;
 
 let tarball: Tarball;
 
@@ -112,6 +112,16 @@ describe('the packed @callmap/cli', () => {
         'dist/go/vendor/modules.txt',
         'dist/go/vendor/golang.org/x/tools/LICENSE',
         'dist/go/vendor/golang.org/x/tools/go/packages/packages.go',
+      ]),
+    );
+  });
+
+  it('holds the Ruby extractor with its Ripper script', () => {
+    expect(tarball.files).toEqual(
+      expect.arrayContaining([
+        'dist/extract-ruby.js',
+        'dist/ruby-extractor-source.sha256',
+        'dist/ruby/read.rb',
       ]),
     );
   });
@@ -216,5 +226,42 @@ describe('the packed @callmap/cli', () => {
     });
     expect(next.status, next.stderr).toBe(0);
     expect(goExtractorBinariesOf(cacheHome)).toHaveLength(2);
+  });
+
+  it('installs in a repo with Ruby, reads it with the Ripper script that it carries, and its page holds the Ruby functions and calls', () => {
+    const repo = installedRepo(tarball.path, rubyRepo());
+    const out = join(tempDir('callmap-out-'), 'review.html');
+    const finished = runInstalledCallmap(repo, out, tempDir('callmap-cache-'));
+    expect(finished.stderr).toBe('');
+    expect(finished.status).toBe(0);
+    const { review } = pageDataOf(readFileSync(out, 'utf8'));
+    expect(review.functions.map(({ id, mark }) => `${mark} ${id}`)).toEqual(
+      expect.arrayContaining([
+        'changed app/models/order.rb#Order#total',
+        'added app/models/order.rb#Order#tax',
+      ]),
+    );
+    expect(review.calls.map(({ caller, callee, mark }) => `${mark} ${caller} ${callee}`)).toEqual(
+      expect.arrayContaining([
+        'added app/models/order.rb#Order#total app/models/order.rb#Order#tax',
+      ]),
+    );
+    expect(review.resolutionRates.map(({ language }) => language)).toEqual(['ruby', 'typescript']);
+  });
+
+  it('reads the Ruby base again after a build from a changed Ruby extractor source', () => {
+    const repo = installedRepo(tarball.path, rubyRepo());
+    const cacheHome = tempDir('callmap-cache-');
+    const out = join(tempDir('callmap-out-'), 'review.html');
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
+
+    writeFileSync(
+      join(repo, 'node_modules', '@callmap', 'cli', 'dist', 'ruby-extractor-source.sha256'),
+      '0'.repeat(64),
+    );
+    expect(runInstalledCallmap(repo, out, cacheHome).status).toBe(0);
+    expect(cacheEntriesOf(cacheHome)).toHaveLength(3);
   });
 });

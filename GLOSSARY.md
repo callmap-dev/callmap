@@ -29,11 +29,11 @@ The cause, from a fixed list, of why the language's tools cannot tie an open end
 _Avoid_: cause, error, why
 
 **Library call**:
-A call whose callee is code outside the repo, such as the standard library, a module, a gem or a framework. In Ruby, a call that the class chain passes to a framework class, and a call to a method that a framework macro makes, such as `has_many`, are library calls too. In Go, a call through an interface of the repo that only library types implement is a library call too. The call graph does not hold a library call, and the resolution rate does not count it.
+A call whose callee is code outside the repo, such as the standard library, a module, a gem or a framework. In Ruby, a call that the class chain passes to a framework class, and a call to a method that a framework macro makes, such as `has_many`, are library calls too. So is a call on a Ruby constant that does not resolve, when its first segment has 2 properties. No `class` or `module` body of its load unit has a segment of that name, and no Zeitwerk constant of the unit has one. When an alias on the path has a target that does not resolve, the rule reads the target in place of the alias. A first segment that resolves to a constant of the repo, directly or through an alias, gives an open end. In Go, a call through an interface of the repo that only library types implement is a library call too. The call graph does not hold a library call, and the resolution rate does not count it.
 _Avoid_: external call, vendor call, leaf
 
 **One-of call**:
-One of several calls from one call site through an interface or a map of strategies, one to each implementation. Only one of them runs.
+One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module, `super` in a module with several includers and a call to an abstract method give one-of calls too. Only one of them runs.
 _Avoid_: maybe call, possible call
 
 **One-of group**:
@@ -79,12 +79,20 @@ The tool of a language that proves the calls of a graph document, with its name 
 _Avoid_: compiler, type checker version, toolchain
 
 **Reference graph document**:
-What the extractors emit before spec 15: the files in scope and the import edges between them. The graph document replaces it for the review, and the Ruby extractor keeps it until it emits functions and calls.
-_Avoid_: graph document (that holds functions and calls)
+A retired term. It named what the extractors emitted before spec 15: the files in scope and the import edges between them. No extractor emits it now. Every extractor emits a graph document. A settled record, such as ADR-0011, still uses the term.
+_Avoid_: reference graph document, for any document that an extractor emits today
 
 **Scope**:
 The globs an extractor is run under, which limit which files enter its document, so a monorepo is read one subtree at a time. A glob that starts with `!` leaves out the files that it matches. The effective scope is the scope of the user with the test globs as `!` globs, unless `--tests` asks for the tests.
 _Avoid_: filter, include path, root
+
+**Load unit**:
+The Ruby code that loads together, so that its constants share one set of names: one Rails app, the folder of one `.gemspec`, or else the rest of the repo. A constant ties only to a class or a module of its own load unit. A class takes its methods from every body of that class in its load unit.
+
+**Alias**:
+A Ruby constant that a `class` body, a `module` body or the top level sets to a constant path, such as `Plan = Services::Plan`. The path resolves in the nesting of the assignment, and the rules follow a chain of aliases. A call on the alias ties as a call on its target does.
+_Avoid_: another name, synonym
+_Avoid_: app, package, project
 
 **Test file**:
 A file that a test glob of `@callmap/scope` matches. A test glob is a file-name rule, such as `*_test.go`, or a folder, such as `test/`. No walk reads a test file unless `--tests` asks for it.
@@ -99,15 +107,15 @@ The link on a function that opens its file and line in the reader's editor. A re
 _Avoid_: deep link, jump link
 
 **View**:
-One drawing of the reader page, chosen with a tab: Diff, Whole project, Folder or Route. A view is a pure function from the page data and the choice of the reader, such as the open level, to boxes, frames and lines. A view also gives the model order of the ELK layout. The Diff view opens first, unless the review is over the Diff limit. The marks, the open ends, the one-of groups, the selection and the code panel work in every view.
+One drawing of the reader page, chosen with a tab: Diff, Whole project, Folder or Route. A view is a pure function from the page data and the choice of the reader, such as the open level, to boxes, frames and lines. A view also gives the model order of the ELK layout. The Diff view opens first. The marks, the open ends, the one-of groups, the selection and the code panel work in every view.
 _Avoid_: mode, screen, perspective
 
 **Diff limit**:
-The most lines that the Diff view draws: 2,000. Each line of the Diff view is one call. A review over the Diff limit opens on the Whole project view, and the Diff tab says what it left out. A next hop or a search that takes the Diff view over the limit also gets the message in place of a drawing.
+The most lines that the Diff view draws in one drawing: 2,000. Each line of the Diff view is one call. Over the Diff limit, the Diff view shows one level at a time, and the level bar says why. At the limit or under it, the Diff view is one drawing again. A next hop or a search can take the Diff view over the limit or back under it.
 _Avoid_: cap, threshold, max size
 
 **Level**:
-One folder of the scope, or one file, that the Whole project view shows at a time. The level of a folder shows its child folders and its files as boxes. The level of a file shows its functions as boxes. The top level is the deepest folder that holds every file in scope. A chain of folders with one child each shows as one box. A folder with only one file shows as the box of that file. So a level never holds a single box. A box counts the changed, added and removed functions inside it. A click on a box opens its level, and the breadcrumb leads back up.
+One folder of the scope, or one file, that the Whole project view shows at a time. The Diff view also shows levels over the Diff limit, and its levels hold only the changed functions and their neighbours. The level of a folder shows its child folders and its files as boxes. The level of a file shows its functions as boxes. The top level is the deepest folder that holds every file of the view. A chain of folders with one child each shows as one box. A folder with only one file shows as the box of that file. So a level never holds a single box. A box counts the changed, added and removed functions inside it. A click on a box opens its level, and the breadcrumb leads back up.
 _Avoid_: zoom level, depth, layer
 
 **Outside box**:
@@ -139,7 +147,7 @@ The number of calls on a bundled line, in a rounded box on the line. It shows on
 _Avoid_: call count label, edge label
 
 **Level bar**:
-The bar at the top of the graph on a level of the Whole project view. It holds the breadcrumb, the "Up one level" button and the count of the boxes and the lines of the open level.
+The bar at the top of the graph on a level of the Whole project view or of the Diff view. It holds the breadcrumb, the "Up one level" button and the count of the boxes and the lines of the open level. On a level of the Diff view, it also says that the review is over the Diff limit.
 _Avoid_: toolbar, header
 
 **Overview map**:
@@ -169,7 +177,7 @@ The commit that a review compares the branch against: the merge base with the de
 _Avoid_: target, parent, main
 
 **Dependency file**:
-A file of the checkout that decides which code from outside the repo a language loads. The cache keeps one entry of the base for each language. A change of a dependency file reads the base of its language again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root.
+A file of the checkout that decides which code from outside the repo a language loads. The cache keeps one entry of the base for each language. A change of a dependency file reads the base of its language again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
 _Avoid_: lock file, for a file of Go
 
 **Changed function**:
