@@ -22,7 +22,6 @@ const goExtractorVersion = (goVersion: string): string =>
 
 export const assets: Assets = {
   typescriptExtractor: TYPESCRIPT_EXTRACTOR,
-  layoutWorker: new URL('layout-worker.js', import.meta.url),
   pageScript: () => Promise.resolve(readFileSync(new URL('page.js', import.meta.url), 'utf8')),
   pageStyle: () => readFileSync(new URL('page.css', import.meta.url), 'utf8'),
   typescriptExtractorVersion: () => {

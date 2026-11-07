@@ -153,7 +153,7 @@ export const runReview = async (
     branch: read.map(({ branch }) => branch),
   });
   const review = reviewOf(graphs);
-  const { html, notes } = await readerPageOf({
+  const html = await readerPageOf({
     review,
     branchGraph: graphs.branch,
     sources: sourcesOf(root, base, review, graphs.branch),
@@ -172,7 +172,6 @@ export const runReview = async (
     notes: [
       ...checked.flatMap(({ skipNote }) => skipNote ?? []),
       ...checked.flatMap(({ extractor }) => extractor.notes?.() ?? []),
-      ...notes,
     ],
   };
 };

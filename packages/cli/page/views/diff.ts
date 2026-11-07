@@ -7,7 +7,6 @@ export const DIFF_LIMIT = 2_000;
 
 export const diffView: View = {
   name: 'Diff',
-  laidOutByCommand: true,
   callLimitOf: ({ diffLimit }) => diffLimit,
   countOf: ({ review }) => {
     const count = review.functions.filter(({ mark }) => isChangeMark(mark)).length;

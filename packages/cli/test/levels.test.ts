@@ -320,24 +320,27 @@ describe('the marks of a level', () => {
   });
 });
 
+const levelLayoutsOf = (page: LoadedPage): readonly string[] =>
+  page.layouts.filter((name) => name.startsWith('callmap layout: Whole project'));
+
 describe('the layout of a level', () => {
-  it('draws the top level from the page data with no layout in the page', async () => {
+  it('lays out the top level in the page once', async () => {
     const page = await projectPage();
     expect(boxesOf(page).length).toBeGreaterThan(0);
-    expect(page.layouts).toEqual([]);
+    expect(levelLayoutsOf(page)).toEqual(['callmap layout: Whole project level:src']);
   });
 
   it('lays out another level once, and not again on a second visit', async () => {
     const page = await ordersPage();
-    expect(page.layouts).toHaveLength(1);
+    expect(levelLayoutsOf(page)).toHaveLength(2);
     await clickBox(page, API);
     const firstVisit = boxesOf(page);
-    expect(page.layouts).toHaveLength(2);
+    expect(levelLayoutsOf(page)).toHaveLength(3);
     fireEvent.click(breadcrumbOf(page).getByRole('button', { name: 'src/' }));
     await settled(page);
     await clickBox(page, ORDERS);
     await clickBox(page, API);
-    expect(page.layouts).toHaveLength(2);
+    expect(levelLayoutsOf(page)).toHaveLength(3);
     expect(boxesOf(page)).toEqual(firstVisit);
   });
 });
