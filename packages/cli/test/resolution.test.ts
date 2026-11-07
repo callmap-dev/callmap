@@ -81,7 +81,7 @@ const repoWithBroadcastOnBase = (): string => {
 beforeAll(async () => {
   html = await readerPageOfFile('typescript/review');
   htmlWithBroadcast = reviewPageOf(repoWithBroadcastOnBase());
-}, 120_000);
+});
 
 describe('the open ends, one-of groups and resolution rate of callmap review', () => {
   it('lists the open end of a call on an untyped value, with its caller, line, text and reason', () => {

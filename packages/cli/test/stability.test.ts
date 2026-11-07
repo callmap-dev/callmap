@@ -34,12 +34,12 @@ describe('a review run', () => {
     review(repo, 'review.html');
 
     expect(checkoutOf(repo)).toEqual(before);
-  }, 60_000);
+  });
 
   it('writes byte-identical pages for two runs on the same commits', () => {
     const repo = featureBranchRepo();
     expect(review(repo, 'second.html')).toBe(review(repo, 'first.html'));
-  }, 60_000);
+  });
 
   it('writes the same page for two clones of the same commits in different folders, but for the root that the editor link opens', () => {
     const [first, second] = [featureBranchRepo(), featureBranchRepo()];
@@ -47,5 +47,5 @@ describe('a review run', () => {
     const withoutRoot = (repo: string): string =>
       review(repo, 'review.html').replaceAll(git(repo, 'rev-parse', '--show-toplevel'), '<root>');
     expect(withoutRoot(second)).toBe(withoutRoot(first));
-  }, 60_000);
+  });
 });

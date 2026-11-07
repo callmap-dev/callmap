@@ -52,7 +52,7 @@ describe('the release assets', () => {
     expect(readFileSync(join(out, 'callmap-core-assets-0.2.0.tar.gz.sha256'), 'utf8')).toBe(
       `${sha256}  callmap-core-assets-0.2.0.tar.gz\n`,
     );
-  }, 60_000);
+  });
 
   it('hold the page template, the schemas, the test globs and the fixture repos with their expected review inputs', () => {
     const out = tempDir('callmap-release-');
@@ -81,7 +81,7 @@ describe('the release assets', () => {
       'go/review/expected-review-input.json',
       readFileSync(GO_EXPECTED, 'utf8'),
     ]);
-  }, 60_000);
+  });
 
   it('are not written when the conformance suite fails', () => {
     const out = tempDir('callmap-release-');
@@ -90,7 +90,7 @@ describe('the release assets', () => {
     expect(finished.stderr).toBe('The conformance suite failed, so the release has no assets.\n');
     expect(finished.status).toBe(1);
     expect(readdirSync(out)).toEqual([]);
-  }, 60_000);
+  });
 
   it('need a release tag with a version', () => {
     const out = tempDir('callmap-release-');

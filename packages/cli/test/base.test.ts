@@ -43,7 +43,7 @@ describe('the base of a review', () => {
       `${readFileSync(join(repo, MONEY), 'utf8')}\nexport const half = (amount: number): number => amount / 2;\n`,
     );
     expect(marksOfReview(repo, '--base', 'HEAD~1')).toEqual({ [`${MONEY}#half`]: 'added' });
-  }, 60_000);
+  });
 
   it('takes the merge base with the head of the remote before main', () => {
     const repo = featureBranchRepo();
@@ -51,7 +51,7 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with the head of another remote when origin names no head', () => {
     const repo = featureBranchRepo();
@@ -60,7 +60,7 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/upstream/HEAD', 'refs/remotes/upstream/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the head of origin before the head of another remote', () => {
     const repo = featureBranchRepo();
@@ -72,17 +72,17 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/another/HEAD', 'refs/remotes/another/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with main when the remote names no head', () => {
     const repo = featureBranchRepo();
     git(repo, 'branch', 'master', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with master when there is no main', () => {
     expect(marksOfReview(featureBranchRepo('master'))).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 });
 
 describe('the base checkout of a review', () => {
@@ -112,7 +112,7 @@ describe('the base checkout of a review', () => {
     ]);
     expect(review.openEnds).toEqual([]);
     expect(git(repo, 'status', '--porcelain', '--ignored')).toBe('!! node_modules/');
-  }, 60_000);
+  });
 
   it('holds the go.work and go.work.sum of the repo root, for the Go extractor, that git ignores or does not track, and no other ignored file', async () => {
     const repo = featureBranchRepo();
@@ -390,5 +390,5 @@ describe('a branch that changed no function', () => {
     await openTab(page, 'Diff');
     expect(body.getByRole('status', { name: 'No changed functions' })).toBeDefined();
     expect(window.document.getElementById('graph')?.hidden).toBe(true);
-  }, 60_000);
+  });
 });

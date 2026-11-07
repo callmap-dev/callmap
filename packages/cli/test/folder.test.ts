@@ -37,7 +37,7 @@ beforeAll(() => {
   ]);
   expect(finished.status, finished.stderr).toBe(0);
   html = readFileSync(out, 'utf8');
-}, 120_000);
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

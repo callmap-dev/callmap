@@ -350,7 +350,7 @@ describe('the page of a review with levels', () => {
   it('is byte-identical for two runs on the same commits', () => {
     const repo = levelsRepo();
     expect(reviewHtmlOf(repo)).toBe(reviewHtmlOf(repo));
-  }, 60_000);
+  });
 });
 
 describe('the search in the Whole project view', () => {

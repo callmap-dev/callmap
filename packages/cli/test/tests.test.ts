@@ -71,7 +71,7 @@ const pageOfReview = (...flags: readonly string[]) => {
 beforeAll(() => {
   repo = repoWithTests();
   cacheHome = tempDir('callmap-cache-');
-}, 60_000);
+});
 
 describe('the test files of a review', () => {
   it('shows no function of a test file, in the Diff view and in the Whole project view', () => {
@@ -79,7 +79,7 @@ describe('the test files of a review', () => {
     expect(review.functions.filter(({ file }) => isTestFile(file))).toEqual([]);
     expect(review.branch.functions.filter(({ file }) => isTestFile(file))).toEqual([]);
     expect(review.functions.map(({ file }) => file)).toContain('checkout/checkout.go');
-  }, 120_000);
+  });
 
   it('reads the test files with --tests, from a base entry of its own', () => {
     const { review } = pageOfReview('--tests');
@@ -99,7 +99,7 @@ describe('the test files of a review', () => {
         'web/greet.ts',
       ]),
     );
-  }, 120_000);
+  });
 
   it('keeps a test file out under a --scope glob of the user, and --tests puts it back', () => {
     const filesOf = (...flags: readonly string[]): ReadonlySet<string> =>
@@ -108,7 +108,7 @@ describe('the test files of a review', () => {
       );
     expect(filesOf()).toEqual(new Set(['web/greet.ts']));
     expect(filesOf('--tests')).toEqual(new Set(['web/greet.ts', TS_TEST, TS_TEST_FOLDER]));
-  }, 120_000);
+  });
 });
 
 describe('the scope that the launcher gives each extractor', () => {
@@ -158,9 +158,9 @@ describe('the scope that the launcher gives each extractor', () => {
       effectiveScope(scope, false),
       effectiveScope(scope, false),
     ]);
-  }, 60_000);
+  });
 
   it('is the scope of the user alone with --tests', async () => {
     expect(await scopesOfRun(['web/**'], true)).toEqual([['web/**'], ['web/**']]);
-  }, 60_000);
+  });
 });

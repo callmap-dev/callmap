@@ -86,23 +86,19 @@ describe('the base cache of a review', () => {
 
     emptyEveryBase(cacheHome);
     expect(Object.values(marksOf(reviewHtml(cacheHome, repo)))).not.toContain('removed');
-  }, 60_000);
+  });
 
   it.each([
     ['the scope', ['--scope', 'src/**']],
     ['the tsconfig', ['--tsconfig', 'tsconfig.json']],
-  ])(
-    'reads the base again after a change of %s',
-    (_, flags) => {
-      const repo = featureBranchRepo();
-      const cacheHome = newCacheHome();
-      reviewHtml(cacheHome, repo);
-      emptyEveryBase(cacheHome);
-      expect(marksOf(reviewHtml(cacheHome, repo, ...flags))).toMatchObject(BRANCH_CHANGES);
-      expect(entriesOf(cacheHome)).toHaveLength(2);
-    },
-    60_000,
-  );
+  ])('reads the base again after a change of %s', (_, flags) => {
+    const repo = featureBranchRepo();
+    const cacheHome = newCacheHome();
+    reviewHtml(cacheHome, repo);
+    emptyEveryBase(cacheHome);
+    expect(marksOf(reviewHtml(cacheHome, repo, ...flags))).toMatchObject(BRANCH_CHANGES);
+    expect(entriesOf(cacheHome)).toHaveLength(2);
+  });
 
   it('reads the base again over an entry written before a graph document named its checker', () => {
     const repo = featureBranchRepo();
@@ -114,7 +110,7 @@ describe('the base cache of a review', () => {
     expect(marksOf(reviewHtml(cacheHome, repo))).toMatchObject(BRANCH_CHANGES);
     const [entry = ''] = entriesOf(cacheHome);
     expect(JSON.parse(readFileSync(entry, 'utf8'))).toHaveProperty('checker.name', 'TypeScript');
-  }, 60_000);
+  });
 
   it('reads the base again after a change of the lock file in the checkout', () => {
     const repo = featureBranchRepo();
@@ -124,7 +120,7 @@ describe('the base cache of a review', () => {
     emptyEveryBase(cacheHome);
     writeFileSync(join(repo, 'package-lock.json'), '{ "lockfileVersion": 3, "packages": {} }\n');
     expect(marksOf(reviewHtml(cacheHome, repo))).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('reads the base again after a change of the base commit', () => {
     const repo = featureBranchRepo();
@@ -132,7 +128,7 @@ describe('the base cache of a review', () => {
     reviewHtml(cacheHome, repo);
     emptyEveryBase(cacheHome);
     expect(marksOf(reviewHtml(cacheHome, repo, '--base', 'HEAD'))).toEqual({});
-  }, 60_000);
+  });
 
   it('reads the base again with --no-cache, and does not write the cache', () => {
     const repo = featureBranchRepo();
@@ -144,7 +140,7 @@ describe('the base cache of a review', () => {
     emptyEveryBase(cacheHome);
     expect(marksOf(reviewHtml(cacheHome, repo, '--no-cache'))).toMatchObject(BRANCH_CHANGES);
     expect(readFileSync(entriesOf(cacheHome)[0] ?? '', 'utf8')).toBe(EMPTY_BASE);
-  }, 60_000);
+  });
 
   it('keeps the 20 newest entries for one repo', () => {
     const repo = featureBranchRepo();
@@ -167,22 +163,18 @@ describe('the base cache of a review', () => {
     expect(kept).not.toContain('older-00.json');
     expect(kept).not.toContain('older-01.json');
     expect(kept).toContain('older-02.json');
-  }, 60_000);
+  });
 
   it.each([
     ['is not JSON', '{ "language": '],
     ['is not a graph document', '{ "language": "typescript" }'],
-  ])(
-    'reads the base again when a cache file %s',
-    (_, text) => {
-      const repo = featureBranchRepo();
-      const cacheHome = newCacheHome();
-      const first = reviewHtml(cacheHome, repo);
-      for (const entry of entriesOf(cacheHome)) writeFileSync(entry, text);
-      expect(reviewHtml(cacheHome, repo)).toBe(first);
-    },
-    60_000,
-  );
+  ])('reads the base again when a cache file %s', (_, text) => {
+    const repo = featureBranchRepo();
+    const cacheHome = newCacheHome();
+    const first = reviewHtml(cacheHome, repo);
+    for (const entry of entriesOf(cacheHome)) writeFileSync(entry, text);
+    expect(reviewHtml(cacheHome, repo)).toBe(first);
+  });
 
   it('lives under ~/.cache/callmap when XDG_CACHE_HOME is not set', () => {
     const repo = featureBranchRepo();
@@ -195,7 +187,7 @@ describe('the base cache of a review', () => {
     });
     expect(finished.status, finished.stderr).toBe(0);
     expect(entriesOf(join(home, '.cache'))).toHaveLength(1);
-  }, 60_000);
+  });
 });
 
 const documentOf = (language: string, file: string): GraphDocument => ({
@@ -355,7 +347,6 @@ describe('the base cache with one entry for each language', () => {
       expect((await reviewBase(checkout, [goExtractor()])).read).toEqual(['go']);
       expect(entriesOf(process.env['XDG_CACHE_HOME'] ?? '')).toHaveLength(2);
     },
-    30_000,
   );
 
   it('keeps the Go entry after a change of a -mod flag, which the extractor drops from GOFLAGS', async () => {
@@ -364,7 +355,7 @@ describe('the base cache with one entry for each language', () => {
     await reviewBase(checkout, [goExtractor()]);
     vi.stubEnv('GOFLAGS', '-tags=integration -mod=readonly');
     expect((await reviewBase(checkout, [goExtractor()])).read).toEqual([]);
-  }, 30_000);
+  });
 
   it('does not give the entry of one language to another language with the same version', async () => {
     const checkout = newCheckout();

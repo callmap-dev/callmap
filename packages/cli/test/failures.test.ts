@@ -32,21 +32,21 @@ describe('a review that cannot run', () => {
     expect(failedReview(repo, '--base', 'no-such-branch')).toBe(
       `the base 'no-such-branch' is not a commit in ${repo}`,
     );
-  }, 30_000);
+  });
 
   it('says so when the repo has no default branch to find a base on', () => {
     const repo = featureBranchRepo('trunk');
     expect(failedReview(repo)).toBe(
       `${repo} has no remote head, no main and no master to find a base on. Name one with --base.`,
     );
-  }, 30_000);
+  });
 
   it('says so when the branch shares no commit with its base', () => {
     const repo = featureBranchRepo();
     git(repo, 'checkout', '--quiet', '--orphan', 'unrelated');
     git(repo, 'commit', '--quiet', '--message', 'unrelated');
     expect(failedReview(repo)).toBe(`HEAD shares no commit with main in ${repo}`);
-  }, 30_000);
+  });
 
   it('says so when the TypeScript config of the branch cannot be read', () => {
     const repo = featureBranchRepo();
@@ -55,7 +55,7 @@ describe('a review that cannot run', () => {
       `the branch could not be read: tsconfig.json could not be read as a tsconfig`,
     );
     expect(git(repo, 'worktree', 'list', '--porcelain').match(/^worktree /gm)).toHaveLength(1);
-  }, 30_000);
+  });
 
   it('names the base, not a temporary folder, when the config of the base cannot be read', () => {
     const repo = featureBranchRepo();
@@ -66,5 +66,5 @@ describe('a review that cannot run', () => {
       `the base ${broken} could not be read: tsconfig.json could not be read as a tsconfig`,
     );
     expect(git(repo, 'worktree', 'list', '--porcelain').match(/^worktree /gm)).toHaveLength(1);
-  }, 30_000);
+  });
 });

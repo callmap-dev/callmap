@@ -121,7 +121,7 @@ describe('the editor link', () => {
     expect(
       await linkOf(await loadReaderPage(reviewPage()), `${CART}#receipt`, 'Open in VS Code'),
     ).toBe(`vscode://file${root}/${CART}:8`);
-  }, 120_000);
+  });
 
   it('opens the file of a function at its first line in a JetBrains editor, which counts from 0', async () => {
     const root = git(repo, 'rev-parse', '--show-toplevel');
@@ -129,7 +129,7 @@ describe('the editor link', () => {
     expect(await linkOf(page, `${CART}#receipt`, 'Open in JetBrains')).toBe(
       `jetbrains://idea/navigate/reference?project=${basename(root)}&path=${CART}:7`,
     );
-  }, 120_000);
+  });
 
   it('gives a removed function no editor link, because the branch no longer holds it', async () => {
     const page = await loadReaderPage(html);

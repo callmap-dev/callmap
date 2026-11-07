@@ -112,7 +112,7 @@ describe('the diff in the code panel', () => {
     const added = codePanelOf(page).getAllByRole('insertion');
     expect(textsOf(added)).toEqual(['  console.log(total);']);
     expect(added[0]?.closest('.cm-line')?.classList.contains('added-only')).toBe(true);
-  }, 60_000);
+  });
 
   it('tints the line number of each removed and each added line, as GitHub does', async () => {
     expect(numberMarksOf(await readFunction(`${CART}#receipt`))).toEqual([

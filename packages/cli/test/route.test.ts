@@ -169,7 +169,7 @@ describe('the call tree of an entry point with a cycle', () => {
 
   beforeAll(() => {
     cycleHtml = reviewHtmlOf(countdownRepo());
-  }, 120_000);
+  });
 
   it('ends, shows each function once, and draws the call back as one line', async () => {
     const page = await routePage(cycleHtml);
@@ -239,7 +239,7 @@ const pong = (left: number): number => ping(left);
 `,
     );
     echoHtml = reviewHtmlOf(repo);
-  }, 120_000);
+  });
 
   it('draws the call tree of the function itself, and marks no entry point', async () => {
     const page = await routePage(echoHtml);

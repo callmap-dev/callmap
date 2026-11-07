@@ -42,7 +42,7 @@ beforeAll(() => {
   expect(finished.status, finished.stderr).toBe(0);
   stdout = finished.stdout;
   html = readFileSync(out, 'utf8');
-}, 120_000);
+});
 
 describe('callmap review on a feature branch', () => {
   it('marks each added, removed and changed function, and each neighbour', () => {
@@ -176,17 +176,17 @@ describe('the base sources of the review input', () => {
     git(renamed, 'rm', '--quiet', RATE);
     git(renamed, 'commit', '--quiet', '--message', 'rename and remove');
     expect(await baseFilesOf(renamed)).toEqual([ALERTS, CART, MONEY, REPORT, RATE]);
-  }, 120_000);
+  });
 
   it('hold only the changed files in scope', async () => {
     expect(await baseFilesOf(featureBranchRepo(), '--scope', CART)).toEqual([CART]);
-  }, 120_000);
+  });
 
   it('hold a changed file that is not committed yet', async () => {
     const uncommitted = featureBranchRepo();
     writeFileSync(join(uncommitted, CHECKOUT), `${fixtureText('branch', CHECKOUT)}\n`);
     expect(await baseFilesOf(uncommitted)).toEqual([ALERTS, CART, CHECKOUT, MONEY]);
-  }, 120_000);
+  });
 });
 
 describe('the reader page', () => {
@@ -258,7 +258,7 @@ describe('opening the page', () => {
     expect(finished.status, finished.stderr).toBe(0);
     await expect.poll(() => existsSync(opener.marker), { timeout: 5_000 }).toBe(true);
     expect(readFileSync(opener.marker, 'utf8')).toBe(target);
-  }, 120_000);
+  });
 
   it('opens no browser with --no-open, and still writes the page', async () => {
     const opener = fakeOpener();
@@ -268,5 +268,5 @@ describe('opening the page', () => {
     expect(existsSync(target)).toBe(true);
     await new Promise((settle) => setTimeout(settle, 500));
     expect(existsSync(opener.marker)).toBe(false);
-  }, 120_000);
+  });
 });

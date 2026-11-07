@@ -84,7 +84,7 @@ describe('the conformance suite', () => {
     const finished = runSuite('--language', 'go', ...replayedReviewOf(fromAnotherMachine));
     expect(finished.stdout).toBe('ok go/review\n');
     expect(finished.status).toBe(0);
-  }, 60_000);
+  });
 
   it('compares the review input as JSON values, so the key order is not part of the contract', () => {
     const finished = runSuite(
@@ -94,7 +94,7 @@ describe('the conformance suite', () => {
     );
     expect(finished.stdout).toBe('ok go/review\n');
     expect(finished.status).toBe(0);
-  }, 60_000);
+  });
 
   it('shows a difference as a JSON diff of the review input after the masks', () => {
     const renamed = readFileSync(GO_EXPECTED, 'utf8').replace(
@@ -119,13 +119,13 @@ describe('the conformance suite', () => {
       ].join('\n'),
     );
     expect(finished.status).toBe(1);
-  }, 60_000);
+  });
 
   it('runs only the fixture repos of the language that --language names', () => {
     const finished = runSuite('--language', 'ruby', ...replayedReviewOf(expectedGoInput()));
     expect(finished.stdout.split('\n')[0]).toBe('FAIL ruby/review');
     expect(finished.stdout).not.toContain('go/review');
-  }, 60_000);
+  });
 
   it('writes the expected file with its keys in sorted order on --update', () => {
     const fixtures = tempDir('callmap-fixtures-');
@@ -138,7 +138,7 @@ describe('the conformance suite', () => {
     expect(updated.stdout).toBe('updated go/review\n');
     expect(readFileSync(expectedFile, 'utf8')).toBe(readFileSync(GO_EXPECTED, 'utf8'));
     expect(runSuite('--fixtures', fixtures, ...replayed).stdout).toBe('ok go/review\n');
-  }, 60_000);
+  });
 
   it('prints the usage line when no review command follows the flags', () => {
     const finished = runSuite('--language', 'go');

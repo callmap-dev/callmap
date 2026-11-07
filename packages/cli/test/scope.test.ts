@@ -33,7 +33,7 @@ describe('the scope of a review', () => {
       [`${CART}#subtotal`]: 'neighbour',
       [`${CART}#taxed`]: 'added',
     });
-  }, 60_000);
+  });
 
   it('takes the files of every --scope glob', () => {
     const { review } = pageOfReview('--scope', 'src/c*.ts', '--scope', MONEY);
@@ -43,7 +43,7 @@ describe('the scope of a review', () => {
     expect(new Set(review.branch.functions.map(({ file }) => file))).toEqual(
       new Set([CART, 'src/checkout.ts', MONEY]),
     );
-  }, 60_000);
+  });
 
   it('leaves out the files of a negated --scope glob, from the graph and from the review', () => {
     const { review } = pageOfReview('--scope', 'src/**', '--scope', '!src/c*.ts');
@@ -52,5 +52,5 @@ describe('the scope of a review', () => {
     );
     expect([...files].filter((file) => file.startsWith('src/c'))).toEqual([]);
     expect(files.has(MONEY)).toBe(true);
-  }, 60_000);
+  });
 });
