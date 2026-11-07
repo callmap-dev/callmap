@@ -1,5 +1,7 @@
 # Callmap ships on npm as one bundled package
 
+> Changed in part by ADR-0036. Each language has its own distribution, and `callmap-ts` replaces `@callmap/cli`.
+
 > Superseded in part by ADR-0025 and ADR-0026. The review runs every extractor with files in scope, and the package carries the Go and Ruby extractors.
 
 A user runs `npx @callmap/cli review` in a TypeScript repo and gets the reader page, with no clone of Callmap. `@callmap/cli` is the one package on npm. `rolldown` builds it into `packages/cli/dist/`, and the build bundles every other `@callmap/*` package and `elkjs` into it. Only `typescript` stays a run-time dependency. The owner made decisions 1 to 14 below in the triage of issue #1 on 2026-10-22. The implementation changed decision 10, and the decision gives the reason.

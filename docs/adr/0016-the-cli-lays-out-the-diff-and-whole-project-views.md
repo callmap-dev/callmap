@@ -1,5 +1,7 @@
 # The CLI lays out the Diff view and the Whole project view
 
+> Superseded by ADR-0037. The page computes the review and lays out every view in a Web Worker.
+
 > Superseded in part by ADR-0017. The Whole project view shows one level at a time. The CLI lays out only its top level, and the page lays out the other levels.
 
 > Superseded in part by ADR-0023. The CLI does not lay out a Diff view over the Diff limit.
