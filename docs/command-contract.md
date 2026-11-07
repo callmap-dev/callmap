@@ -169,4 +169,12 @@ The reader page holds its data in one data block:
 
 The data block holds the review input as JSON, as ADR-0037 records. The command writes the JSON on one line. Each `<` in the JSON becomes `\u003c`. So no text in the JSON, such as `</script>` in a source file, can close the data block. The JSON parser of the page reads `\u003c` back as `<`.
 
+The command writes the page from the page template, `page-template.html`. The page template holds the data block with the marker `{{CALLMAP_REVIEW_INPUT}}` in place of the JSON:
+
+```html
+<script type="application/json" id="reader-page-data">{{CALLMAP_REVIEW_INPUT}}</script>
+```
+
+The page template holds the marker once. The command puts the escaped JSON at the marker and changes no other byte of the page template. So the same review input and the same page template give a byte-identical page in every distribution.
+
 The JSON Schema of the review input is `packages/review-input/review-input.schema.json`. It refers to the JSON Schema of the graph document, `packages/graph-document/graph-document.schema.json`. A distribution can check its review input against them, as ADR-0039 records. The schemas cannot check a rule that joins 2 fields, such as a caller that must be a function of the same document. The reader of the graph document checks these rules.
