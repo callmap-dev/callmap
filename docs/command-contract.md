@@ -168,3 +168,5 @@ The reader page holds its data in one data block:
 ```
 
 The data block holds the review input as JSON, as ADR-0037 records. The command writes the JSON on one line. Each `<` in the JSON becomes `\u003c`. So no text in the JSON, such as `</script>` in a source file, can close the data block. The JSON parser of the page reads `\u003c` back as `<`.
+
+The JSON Schema of the review input is `packages/review-input/review-input.schema.json`. It refers to the JSON Schema of the graph document, `packages/graph-document/graph-document.schema.json`. A distribution can check its review input against them, as ADR-0039 records. The schemas cannot check a rule that joins 2 fields, such as a caller that must be a function of the same document. The reader of the graph document checks these rules.
