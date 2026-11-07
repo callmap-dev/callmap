@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GraphDocument } from '@callmap/graph-document';
 import { throughBaseCache } from '../src/base-cache.ts';
 import type { CachedExtractor } from '../src/base-cache.ts';
-import { goExtractor } from '../src/extractors.ts';
+import { goExtractor } from '../src/go-extractor.ts';
 import { featureBranchRepo } from './fixture-repo.ts';
 import { pageDataOf, runCallmap } from './reader-page.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
