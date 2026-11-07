@@ -70,9 +70,17 @@ _Avoid_: path, trace, flow
 The per-language program that reads the source code and emits the graph document. The core never reads source code, only what an extractor emits.
 _Avoid_: parser, analyzer, scanner
 
+**Distribution**:
+The Callmap that the package manager of one language installs: the npm package, the Go module or the gem. It reads only the files of its own language, so its user needs no tool of another language. A branch that changes 2 languages gives one reader page for each language. Every distribution writes its page with the same page code.
+_Avoid_: library, port, edition
+
 **Graph document**:
 What one extractor emits for one repo: its files, its functions, its calls, its open ends, the scope it was built under, and the checker that proved its calls.
 _Avoid_: graph JSON, payload, manifest
+
+**Review input**:
+What a distribution gives the reader page for one review: the graph documents of the base and the branch, the source of the files that the page shows, and the facts from git. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
+_Avoid_: page data, payload, review data
 
 **Checker**:
 The tool of a language that proves the calls of a graph document, with its name and its full version, such as TypeScript 6.0.3. It is the tool that the extractor runs, not the tool that the repo under review installs. Ruby has no type checker, so its checker names Callmap's own Ruby rules and the Ruby that runs them. The page shows it next to the resolution rate of its language, one checker for each language on the page.
