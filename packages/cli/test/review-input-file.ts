@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { packedSourcesOf } from '@callmap/review-input';
+import { packedSourcesOf, pageOfTemplate } from '@callmap/review-input';
 import type { ReviewInput, Sources } from '@callmap/review-input';
+import { assets } from '../src/assets.ts';
 import { typescriptVersionFor } from '../src/package-manifest.ts';
-import { readerPageOf } from '../src/reader-page.ts';
 
 export type ReviewInputFile = 'typescript/review' | 'typescript/levels';
 
@@ -11,9 +11,9 @@ type ExpectedReviewInput = Omit<ReviewInput, 'packedSources'> & { readonly sourc
 
 type GraphDocument = ReviewInput['base'][number];
 
-export const REPO_ROOT = '/home/reader/shop';
-export const BASE_COMMIT = '1a2b3c4';
-export const HEAD_COMMIT = '5d6e7f8';
+const REPO_ROOT = '/home/reader/shop';
+const BASE_COMMIT = '1a2b3c4';
+const HEAD_COMMIT = '5d6e7f8';
 
 export const typescriptVersion = (): string =>
   typescriptVersionFor(fileURLToPath(import.meta.resolve('@callmap/extractor-typescript/cli')));
@@ -34,7 +34,7 @@ const withCheckerVersion = (document: GraphDocument): GraphDocument => ({
   checker: { ...document.checker, version: typescriptVersion() },
 });
 
-export const reviewInputOfFile = async (file: ReviewInputFile): Promise<ReviewInput> => {
+const reviewInputOfFile = async (file: ReviewInputFile): Promise<ReviewInput> => {
   const { sources, ...input } = expectedReviewInputOf(file);
   return {
     ...input,
@@ -46,7 +46,12 @@ export const reviewInputOfFile = async (file: ReviewInputFile): Promise<ReviewIn
   };
 };
 
+let pageTemplate: Promise<string> | undefined;
+
+const pageTemplateOnce = (): Promise<string> => (pageTemplate ??= assets.pageTemplate());
+
 export const readerPageOfFile = async (
   file: ReviewInputFile,
   change: (input: ReviewInput) => ReviewInput = (input) => input,
-): Promise<string> => readerPageOf(change(await reviewInputOfFile(file)));
+): Promise<string> =>
+  pageOfTemplate(await pageTemplateOnce(), change(await reviewInputOfFile(file)));
