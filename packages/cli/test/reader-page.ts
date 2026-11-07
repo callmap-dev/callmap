@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Script } from 'node:vm';
@@ -10,6 +10,7 @@ import type { Sources } from '@callmap/review-input';
 import { readerPageDataOf } from '../page/data.ts';
 import type { ReaderPageData } from '../page/data.ts';
 import { DIFF_LIMIT, DIFF_LIMIT_HOOK } from '../page/views/diff.ts';
+import { graphDocumentProblemsOf, reviewInputProblemsOf } from '../../../test/schemas.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const CLI = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
@@ -30,13 +31,38 @@ export const fakeOpener = (): Opener => {
   return { bin, marker };
 };
 
+const requireNoProblems = (what: string, problems: readonly string[]): void => {
+  if (problems.length > 0)
+    throw new Error(`${what} does not match its JSON Schema: ${problems.join(', ')}`);
+};
+
+const cachedGraphDocumentsIn = (cacheHome: string): readonly string[] => {
+  const folder = join(cacheHome, 'callmap');
+  if (!existsSync(folder)) return [];
+  return readdirSync(folder, { recursive: true, encoding: 'utf8' })
+    .filter((entry) => entry.endsWith('.json'))
+    .map((entry) => join(folder, entry));
+};
+
+const requireOutputsMatchSchemas = (page: string, cacheHome: string): void => {
+  for (const entry of cachedGraphDocumentsIn(cacheHome))
+    requireNoProblems(
+      `the cached graph document ${entry}`,
+      graphDocumentProblemsOf(JSON.parse(readFileSync(entry, 'utf8'))),
+    );
+  requireNoProblems(
+    `the review input of ${page}`,
+    reviewInputProblemsOf(reviewInputOfPage(readFileSync(page, 'utf8'))),
+  );
+};
+
 export const runCallmap = (
   args: readonly string[],
   opener?: Opener,
   cacheHome: string = tempDir('callmap-cache-'),
   env: NodeJS.ProcessEnv = {},
-) =>
-  spawnSync(process.execPath, [CLI, ...args], {
+) => {
+  const finished = spawnSync(process.execPath, [CLI, ...args], {
     encoding: 'utf8',
     env: {
       ...process.env,
@@ -47,6 +73,10 @@ export const runCallmap = (
       ...env,
     },
   });
+  if (args[0] === 'review' && finished.status === 0)
+    requireOutputsMatchSchemas(finished.stdout.trim(), cacheHome);
+  return finished;
+};
 
 export const reviewHtmlOf = (repo: string, ...flags: readonly string[]): string => {
   const out = join(tempDir('callmap-out-'), 'review.html');

@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/callmaphq/callmap-core/releases/latest/download/graph-document.schema.json",
+  "title": "Graph document",
+  "description": "What an extractor gives for one language: the files in scope, their functions, the calls between the functions and the open ends.",
+  "type": "object",
+  "required": ["language", "checker", "scope", "files", "functions", "calls", "openEnds"],
+  "properties": {
+    "language": { "$ref": "#/definitions/text" },
+    "checker": { "$ref": "#/definitions/checker" },
+    "scope": { "type": "array", "items": { "$ref": "#/definitions/text" } },
+    "files": { "type": "array", "items": { "$ref": "#/definitions/path" } },
+    "functions": { "type": "array", "items": { "$ref": "#/definitions/function" } },
+    "calls": { "type": "array", "items": { "$ref": "#/definitions/call" } },
+    "openEnds": { "type": "array", "items": { "$ref": "#/definitions/openEnd" } }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "text": {
+      "description": "A string with at least one character that is not white space.",
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "line": {
+      "description": "A line number from 1.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "path": {
+      "description": "A repo-relative file path with forward slashes and no '.' or '..' segment, spelled one way.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.A-Za-z][^/\\\\]*|[A-Za-z]|[A-Za-z][^/\\\\:][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*|\\.\\.[^/\\\\]+)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*|\\.\\.[^/\\\\]+))*$"
+    },
+    "checker": {
+      "description": "The tool that proves the calls, with its name and its full version.",
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "$ref": "#/definitions/text" },
+        "version": { "$ref": "#/definitions/text" }
+      },
+      "additionalProperties": false
+    },
+    "function": {
+      "type": "object",
+      "required": ["id", "name", "file", "firstLine", "lastLine", "sourceHash"],
+      "properties": {
+        "id": { "$ref": "#/definitions/text" },
+        "name": { "$ref": "#/definitions/text" },
+        "file": { "$ref": "#/definitions/path" },
+        "firstLine": { "$ref": "#/definitions/line" },
+        "lastLine": { "$ref": "#/definitions/line" },
+        "sourceHash": { "$ref": "#/definitions/text" }
+      },
+      "additionalProperties": false
+    },
+    "call": {
+      "description": "A call from the caller to the callee. The calls of one group are the possible callees of one call site.",
+      "type": "object",
+      "required": ["caller", "callee", "line"],
+      "properties": {
+        "caller": { "$ref": "#/definitions/text" },
+        "callee": { "$ref": "#/definitions/text" },
+        "line": { "$ref": "#/definitions/line" },
+        "group": { "$ref": "#/definitions/text" }
+      },
+      "additionalProperties": false
+    },
+    "openEnd": {
+      "description": "A call site that the checker could not tie to a function, with the open-end reason.",
+      "type": "object",
+      "required": ["caller", "line", "expression", "reason"],
+      "properties": {
+        "caller": { "$ref": "#/definitions/text" },
+        "line": { "$ref": "#/definitions/line" },
+        "expression": { "$ref": "#/definitions/text" },
+        "reason": {
+          "enum": [
+            "missing-module",
+            "dynamic-key",
+            "untyped",
+            "function-value",
+            "no-implementation",
+            "other"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
