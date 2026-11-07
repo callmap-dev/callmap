@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import type { GraphDocument } from '@callmap/graph-document';
 import { reviewGraphsOf, reviewOf } from '@callmap/review';
 import { effectiveScope, inScope, isSkippedDirectory } from '@callmap/scope';
@@ -9,8 +9,8 @@ import type { Checkout } from '../page/data.ts';
 import type { ReviewInvocation } from './arguments.ts';
 import { throughBaseCache } from './base-cache.ts';
 import { openInBrowser } from './browser.ts';
+import type { Extractor } from './extractor.ts';
 import { extractorsFor } from './extractors.ts';
-import type { Extractor } from './extractors.ts';
 import {
   branchNameOf,
   commitOf,
@@ -48,14 +48,6 @@ const readGraphDocumentOf = async (
       `${what} could not be read: ${reason.replaceAll(`${path}/`, '')}`,
     );
   }
-};
-
-const tsconfigOf = (root: string, tsconfig: string | undefined): string | undefined => {
-  if (tsconfig === undefined) return undefined;
-  const absolute = resolve(root, tsconfig);
-  const path = existsSync(absolute) ? realpathSync(absolute) : absolute;
-  const inRepo = relative(root, path);
-  return inRepo.startsWith('..') || isAbsolute(inRepo) ? path : inRepo;
 };
 
 const settled = <T>(result: PromiseSettledResult<T>): T => {
@@ -124,8 +116,12 @@ export const runReview = async (
     const readBranch = (): Promise<GraphDocument> =>
       readGraphDocumentOf('the branch', root, extractor, scope);
     const readBase = (): Promise<GraphDocument> =>
-      inWorktreeAt(root, base, (path) =>
-        readGraphDocumentOf(`the base ${shortCommitOf(root, base)}`, path, extractor, scope),
+      inWorktreeAt(
+        root,
+        base,
+        (path) =>
+          readGraphDocumentOf(`the base ${shortCommitOf(root, base)}`, path, extractor, scope),
+        extractor.prepareBase,
       );
     const readCachedBase = (): Promise<GraphDocument> =>
       invocation.cache
@@ -143,7 +139,7 @@ export const runReview = async (
   };
 
   const picked = extractorsInScope(
-    extractors ?? extractorsFor(tsconfigOf(root, invocation.tsconfig)),
+    extractors ?? extractorsFor(root, invocation),
     [...workingTreeFilesOf(root), ...filesAtCommit(root, base)],
     scope,
   );
