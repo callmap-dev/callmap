@@ -2,10 +2,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { GraphDocument } from '@callmap/graph-document';
-import { reviewOf } from '@callmap/review';
+import { packedSourcesOf, REVIEW_INPUT_FORMAT_VERSION } from '@callmap/review-input';
+import type { Checkout } from '@callmap/review-input';
 import { effectiveScope, inScope, isSkippedDirectory } from '@callmap/scope';
-import { DIFF_LIMIT } from '../page/views/diff.ts';
-import type { Checkout } from '../page/data.ts';
 import type { ReviewInvocation } from './arguments.ts';
 import { throughBaseCache } from './base-cache.ts';
 import { openInBrowser } from './browser.ts';
@@ -95,7 +94,6 @@ interface LanguageDocuments {
 }
 
 export interface ReviewSettings {
-  readonly diffLimit: number;
   readonly extractors?: readonly Extractor[];
 }
 
@@ -106,7 +104,7 @@ export interface FinishedReview {
 
 export const runReview = async (
   invocation: ReviewInvocation,
-  { diffLimit, extractors }: ReviewSettings = { diffLimit: DIFF_LIMIT },
+  { extractors }: ReviewSettings = {},
 ): Promise<FinishedReview> => {
   const root = repoRootOf(resolve(invocation.repo));
   const reviewBase = baseOf(root, invocation.base);
@@ -148,16 +146,16 @@ export const runReview = async (
   for (const { extractor } of checked.filter(({ skipNote }) => skipNote === undefined)) {
     read.push(await documentsOf(extractor));
   }
-  const review = reviewOf({
+  const documents = {
     base: read.map(({ base }) => base),
     branch: read.map(({ branch }) => branch),
-  });
+  };
   const html = await readerPageOf({
-    review,
-    sources: sourcesOf(root, base, review),
-    editor: { name: invocation.editor, repoRoot: root },
+    formatVersion: REVIEW_INPUT_FORMAT_VERSION,
+    ...documents,
+    packedSources: await packedSourcesOf(sourcesOf(root, base, documents)),
     checkout: checkoutOf(root, reviewBase, scope),
-    diffLimit,
+    editor: { name: invocation.editor, repoRoot: root },
   });
 
   const out = resolve(invocation.out ?? defaultOutOf(root));

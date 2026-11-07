@@ -1,16 +1,17 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { reviewInputOfPage } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { featureBranchRepo, fixtureText, git } from './fixture-repo.ts';
 import {
   boxesOf,
   callsOf,
-  dataBlockOf,
   fakeOpener,
   frameAround,
   framesOf,
   loadReaderPage,
   pageDataOf,
+  reviewHtmlOf,
   runCallmap,
   sourcesOf,
 } from './reader-page.ts';
@@ -87,13 +88,23 @@ describe('callmap review on a feature branch', () => {
     expect(review.branch.functions.map(({ id }) => id)).toContain(`${MONEY}#round`);
   });
 
-  it('holds no branch call graph and no base places beside the review in the data block', () => {
-    expect(Object.keys(pageDataOf(html))).not.toContain('branchGraph');
-    expect(Object.keys(pageDataOf(html))).not.toContain('basePlaces');
+  it('holds only the review input in the data block, with no review, no call graph and no base places', () => {
+    const input = reviewInputOfPage(html);
+    expect(Object.keys(input).sort()).toEqual([
+      'base',
+      'branch',
+      'checkout',
+      'editor',
+      'formatVersion',
+      'packedSources',
+    ]);
+    expect(input.formatVersion).toBe(1);
+    expect(input.base.map(({ language }) => language)).toEqual(['typescript']);
+    expect(input.branch.map(({ language }) => language)).toEqual(['typescript']);
   });
 
   it('holds no plain file text in the data block', () => {
-    const block = dataBlockOf(html);
+    const block = JSON.stringify(reviewInputOfPage(html));
     const lines = [ALERTS, CART, CHECKOUT, MONEY, NOTIFY, REPORT, RATE]
       .flatMap((file) => [
         ...fixtureText('branch', file).split('\n'),
@@ -107,8 +118,8 @@ describe('callmap review on a feature branch', () => {
     }
   });
 
-  it('holds the branch text of every file that the review or the search shows, and the base text of every file with a removed or changed function', () => {
-    const sources = sourcesOf(html);
+  it('holds the branch text of every file in the branch graph documents, and the base text of every file that the branch changed', async () => {
+    const sources = await sourcesOf(html);
     expect(sources.branch).toEqual({
       [ALERTS]: fixtureText('branch', ALERTS),
       [CART]: fixtureText('branch', CART),
@@ -121,6 +132,7 @@ describe('callmap review on a feature branch', () => {
     expect(sources.base).toEqual({
       [ALERTS]: fixtureText('base', ALERTS),
       [CART]: fixtureText('base', CART),
+      [MONEY]: fixtureText('base', MONEY),
     });
   });
 
@@ -143,6 +155,29 @@ describe('callmap review on a feature branch', () => {
   it('removes the temporary worktree of the base when it ends', () => {
     expect(git(repo, 'worktree', 'list', '--porcelain').match(/^worktree /gm)).toHaveLength(1);
   });
+});
+
+describe('the base sources of the review input', () => {
+  const baseFilesOf = async (repo: string, ...flags: readonly string[]) =>
+    Object.keys((await sourcesOf(reviewHtmlOf(repo, ...flags))).base);
+
+  it('hold the old path of a renamed file and of a removed file, and no path that the base does not hold', async () => {
+    const renamed = featureBranchRepo();
+    git(renamed, 'mv', REPORT, 'src/summary.ts');
+    git(renamed, 'rm', '--quiet', RATE);
+    git(renamed, 'commit', '--quiet', '--message', 'rename and remove');
+    expect(await baseFilesOf(renamed)).toEqual([ALERTS, CART, MONEY, REPORT, RATE]);
+  }, 120_000);
+
+  it('hold only the changed files in scope', async () => {
+    expect(await baseFilesOf(featureBranchRepo(), '--scope', CART)).toEqual([CART]);
+  }, 120_000);
+
+  it('hold a changed file that is not committed yet', async () => {
+    const uncommitted = featureBranchRepo();
+    writeFileSync(join(uncommitted, CHECKOUT), `${fixtureText('branch', CHECKOUT)}\n`);
+    expect(await baseFilesOf(uncommitted)).toEqual([ALERTS, CART, CHECKOUT, MONEY]);
+  }, 120_000);
 });
 
 describe('the reader page', () => {

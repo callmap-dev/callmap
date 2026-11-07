@@ -121,6 +121,9 @@ export const uncommittedFilesOf = (root: string): readonly string[] =>
     ),
   ).map((entry) => entry.slice(STATUS_CODE_LENGTH));
 
+export const changedFilesOf = (root: string, commit: string): readonly string[] =>
+  pathsOf(gitOutput(root, 'diff', '--name-only', '--no-renames', '-z', commit));
+
 export const filesAtCommit = (root: string, commit: string): readonly string[] =>
   pathsOf(gitOutput(root, 'ls-tree', '-r', '--name-only', '-z', commit));
 

@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -7,12 +6,10 @@ import { featureBranchRepo } from './fixture-repo.ts';
 import {
   boxesOf,
   clickBox,
-  loadReaderPage,
+  loadReaderPageWithDiffLimit,
   openTab,
-  pageDataOf,
   reviewHtmlOf,
   settled,
-  withPageData,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
@@ -28,9 +25,9 @@ beforeAll(() => {
   html = reviewHtmlOf(repo);
 }, 120_000);
 
-const reviewWithLimit = async (diffLimit: number) => {
-  const { out, notes } = await runReview(
-    {
+const notesOfReview = async (): Promise<readonly string[]> =>
+  (
+    await runReview({
       repo,
       base: undefined,
       scope: [],
@@ -40,14 +37,11 @@ const reviewWithLimit = async (diffLimit: number) => {
       cache: false,
       editor: 'vscode',
       tests: false,
-    },
-    { diffLimit },
-  );
-  return { html: readFileSync(out, 'utf8'), notes };
-};
+    })
+  ).notes;
 
-const withDiffLimit = (diffLimit: number): string =>
-  withPageData(html, { ...pageDataOf(html), diffLimit });
+const pageWithDiffLimit = (diffLimit: number): Promise<LoadedPage> =>
+  loadReaderPageWithDiffLimit(html, diffLimit);
 
 const ONE_MORE_HOP_OVER_LIMIT =
   'This review holds 12 functions and 13 calls. The Diff view draws up to 11 calls, so it draws none of them.';
@@ -63,12 +57,11 @@ const diffLimitMessageOf = ({ window }: LoadedPage): HTMLElement | null =>
 
 describe('a review over the Diff limit', () => {
   it('prints no note to stderr, because the page says that the review is over the limit', async () => {
-    const over = await reviewWithLimit(DIFF_CALLS - 1);
-    expect(over.notes).toEqual([]);
+    expect(await notesOfReview()).toEqual([]);
   }, 120_000);
 
   it('opens on the Whole project view, and the Diff tab says what it left out', async () => {
-    const page = await loadReaderPage((await reviewWithLimit(DIFF_CALLS - 1)).html);
+    const page = await pageWithDiffLimit(DIFF_CALLS - 1);
     expect(selectedTabOf(page)).toBe('Whole project');
     expect(diffLimitMessageOf(page)).toBeNull();
 
@@ -80,7 +73,7 @@ describe('a review over the Diff limit', () => {
   }, 120_000);
 
   it('opens the Whole project view from the button in the message', async () => {
-    const page = await loadReaderPage((await reviewWithLimit(DIFF_CALLS - 1)).html);
+    const page = await pageWithDiffLimit(DIFF_CALLS - 1);
     await openTab(page, 'Diff');
     within(diffLimitMessageOf(page) ?? page.window.document.body)
       .getByRole('button', { name: 'Open Whole project' })
@@ -91,7 +84,7 @@ describe('a review over the Diff limit', () => {
   }, 120_000);
 
   it('hides the message at once when the reader leaves the Diff tab for a view that lays out in the page', async () => {
-    const page = await loadReaderPage((await reviewWithLimit(DIFF_CALLS - 1)).html);
+    const page = await pageWithDiffLimit(DIFF_CALLS - 1);
     await openTab(page, 'Diff');
     fireEvent.click(within(page.window.document.body).getByRole('tab', { name: 'Route' }));
     expect(diffLimitMessageOf(page)).toBeNull();
@@ -101,9 +94,8 @@ describe('a review over the Diff limit', () => {
 
 describe('a review at exactly the Diff limit', () => {
   it('lays out the Diff view as before, and prints nothing', async () => {
-    const atLimit = await reviewWithLimit(DIFF_CALLS);
-    expect(atLimit.notes).toEqual([]);
-    const page = await loadReaderPage(atLimit.html);
+    expect(await notesOfReview()).toEqual([]);
+    const page = await pageWithDiffLimit(DIFF_CALLS);
     expect(selectedTabOf(page)).toBe('Diff');
     expect(boxesOf(page).filter(({ kind }) => kind === 'function')).toHaveLength(11);
   }, 120_000);
@@ -111,7 +103,7 @@ describe('a review at exactly the Diff limit', () => {
 
 describe('a next hop that takes the Diff view over the Diff limit', () => {
   it('shows the message with the new counts, and does not lay out the Diff view', async () => {
-    const page = await loadReaderPage(withDiffLimit(DIFF_CALLS));
+    const page = await pageWithDiffLimit(DIFF_CALLS);
     expect(diffLimitMessageOf(page)).toBeNull();
     const layoutsBefore = [...page.layouts];
 
@@ -123,7 +115,7 @@ describe('a next hop that takes the Diff view over the Diff limit', () => {
 
 describe('a search that takes the Diff view over the Diff limit', () => {
   it('shows the message with the new counts, and does not lay out the Diff view', async () => {
-    const page = await loadReaderPage(withDiffLimit(DIFF_CALLS));
+    const page = await pageWithDiffLimit(DIFF_CALLS);
     expect(diffLimitMessageOf(page)).toBeNull();
     const layoutsBefore = [...page.layouts];
 

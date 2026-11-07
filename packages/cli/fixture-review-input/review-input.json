@@ -1,0 +1,102 @@
+{
+  "formatVersion": 1,
+  "base": [
+    {
+      "language": "typescript",
+      "checker": {
+        "name": "TypeScript",
+        "version": "6.0.3"
+      },
+      "scope": [],
+      "files": ["src/shop.ts"],
+      "functions": [
+        {
+          "id": "src/shop.ts#price",
+          "name": "price",
+          "file": "src/shop.ts",
+          "firstLine": 1,
+          "lastLine": 1,
+          "sourceHash": "p1"
+        },
+        {
+          "id": "src/shop.ts#total",
+          "name": "total",
+          "file": "src/shop.ts",
+          "firstLine": 3,
+          "lastLine": 4,
+          "sourceHash": "t1"
+        }
+      ],
+      "calls": [
+        {
+          "caller": "src/shop.ts#total",
+          "callee": "src/shop.ts#price",
+          "line": 6
+        }
+      ],
+      "openEnds": []
+    }
+  ],
+  "branch": [
+    {
+      "language": "typescript",
+      "checker": {
+        "name": "TypeScript",
+        "version": "6.0.3"
+      },
+      "scope": [],
+      "files": ["src/shop.ts"],
+      "functions": [
+        {
+          "id": "src/shop.ts#price",
+          "name": "price",
+          "file": "src/shop.ts",
+          "firstLine": 1,
+          "lastLine": 1,
+          "sourceHash": "p1"
+        },
+        {
+          "id": "src/shop.ts#tax",
+          "name": "tax",
+          "file": "src/shop.ts",
+          "firstLine": 3,
+          "lastLine": 3,
+          "sourceHash": "x1"
+        },
+        {
+          "id": "src/shop.ts#total",
+          "name": "total",
+          "file": "src/shop.ts",
+          "firstLine": 5,
+          "lastLine": 8,
+          "sourceHash": "t2"
+        }
+      ],
+      "calls": [
+        {
+          "caller": "src/shop.ts#total",
+          "callee": "src/shop.ts#price",
+          "line": 6
+        },
+        {
+          "caller": "src/shop.ts#total",
+          "callee": "src/shop.ts#tax",
+          "line": 6
+        }
+      ],
+      "openEnds": []
+    }
+  ],
+  "packedSources": "H4sIAAAAAAAAA7WQQQrCMBBFrzJklWqp1WVLvYh1kaYDFeykTCaglN5d0lZQcKPgLszP+8mbUTVsyHaqGJVnu/OdGzLxqlB4GxwLWEdeYOCLRahAWyTxBVDoG+TkeYDqCHMCO9jneVlTTW+8mFukTe8CyUd8iWADeXb4wDsx15f3GU3r6HpfC07nt66xJlhBQoFq+VvG2AaLWvvQp4DGdkm87EMP20VQz8MU8qSMDYwSmOaKbTTQhBKTqaxJTalqjMd/7+0b79n6B1M1TQ+UZXN9BwIAAA==",
+  "checkout": {
+    "branch": "tax",
+    "baseName": "main",
+    "baseCommit": "1a2b3c4",
+    "headCommit": "5d6e7f8",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "/home/reader/shop"
+  }
+}

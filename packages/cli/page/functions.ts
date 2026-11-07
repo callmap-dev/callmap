@@ -1,6 +1,7 @@
 import type { FunctionId } from '@callmap/graph-document';
 import type { FunctionMark, LineSpan, MarkedCall, ReviewFunction } from '@callmap/review';
-import type { ReaderPageData, SourceTexts, Sources } from './data.ts';
+import type { SourceTexts, Sources } from '@callmap/review-input';
+import type { ReaderPageData } from './data.ts';
 
 export type PageFunction = ReviewFunction;
 

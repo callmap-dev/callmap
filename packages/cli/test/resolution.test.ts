@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import type { GraphDocument } from '@callmap/graph-document';
+import { pageWithReviewInput, reviewInputOfPage } from '@callmap/review-input';
 import { fireEvent, getByRole, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { commitFile, featureBranchRepo, git } from './fixture-repo.ts';
@@ -12,7 +14,6 @@ import {
   pageDataOf,
   runCallmap,
   settled,
-  withPageData,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
@@ -29,6 +30,35 @@ const typescriptVersion = (): string => {
 
 let html = '';
 let htmlWithBroadcast = '';
+
+const withBranchDocuments = (
+  page: string,
+  change: (documents: readonly GraphDocument[]) => readonly GraphDocument[],
+): string => {
+  const input = reviewInputOfPage(page);
+  return pageWithReviewInput(page, { ...input, branch: change(input.branch) });
+};
+
+const goDocument: GraphDocument = {
+  language: 'go',
+  checker: { name: 'Go', version: '1.27.3' },
+  scope: [],
+  files: ['cmd/main.go'],
+  functions: Array.from({ length: 20 }, (_, index) => ({
+    id: `cmd/main.go#f${String(index)}`,
+    name: `f${String(index)}`,
+    file: 'cmd/main.go',
+    firstLine: index + 1,
+    lastLine: index + 1,
+    sourceHash: String(index),
+  })),
+  calls: Array.from({ length: 19 }, (_, index) => ({
+    caller: 'cmd/main.go#f0',
+    callee: `cmd/main.go#f${String(index + 1)}`,
+    line: 1,
+  })),
+  openEnds: [{ caller: 'cmd/main.go#f0', line: 1, expression: 'run()', reason: 'other' }],
+};
 
 const reviewPageOf = (repo: string): string => {
   const out = join(tempDir('callmap-out-'), 'review.html');
@@ -126,24 +156,8 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
   });
 
   it('shows one rate next to its checker for each language, in the order of the page data', async () => {
-    const data = pageDataOf(html);
     const page = await loadReaderPage(
-      withPageData(html, {
-        ...data,
-        review: {
-          ...data.review,
-          resolutionRates: [
-            {
-              language: 'go',
-              checker: { name: 'Go', version: '1.27.3' },
-              resolved: 19,
-              open: 1,
-              rate: 0.95,
-            },
-            ...data.review.resolutionRates,
-          ],
-        },
-      }),
+      withBranchDocuments(html, (documents) => [goDocument, ...documents]),
     );
     const rate = within(
       getByRole(page.window.document.body, 'region', { name: 'Resolution rate' }),
@@ -184,7 +198,6 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
   });
 
   it('shows the 5 files with the most open ends first, and the others after a click on "Show 3 more files"', async () => {
-    const data = pageDataOf(html);
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const openEnds = files.flatMap((name, index) =>
       Array.from({ length: (index % 3) + 1 }, (_, line) => ({
@@ -203,14 +216,14 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
       sourceHash: name,
     }));
     const page = await loadReaderPage(
-      withPageData(html, {
-        ...data,
-        review: {
-          ...data.review,
+      withBranchDocuments(html, (documents) =>
+        documents.map((document) => ({
+          ...document,
+          files: [...document.files, ...callers.map(({ file }) => file)],
+          functions: [...document.functions, ...callers],
           openEnds,
-          allFunctions: [...data.review.allFunctions, ...callers],
-        },
-      }),
+        })),
+      ),
     );
     const region = within(page.window.document.body).getByRole('region', { name: 'Open ends' });
     const fileNames = (): readonly string[] =>
@@ -236,10 +249,13 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
     ['no-implementation', 'no implementation in scope'],
     ['other', 'not resolved'],
   ] as const)('shows the open-end reason %s as "%s"', async (reason, words) => {
-    const data = pageDataOf(html);
-    const openEnds = data.review.openEnds.map((openEnd) => ({ ...openEnd, reason }));
     const page = await loadReaderPage(
-      withPageData(html, { ...data, review: { ...data.review, openEnds } }),
+      withBranchDocuments(html, (documents) =>
+        documents.map((document) => ({
+          ...document,
+          openEnds: document.openEnds.map((openEnd) => ({ ...openEnd, reason })),
+        })),
+      ),
     );
     const region = within(page.window.document.body).getByRole('region', { name: 'Open ends' });
     expect(

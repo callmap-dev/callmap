@@ -5,7 +5,6 @@ import type { GraphDocument } from '@callmap/graph-document';
 import { effectiveScope } from '@callmap/scope';
 import type { Extractor } from '../src/extractor.ts';
 import { runReview } from '../src/review-command.ts';
-import { DIFF_LIMIT } from '../page/views/diff.ts';
 import { git, goRepo } from './fixture-repo.ts';
 import { pageDataOf, runCallmap } from './reader-page.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
@@ -148,7 +147,7 @@ describe('the scope that the launcher gives each extractor', () => {
         editor: 'vscode',
         tests,
       },
-      { diffLimit: DIFF_LIMIT, extractors: [recording] },
+      { extractors: [recording] },
     );
     return given;
   };

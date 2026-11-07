@@ -233,6 +233,7 @@ The core packages read data and never read source code or a filesystem. See ADR-
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@callmap/graph-document` | The graph document an extractor emits: files, functions, calls with their one-of groups, open ends, a language and a scope                                                 |
 | `@callmap/review`         | The review of a branch: the changed functions, their neighbours, the added and removed calls, their open ends and one-of groups, and one resolution rate for each language |
+| `@callmap/review-input`   | The review input in the data block of the reader page: its type, its format version, the escape rule, the packed sources, and the read and the write of the data block |
 | `@callmap/scope`          | The scope globs, the test globs and the skipped directories that every walk of a repo shares                                                                                               |
 | `@callmap/editor-link`    | The editor link that opens a file at a line                                                                                                                                |
 
@@ -244,7 +245,7 @@ The extractors are the other side of the contract. Each one reads a repo and nam
 | `@callmap/extractor-go`         | Go, with functions and calls resolved by `go/types`                                         |
 | `@callmap/extractor-ruby`       | Ruby, with functions and calls resolved by the Callmap Ruby rules                           |
 
-The host runs the extractors and the core, and writes the reader page.
+The host runs the extractors and writes the review input into the reader page. The page computes the review.
 
 | Package        | What it owns                                                                              |
 | -------------- | ----------------------------------------------------------------------------------------- |

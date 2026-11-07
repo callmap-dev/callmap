@@ -1,14 +1,8 @@
+import { reviewInputOfPage } from '@callmap/review-input';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { featureBranchRepo } from './fixture-repo.ts';
-import {
-  boxesOf,
-  loadReaderPage,
-  openTab,
-  pageDataOf,
-  reviewHtmlOf,
-  settled,
-} from './reader-page.ts';
+import { boxesOf, loadReaderPage, openTab, reviewHtmlOf, settled } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
 
 let html = '';
@@ -29,8 +23,8 @@ const functionIdsOf = (page: LoadedPage): readonly string[] =>
     .map(({ id }) => id);
 
 describe('the layout of the Diff view and the Whole project view', () => {
-  it('is not in the page data that the command writes', () => {
-    expect(Object.keys(pageDataOf(html))).not.toContain('placements');
+  it('is not in the review input that the command writes', () => {
+    expect(Object.keys(reviewInputOfPage(html))).not.toContain('placements');
   });
 
   it('runs in the page for the Diff view', async () => {

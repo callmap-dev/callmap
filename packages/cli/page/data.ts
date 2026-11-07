@@ -1,27 +1,6 @@
-import type { Editor } from '@callmap/editor-link';
+import { reviewOf } from '@callmap/review';
 import type { Review } from '@callmap/review';
-
-export const DATA_BLOCK_ID = 'reader-page-data';
-
-export type SourceTexts = Readonly<Record<string, string>>;
-
-export interface Sources {
-  readonly branch: SourceTexts;
-  readonly base: SourceTexts;
-}
-
-export interface EditorChoice {
-  readonly name: Editor;
-  readonly repoRoot: string;
-}
-
-export interface Checkout {
-  readonly branch: string | undefined;
-  readonly baseName: string;
-  readonly baseCommit: string;
-  readonly headCommit: string;
-  readonly uncommitted: boolean;
-}
+import type { Checkout, EditorChoice, ReviewInput } from '@callmap/review-input';
 
 export interface ReaderPageData {
   readonly review: Review;
@@ -30,3 +9,11 @@ export interface ReaderPageData {
   readonly checkout: Checkout;
   readonly diffLimit: number;
 }
+
+export const readerPageDataOf = (input: ReviewInput, diffLimit: number): ReaderPageData => ({
+  review: reviewOf(input),
+  packedSources: input.packedSources,
+  editor: input.editor,
+  checkout: input.checkout,
+  diffLimit,
+});

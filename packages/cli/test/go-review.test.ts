@@ -270,7 +270,7 @@ describe('the reads of the Go extractor', () => {
         editor: 'vscode',
         tests: false,
       },
-      { diffLimit: 2000, extractors: [watched] },
+      { extractors: [watched] },
     );
     expect(steps).toEqual(['start branch', 'end branch', 'start base', 'end base']);
   }, 60_000);

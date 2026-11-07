@@ -1,13 +1,10 @@
-import { gzipSync } from 'node:zlib';
-import { DATA_BLOCK_ID } from '../page/data.ts';
-import type { ReaderPageData, Sources } from '../page/data.ts';
+import { dataBlockOf } from '@callmap/review-input';
+import type { ReviewInput } from '@callmap/review-input';
 import { assets } from './assets.ts';
 
 const inlineScript = (code: string): string => code.replaceAll('</script', '<\\/script');
 
-const dataBlock = (data: ReaderPageData): string => JSON.stringify(data).replaceAll('<', '\\u003c');
-
-const pageOf = (data: ReaderPageData, script: string): string => `<!doctype html>
+const pageOf = (input: ReviewInput, script: string): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -26,7 +23,7 @@ ${assets.pageStyle()}
 <div id="panels"></div>
 <main id="graph" aria-label="Call graph"></main>
 </div>
-<script type="application/json" id="${DATA_BLOCK_ID}">${dataBlock(data)}</script>
+${dataBlockOf(input)}
 <script>
 ${inlineScript(script)}
 </script>
@@ -34,12 +31,5 @@ ${inlineScript(script)}
 </html>
 `;
 
-type PageReview = Omit<ReaderPageData, 'packedSources'> & {
-  readonly sources: Sources;
-};
-
-const packedSourcesOf = (sources: Sources): string =>
-  gzipSync(JSON.stringify(sources), { level: 9 }).toString('base64');
-
-export const readerPageOf = async ({ sources, ...review }: PageReview): Promise<string> =>
-  pageOf({ ...review, packedSources: packedSourcesOf(sources) }, await assets.pageScript());
+export const readerPageOf = async (input: ReviewInput): Promise<string> =>
+  pageOf(input, await assets.pageScript());
