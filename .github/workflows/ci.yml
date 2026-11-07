@@ -38,6 +38,8 @@ jobs:
       # full TypeScript compiler in a child process need more than the default.
       - run: npm test -- --testTimeout=30000 --hookTimeout=60000
 
+      - run: npm run conformance -- node packages/cli/src/cli.ts
+
   packed-cli:
     name: packed cli
     runs-on: ubuntu-latest

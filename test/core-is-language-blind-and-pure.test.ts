@@ -21,6 +21,11 @@ const HOST_PACKAGES: readonly string[] = ['cli'];
 
 const isHost = (name: string): boolean => HOST_PACKAGES.includes(name);
 
+/** A package that runs a distribution on fixture repos and reads its page. It is not core. */
+const SUITE_PACKAGES: readonly string[] = ['conformance'];
+
+const isSuite = (name: string): boolean => SUITE_PACKAGES.includes(name);
+
 const FORBIDDEN_IMPORTS = new Set([
   'fs',
   'fs/promises',
@@ -56,9 +61,12 @@ const packageNames = readdirSync(PACKAGES_DIR)
   .filter((entry) => statSync(join(PACKAGES_DIR, entry)).isDirectory())
   .sort();
 
-const corePackages = packageNames.filter((name) => !isExtractor(name) && !isHost(name));
+const corePackages = packageNames.filter(
+  (name) => !isExtractor(name) && !isHost(name) && !isSuite(name),
+);
 const extractorPackages = packageNames.filter(isExtractor);
 const hostPackages = packageNames.filter(isHost);
+const suitePackages = packageNames.filter(isSuite);
 
 const importsUnder = (directory: string): ReadonlySet<string> =>
   new Set(sourceFilesOf(directory).flatMap((path) => importsOf(readFileSync(path, 'utf8'))));
@@ -153,5 +161,12 @@ describe('the host that runs it', () => {
   it('keeps the page script off every Node built-in, because it runs in the browser', () => {
     const offenders = [...importsUnder(join(PACKAGES_DIR, 'cli', 'page'))].filter(isNodeBuiltin);
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('the conformance suite that checks it', () => {
+  it('runs the review command of a distribution as a process of its own', () => {
+    expect(suitePackages).toEqual(SUITE_PACKAGES);
+    expect(importsIn('conformance')).toContain('node:child_process');
   });
 });
