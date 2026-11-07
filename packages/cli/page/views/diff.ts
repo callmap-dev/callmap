@@ -5,7 +5,7 @@ import { countWordsOf } from '../words.ts';
 
 export const DIFF_LIMIT = 2_000;
 
-/** A test sets a smaller Diff limit on the window under this name, as ADR-0038 records. */
+/** A test sets a smaller Diff limit on the window under this name, as decision 3 of ADR-0038 records. */
 export const DIFF_LIMIT_HOOK = 'callmapDiffLimit';
 
 export const diffView: View = {

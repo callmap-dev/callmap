@@ -139,9 +139,8 @@ A note tells the reader about a part of the review that the command left out or 
 - `callmap read each Go module on its own, because the go tool refused the go.work: <reason>`
 - `callmap skipped the Go module <module>, because the go tool refused it: <reason>`
 - `callmap read no functions in <file>, because Ripper could not parse it.`
-- `The <view> view holds <functions and calls>, over the <view> limit of <calls>. The page opens on the <view> view.`
 
-The last note goes when the page lays out every view, as ADR-0037 records. Then the level bar of the page tells the reader.
+The command prints no note for a review over the Diff limit. The page lays out every view, as ADR-0037 records, so the level bar of the page tells the reader.
 
 ## The base cache
 
@@ -178,6 +177,6 @@ The command writes the page from the page template, `page-template.html`. The pa
 <script type="application/json" id="reader-page-data">{{CALLMAP_REVIEW_INPUT}}</script>
 ```
 
-The page template holds the marker once. The command puts the escaped JSON at the marker and changes no other byte of the page template. So the same review input and the same page template give a byte-identical page in every distribution.
+The page template holds this data block once. The command puts the escaped JSON at the marker of this data block and changes no other byte of the page template. A marker text in another part of the page template, such as the page script, stays as it is. So the same review input and the same page template give a byte-identical page in every distribution.
 
 The JSON Schema of the review input is `packages/review-input/review-input.schema.json`. It refers to the JSON Schema of the graph document, `packages/graph-document/graph-document.schema.json`. A distribution can check its review input against them, as ADR-0039 records. The schemas cannot check a rule that joins 2 fields, such as a caller that must be a function of the same document. The reader of the graph document checks these rules.
