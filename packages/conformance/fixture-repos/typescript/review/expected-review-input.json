@@ -1,0 +1,413 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "src/money.ts#round",
+          "caller": "src/cart.ts#subtotal",
+          "line": 4
+        },
+        {
+          "callee": "src/cart.ts#subtotal",
+          "caller": "src/cart.ts#legacyTotal",
+          "line": 6
+        },
+        {
+          "callee": "src/cart.ts#legacyTotal",
+          "caller": "src/cart.ts#receipt",
+          "line": 11
+        },
+        {
+          "callee": "src/cart.ts#label",
+          "caller": "src/cart.ts#receipt",
+          "line": 12
+        },
+        {
+          "callee": "src/money.ts#format",
+          "caller": "src/cart.ts#receipt",
+          "line": 12
+        },
+        {
+          "callee": "src/cart.ts#receipt",
+          "caller": "src/checkout.ts#checkout",
+          "line": 3
+        },
+        {
+          "callee": "src/money.ts#round",
+          "caller": "src/money.ts#format",
+          "line": 3
+        },
+        {
+          "callee": "src/report.ts#heading",
+          "caller": "src/report.ts#report",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/alerts.ts",
+        "src/cart.ts",
+        "src/checkout.ts",
+        "src/money.ts",
+        "src/notify.ts",
+        "src/report.ts",
+        "src/tax/rate.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/alerts.ts",
+          "firstLine": 3,
+          "id": "src/alerts.ts#alert",
+          "lastLine": 3,
+          "name": "alert",
+          "sourceHash": "7003527cbc98e6468abc628acfcb41e055095c98e283a5695d1722a0a08fdb5a"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 3,
+          "id": "src/cart.ts#subtotal",
+          "lastLine": 4,
+          "name": "subtotal",
+          "sourceHash": "cc099510d62352ae90c42d4defab799ec1247cea9db2e52eaab4d8d365b2d5f1"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 6,
+          "id": "src/cart.ts#legacyTotal",
+          "lastLine": 6,
+          "name": "legacyTotal",
+          "sourceHash": "4f1fe12b457ba015195539e21f6d0007da187a9b4a1e671a2ceab5b28d8a281c"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 8,
+          "id": "src/cart.ts#label",
+          "lastLine": 8,
+          "name": "label",
+          "sourceHash": "9ee2058d318c22e37c1319e38ac4fb32d42821a02a59c83f28f556cb49235324"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 10,
+          "id": "src/cart.ts#receipt",
+          "lastLine": 13,
+          "name": "receipt",
+          "sourceHash": "6277a9b6d943559773b0b640fda93512babdcf4990ecb7cadbb88d240492037c"
+        },
+        {
+          "file": "src/checkout.ts",
+          "firstLine": 3,
+          "id": "src/checkout.ts#checkout",
+          "lastLine": 3,
+          "name": "checkout",
+          "sourceHash": "6f575b8b6122547d1fdb4bfbc6ba4f0e78d3875e6fb2f90983d99d263f944162"
+        },
+        {
+          "file": "src/money.ts",
+          "firstLine": 1,
+          "id": "src/money.ts#round",
+          "lastLine": 1,
+          "name": "round",
+          "sourceHash": "1a85c4298c9d9a1a519cec5604f9dcdfbb918b435917aff7b83d2964f2483769"
+        },
+        {
+          "file": "src/money.ts",
+          "firstLine": 3,
+          "id": "src/money.ts#format",
+          "lastLine": 3,
+          "name": "format",
+          "sourceHash": "bc95b711aae8832033a1a2b152d45d0cf8f977e461a3b08a715320b04aae384c"
+        },
+        {
+          "file": "src/notify.ts",
+          "firstLine": 6,
+          "id": "src/notify.ts#Mail.send",
+          "lastLine": 8,
+          "name": "Mail.send",
+          "sourceHash": "676a0b0baa807447a73a3cae338fc18330cb78ccbfb8f5a1f930eeab4ba37a6f"
+        },
+        {
+          "file": "src/notify.ts",
+          "firstLine": 12,
+          "id": "src/notify.ts#Sms.send",
+          "lastLine": 14,
+          "name": "Sms.send",
+          "sourceHash": "7ed5d8ef7c9e4224d569cb33a43ee145dd67590c5c38dc9d582d542d9c892cd3"
+        },
+        {
+          "file": "src/report.ts",
+          "firstLine": 1,
+          "id": "src/report.ts#heading",
+          "lastLine": 1,
+          "name": "heading",
+          "sourceHash": "8e7a7d720003121f56b60223303502bf8e8ab569dee53ac0ce3912c7195d1694"
+        },
+        {
+          "file": "src/report.ts",
+          "firstLine": 3,
+          "id": "src/report.ts#report",
+          "lastLine": 3,
+          "name": "report",
+          "sourceHash": "97a1b6622364f530d87ee27c108f0bc3d64636eae7388fe06330b6b120c5158d"
+        },
+        {
+          "file": "src/tax/rate.ts",
+          "firstLine": 1,
+          "id": "src/tax/rate.ts#vatRate",
+          "lastLine": 1,
+          "name": "vatRate",
+          "sourceHash": "5421d2837f0f6f806645fd50ba1159d023c8f65a0d374e1ce6e75beaf2aad8a9"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "src/notify.ts#Mail.send",
+          "caller": "src/alerts.ts#alert",
+          "group": "src/alerts.ts:5:35",
+          "line": 5
+        },
+        {
+          "callee": "src/notify.ts#Sms.send",
+          "caller": "src/alerts.ts#alert",
+          "group": "src/alerts.ts:5:35",
+          "line": 5
+        },
+        {
+          "callee": "src/money.ts#format",
+          "caller": "src/alerts.ts#alert",
+          "line": 5
+        },
+        {
+          "callee": "src/money.ts#round",
+          "caller": "src/cart.ts#subtotal",
+          "line": 4
+        },
+        {
+          "callee": "src/cart.ts#subtotal",
+          "caller": "src/cart.ts#taxed",
+          "line": 6
+        },
+        {
+          "callee": "src/cart.ts#taxed",
+          "caller": "src/cart.ts#receipt",
+          "line": 9
+        },
+        {
+          "callee": "src/money.ts#format",
+          "caller": "src/cart.ts#receipt",
+          "line": 10
+        },
+        {
+          "callee": "src/cart.ts#receipt",
+          "caller": "src/checkout.ts#checkout",
+          "line": 3
+        },
+        {
+          "callee": "src/money.ts#round",
+          "caller": "src/money.ts#format",
+          "line": 1
+        },
+        {
+          "callee": "src/report.ts#heading",
+          "caller": "src/report.ts#report",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/alerts.ts",
+        "src/cart.ts",
+        "src/checkout.ts",
+        "src/money.ts",
+        "src/notify.ts",
+        "src/report.ts",
+        "src/tax/rate.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/alerts.ts",
+          "firstLine": 4,
+          "id": "src/alerts.ts#alert",
+          "lastLine": 5,
+          "name": "alert",
+          "sourceHash": "425b1b329d8b0895fa2085326c66bd8f03eebfc1927a8d869bcefa89837b35cd"
+        },
+        {
+          "file": "src/alerts.ts",
+          "firstLine": 7,
+          "id": "src/alerts.ts#relay",
+          "lastLine": 9,
+          "name": "relay",
+          "sourceHash": "a70ee242e8c5315cbb1fe915de24b6cd62e3b151784637b8da2d011a659eb0a5"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 3,
+          "id": "src/cart.ts#subtotal",
+          "lastLine": 4,
+          "name": "subtotal",
+          "sourceHash": "cc099510d62352ae90c42d4defab799ec1247cea9db2e52eaab4d8d365b2d5f1"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 6,
+          "id": "src/cart.ts#taxed",
+          "lastLine": 6,
+          "name": "taxed",
+          "sourceHash": "e7b70b7e4258ce6926ee3b6a3bcac3362153cd3adb7bed217e1433107a3b9f23"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 8,
+          "id": "src/cart.ts#receipt",
+          "lastLine": 11,
+          "name": "receipt",
+          "sourceHash": "fde7a5e80aef475fdd0ea88561c7c3f96e3ee25f8bb31fad27a8101dd77ead24"
+        },
+        {
+          "file": "src/cart.ts",
+          "firstLine": 13,
+          "id": "src/cart.ts#label",
+          "lastLine": 13,
+          "name": "label",
+          "sourceHash": "9ee2058d318c22e37c1319e38ac4fb32d42821a02a59c83f28f556cb49235324"
+        },
+        {
+          "file": "src/checkout.ts",
+          "firstLine": 3,
+          "id": "src/checkout.ts#checkout",
+          "lastLine": 3,
+          "name": "checkout",
+          "sourceHash": "6f575b8b6122547d1fdb4bfbc6ba4f0e78d3875e6fb2f90983d99d263f944162"
+        },
+        {
+          "file": "src/money.ts",
+          "firstLine": 1,
+          "id": "src/money.ts#format",
+          "lastLine": 1,
+          "name": "format",
+          "sourceHash": "bc95b711aae8832033a1a2b152d45d0cf8f977e461a3b08a715320b04aae384c"
+        },
+        {
+          "file": "src/money.ts",
+          "firstLine": 3,
+          "id": "src/money.ts#round",
+          "lastLine": 3,
+          "name": "round",
+          "sourceHash": "1a85c4298c9d9a1a519cec5604f9dcdfbb918b435917aff7b83d2964f2483769"
+        },
+        {
+          "file": "src/notify.ts",
+          "firstLine": 6,
+          "id": "src/notify.ts#Mail.send",
+          "lastLine": 8,
+          "name": "Mail.send",
+          "sourceHash": "676a0b0baa807447a73a3cae338fc18330cb78ccbfb8f5a1f930eeab4ba37a6f"
+        },
+        {
+          "file": "src/notify.ts",
+          "firstLine": 12,
+          "id": "src/notify.ts#Sms.send",
+          "lastLine": 14,
+          "name": "Sms.send",
+          "sourceHash": "7ed5d8ef7c9e4224d569cb33a43ee145dd67590c5c38dc9d582d542d9c892cd3"
+        },
+        {
+          "file": "src/report.ts",
+          "firstLine": 1,
+          "id": "src/report.ts#heading",
+          "lastLine": 1,
+          "name": "heading",
+          "sourceHash": "8e7a7d720003121f56b60223303502bf8e8ab569dee53ac0ce3912c7195d1694"
+        },
+        {
+          "file": "src/report.ts",
+          "firstLine": 3,
+          "id": "src/report.ts#report",
+          "lastLine": 3,
+          "name": "report",
+          "sourceHash": "97a1b6622364f530d87ee27c108f0bc3d64636eae7388fe06330b6b120c5158d"
+        },
+        {
+          "file": "src/tax/rate.ts",
+          "firstLine": 1,
+          "id": "src/tax/rate.ts#vatRate",
+          "lastLine": 1,
+          "name": "vatRate",
+          "sourceHash": "5421d2837f0f6f806645fd50ba1159d023c8f65a0d374e1ce6e75beaf2aad8a9"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [
+        {
+          "caller": "src/alerts.ts#relay",
+          "expression": "JSON.parse(raw).notify",
+          "line": 8,
+          "reason": "untyped"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "src/alerts.ts": "import { format } from './money';\n\nexport const alert = (amounts: readonly number[]): string[] => amounts.map(format);\n",
+      "src/cart.ts": "import { format, round } from './money';\n\nexport const subtotal = (prices: readonly number[]): number =>\n  round(prices.reduce((sum, price) => sum + price, 0));\n\nexport const legacyTotal = (prices: readonly number[]): number => subtotal(prices) * 1.2;\n\nexport const label = (name: string): string => name.toUpperCase();\n\nexport const receipt = (prices: readonly number[]): string => {\n  const total = legacyTotal(prices);\n  return `${label('total')}: ${format(total)}`;\n};\n",
+      "src/money.ts": "export const round = (amount: number): number => Math.round(amount * 100) / 100;\n\nexport const format = (amount: number): string => `${round(amount).toFixed(2)} EUR`;\n"
+    },
+    "branch": {
+      "src/alerts.ts": "import { format } from './money';\nimport type { Channel } from './notify';\n\nexport const alert = (channel: Channel, amounts: readonly number[]): string[] =>\n  amounts.map((amount) => channel.send(format(amount)));\n\nexport const relay = (raw: string): void => {\n  JSON.parse(raw).notify();\n};\n",
+      "src/cart.ts": "import { format, round } from './money';\n\nexport const subtotal = (prices: readonly number[]): number =>\n  round(prices.reduce((sum, price) => sum + price, 0));\n\nexport const taxed = (prices: readonly number[]): number => subtotal(prices) * 1.25;\n\nexport const receipt = (prices: readonly number[]): string => {\n  const total = taxed(prices);\n  return format(total);\n};\n\nexport const label = (name: string): string => name.toUpperCase();\n",
+      "src/checkout.ts": "import { receipt } from './cart';\n\nexport const checkout = (prices: readonly number[]): string => receipt(prices);\n",
+      "src/money.ts": "export const format = (amount: number): string => `${round(amount).toFixed(2)} EUR`;\n\nexport const round = (amount: number): number => Math.round(amount * 100) / 100;\n",
+      "src/notify.ts": "export interface Channel {\n  send(text: string): string;\n}\n\nexport class Mail implements Channel {\n  send(text: string): string {\n    return `mail: ${text}`;\n  }\n}\n\nexport class Sms implements Channel {\n  send(text: string): string {\n    return `sms: ${text}`;\n  }\n}\n",
+      "src/report.ts": "export const heading = (title: string): string => title.toUpperCase();\n\nexport const report = (title: string): string => `${heading(title)}\\n`;\n",
+      "src/tax/rate.ts": "export const vatRate = (): number => 0.25;\n"
+    }
+  }
+}

@@ -1,0 +1,681 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/money/format.ts#format",
+          "line": 3
+        },
+        {
+          "callee": "src/notify/channel.ts#Letter.deliver",
+          "caller": "src/notify/channel.ts#broadcast",
+          "group": "src/notify/channel.ts:19:78",
+          "line": 19
+        },
+        {
+          "callee": "src/notify/channel.ts#Push.deliver",
+          "caller": "src/notify/channel.ts#broadcast",
+          "group": "src/notify/channel.ts:19:78",
+          "line": 19
+        },
+        {
+          "callee": "src/notify/channel.ts#broadcast",
+          "caller": "src/notify/channel.ts#announce",
+          "line": 21
+        },
+        {
+          "callee": "src/notify/mail.ts#confirm",
+          "caller": "src/notify/channel.ts#announce",
+          "line": 21
+        },
+        {
+          "callee": "src/notify/channel.ts#broadcast",
+          "caller": "src/notify/channel.ts#urgent",
+          "line": 23
+        },
+        {
+          "callee": "src/orders/service/book.ts#book",
+          "caller": "src/notify/sms.ts#retry",
+          "line": 3
+        },
+        {
+          "callee": "src/money/format.ts#format",
+          "caller": "src/orders/api/cancel.ts#cancelOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/orders/service/refund.ts#refund",
+          "caller": "src/orders/api/cancel.ts#cancelOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/money/format.ts#format",
+          "caller": "src/orders/api/place.ts#placeOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/orders/service/book.ts#book",
+          "caller": "src/orders/api/place.ts#placeOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#ship",
+          "caller": "src/orders/service/book.ts#book",
+          "line": 5
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/orders/service/book.ts#book",
+          "line": 6
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/orders/service/refund.ts#refund",
+          "line": 3
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#ship",
+          "caller": "src/shipping/carriers/courier.ts#express",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#weigh",
+          "caller": "src/shipping/carriers/courier.ts#express",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#Van.send",
+          "caller": "src/shipping/carriers/courier.ts#dispatch",
+          "group": "src/shipping/carriers/courier.ts:6:80",
+          "line": 6
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#Bike.send",
+          "caller": "src/shipping/carriers/courier.ts#dispatch",
+          "group": "src/shipping/carriers/courier.ts:6:80",
+          "line": 6
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/tax/rate.ts#taxOf",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/money/format.ts",
+        "src/money/round.ts",
+        "src/notify/channel.ts",
+        "src/notify/mail.ts",
+        "src/notify/sms.ts",
+        "src/orders/api/cancel.ts",
+        "src/orders/api/place.ts",
+        "src/orders/service/book.ts",
+        "src/orders/service/refund.ts",
+        "src/shipping/carriers/courier.ts",
+        "src/shipping/carriers/post.ts",
+        "src/tax/rate.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/money/format.ts",
+          "firstLine": 3,
+          "id": "src/money/format.ts#format",
+          "lastLine": 3,
+          "name": "format",
+          "sourceHash": "bc95b711aae8832033a1a2b152d45d0cf8f977e461a3b08a715320b04aae384c"
+        },
+        {
+          "file": "src/money/round.ts",
+          "firstLine": 1,
+          "id": "src/money/round.ts#round",
+          "lastLine": 1,
+          "name": "round",
+          "sourceHash": "1a85c4298c9d9a1a519cec5604f9dcdfbb918b435917aff7b83d2964f2483769"
+        },
+        {
+          "file": "src/money/round.ts",
+          "firstLine": 3,
+          "id": "src/money/round.ts#legacyRound",
+          "lastLine": 3,
+          "name": "legacyRound",
+          "sourceHash": "cc27fed43dcbaacf08ed20af606be4aba089df143e57fe7b1f07396474d22b9e"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 8,
+          "id": "src/notify/channel.ts#Letter.deliver",
+          "lastLine": 10,
+          "name": "Letter.deliver",
+          "sourceHash": "61753117831a2067d8de8fabcb6b9657178e4a2e573f399dfd48cb62b64010c5"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 14,
+          "id": "src/notify/channel.ts#Push.deliver",
+          "lastLine": 16,
+          "name": "Push.deliver",
+          "sourceHash": "9c553e5a62dcc6b395d5f1e9469a477d700c2bec8254affbcfabb12a10f8b2f3"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 19,
+          "id": "src/notify/channel.ts#broadcast",
+          "lastLine": 19,
+          "name": "broadcast",
+          "sourceHash": "654d7c1e1beaa2d4a74f0718d9bb17a96ae49b8cc499f577936edf70c9cd3443"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 21,
+          "id": "src/notify/channel.ts#announce",
+          "lastLine": 21,
+          "name": "announce",
+          "sourceHash": "73dc203e782f64597bc3629c94bee3bedd47f56361ed0760fc451b54847c2769"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 23,
+          "id": "src/notify/channel.ts#urgent",
+          "lastLine": 23,
+          "name": "urgent",
+          "sourceHash": "9f4bd94a50ed707f12e370bab11d90f1f4f9dd0a31512d7ede7572048e7317d1"
+        },
+        {
+          "file": "src/notify/mail.ts",
+          "firstLine": 1,
+          "id": "src/notify/mail.ts#confirm",
+          "lastLine": 1,
+          "name": "confirm",
+          "sourceHash": "d4b7bff6f4d942756c52c218ec45db8701a5433a652325495e800d630af5593a"
+        },
+        {
+          "file": "src/notify/sms.ts",
+          "firstLine": 3,
+          "id": "src/notify/sms.ts#retry",
+          "lastLine": 3,
+          "name": "retry",
+          "sourceHash": "72840888f19a80332cb8bded54c7c485aaf1c02d294208c3dbbce93c4dddceb7"
+        },
+        {
+          "file": "src/orders/api/cancel.ts",
+          "firstLine": 4,
+          "id": "src/orders/api/cancel.ts#cancelOrder",
+          "lastLine": 4,
+          "name": "cancelOrder",
+          "sourceHash": "71c1c67bfe77a615f9e545fdcd4752a35b21b21f90e52ddf6b0ec0ec05b70675"
+        },
+        {
+          "file": "src/orders/api/place.ts",
+          "firstLine": 4,
+          "id": "src/orders/api/place.ts#placeOrder",
+          "lastLine": 4,
+          "name": "placeOrder",
+          "sourceHash": "eefc0b403acd22e02467932344de04e263279357207ffdc2079dc401a7d8109b"
+        },
+        {
+          "file": "src/orders/service/book.ts",
+          "firstLine": 4,
+          "id": "src/orders/service/book.ts#book",
+          "lastLine": 7,
+          "name": "book",
+          "sourceHash": "15259e695825a42749e8a57b3bfe49610ad8d8d6e8e846ab75796821d5370a93"
+        },
+        {
+          "file": "src/orders/service/refund.ts",
+          "firstLine": 3,
+          "id": "src/orders/service/refund.ts#refund",
+          "lastLine": 3,
+          "name": "refund",
+          "sourceHash": "8ba87f52e3ae796541e6ac0c088a46bf01592fa841c19dec839d8748e48f3c62"
+        },
+        {
+          "file": "src/shipping/carriers/courier.ts",
+          "firstLine": 4,
+          "id": "src/shipping/carriers/courier.ts#express",
+          "lastLine": 4,
+          "name": "express",
+          "sourceHash": "0de594ba279c9e99bc06e7f3ff2ccd2327d535eecffd6a5b3891848e55092c1e"
+        },
+        {
+          "file": "src/shipping/carriers/courier.ts",
+          "firstLine": 6,
+          "id": "src/shipping/carriers/courier.ts#dispatch",
+          "lastLine": 6,
+          "name": "dispatch",
+          "sourceHash": "997052e4db809e9f5faedae4e60922f3729d8824902e9c30a91170366baa4f71"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 1,
+          "id": "src/shipping/carriers/post.ts#ship",
+          "lastLine": 1,
+          "name": "ship",
+          "sourceHash": "de0c4c8a9669c8f623a1bcef41a8de54cb136e176ab11c33234606a86ef8c3f2"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 3,
+          "id": "src/shipping/carriers/post.ts#weigh",
+          "lastLine": 3,
+          "name": "weigh",
+          "sourceHash": "24355d02e3cca29d645d4209e4ba12d2c85a29979f67efd4fc5e5bafc4f7a4e3"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 5,
+          "id": "src/shipping/carriers/post.ts#measure",
+          "lastLine": 5,
+          "name": "measure",
+          "sourceHash": "c8455727701b4c6430af1d15e878e344a3bf0e78191c981e92cc1bc5c6dcfd10"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 12,
+          "id": "src/shipping/carriers/post.ts#Van.send",
+          "lastLine": 14,
+          "name": "Van.send",
+          "sourceHash": "61c63968ac0bf8830b4bc97a8eb178f26e70bab4deb97bf94f6077051a8e7ece"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 18,
+          "id": "src/shipping/carriers/post.ts#Bike.send",
+          "lastLine": 20,
+          "name": "Bike.send",
+          "sourceHash": "6ce195680d9cca59bd7c418a65632390a59f2a70c79b63a22d79cd37c7a9603c"
+        },
+        {
+          "file": "src/tax/rate.ts",
+          "firstLine": 3,
+          "id": "src/tax/rate.ts#taxOf",
+          "lastLine": 3,
+          "name": "taxOf",
+          "sourceHash": "26f24a651b22782a86db568c21f8109e9c95789fb4731396dae80f460c02c989"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/money/format.ts#format",
+          "line": 3
+        },
+        {
+          "callee": "src/notify/channel.ts#Letter.deliver",
+          "caller": "src/notify/channel.ts#broadcast",
+          "group": "src/notify/channel.ts:19:78",
+          "line": 19
+        },
+        {
+          "callee": "src/notify/channel.ts#Push.deliver",
+          "caller": "src/notify/channel.ts#broadcast",
+          "group": "src/notify/channel.ts:19:78",
+          "line": 19
+        },
+        {
+          "callee": "src/notify/channel.ts#broadcast",
+          "caller": "src/notify/channel.ts#announce",
+          "line": 21
+        },
+        {
+          "callee": "src/notify/mail.ts#confirm",
+          "caller": "src/notify/channel.ts#announce",
+          "line": 21
+        },
+        {
+          "callee": "src/notify/channel.ts#broadcast",
+          "caller": "src/notify/channel.ts#urgent",
+          "line": 23
+        },
+        {
+          "callee": "src/orders/service/book.ts#book",
+          "caller": "src/notify/sms.ts#retry",
+          "line": 3
+        },
+        {
+          "callee": "src/orders/service/refund.ts#refund",
+          "caller": "src/orders/api/cancel.ts#cancelOrder",
+          "line": 3
+        },
+        {
+          "callee": "src/money/format.ts#format",
+          "caller": "src/orders/api/place.ts#placeOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/orders/service/book.ts#book",
+          "caller": "src/orders/api/place.ts#placeOrder",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#ship",
+          "caller": "src/orders/service/book.ts#book",
+          "line": 6
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/orders/service/book.ts#book",
+          "line": 7
+        },
+        {
+          "callee": "src/notify/mail.ts#confirm",
+          "caller": "src/orders/service/book.ts#book",
+          "line": 8
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/orders/service/refund.ts#refund",
+          "line": 3
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#ship",
+          "caller": "src/shipping/carriers/courier.ts#express",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#measure",
+          "caller": "src/shipping/carriers/courier.ts#express",
+          "line": 4
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#Van.send",
+          "caller": "src/shipping/carriers/courier.ts#dispatch",
+          "group": "src/shipping/carriers/courier.ts:6:80",
+          "line": 6
+        },
+        {
+          "callee": "src/shipping/carriers/post.ts#Bike.send",
+          "caller": "src/shipping/carriers/courier.ts#dispatch",
+          "group": "src/shipping/carriers/courier.ts:6:80",
+          "line": 6
+        },
+        {
+          "callee": "src/money/round.ts#round",
+          "caller": "src/tax/rate.ts#taxOf",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/money/format.ts",
+        "src/money/round.ts",
+        "src/notify/channel.ts",
+        "src/notify/mail.ts",
+        "src/notify/sms.ts",
+        "src/orders/api/cancel.ts",
+        "src/orders/api/place.ts",
+        "src/orders/service/book.ts",
+        "src/orders/service/refund.ts",
+        "src/shipping/carriers/courier.ts",
+        "src/shipping/carriers/post.ts",
+        "src/tax/rate.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/money/format.ts",
+          "firstLine": 3,
+          "id": "src/money/format.ts#format",
+          "lastLine": 3,
+          "name": "format",
+          "sourceHash": "bc95b711aae8832033a1a2b152d45d0cf8f977e461a3b08a715320b04aae384c"
+        },
+        {
+          "file": "src/money/round.ts",
+          "firstLine": 1,
+          "id": "src/money/round.ts#round",
+          "lastLine": 1,
+          "name": "round",
+          "sourceHash": "1a85c4298c9d9a1a519cec5604f9dcdfbb918b435917aff7b83d2964f2483769"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 8,
+          "id": "src/notify/channel.ts#Letter.deliver",
+          "lastLine": 10,
+          "name": "Letter.deliver",
+          "sourceHash": "61753117831a2067d8de8fabcb6b9657178e4a2e573f399dfd48cb62b64010c5"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 14,
+          "id": "src/notify/channel.ts#Push.deliver",
+          "lastLine": 16,
+          "name": "Push.deliver",
+          "sourceHash": "9c553e5a62dcc6b395d5f1e9469a477d700c2bec8254affbcfabb12a10f8b2f3"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 19,
+          "id": "src/notify/channel.ts#broadcast",
+          "lastLine": 19,
+          "name": "broadcast",
+          "sourceHash": "654d7c1e1beaa2d4a74f0718d9bb17a96ae49b8cc499f577936edf70c9cd3443"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 21,
+          "id": "src/notify/channel.ts#announce",
+          "lastLine": 21,
+          "name": "announce",
+          "sourceHash": "73dc203e782f64597bc3629c94bee3bedd47f56361ed0760fc451b54847c2769"
+        },
+        {
+          "file": "src/notify/channel.ts",
+          "firstLine": 23,
+          "id": "src/notify/channel.ts#urgent",
+          "lastLine": 23,
+          "name": "urgent",
+          "sourceHash": "9f4bd94a50ed707f12e370bab11d90f1f4f9dd0a31512d7ede7572048e7317d1"
+        },
+        {
+          "file": "src/notify/mail.ts",
+          "firstLine": 1,
+          "id": "src/notify/mail.ts#confirm",
+          "lastLine": 1,
+          "name": "confirm",
+          "sourceHash": "d4b7bff6f4d942756c52c218ec45db8701a5433a652325495e800d630af5593a"
+        },
+        {
+          "file": "src/notify/sms.ts",
+          "firstLine": 3,
+          "id": "src/notify/sms.ts#retry",
+          "lastLine": 3,
+          "name": "retry",
+          "sourceHash": "72840888f19a80332cb8bded54c7c485aaf1c02d294208c3dbbce93c4dddceb7"
+        },
+        {
+          "file": "src/notify/sms.ts",
+          "firstLine": 5,
+          "id": "src/notify/sms.ts#relay",
+          "lastLine": 7,
+          "name": "relay",
+          "sourceHash": "a70ee242e8c5315cbb1fe915de24b6cd62e3b151784637b8da2d011a659eb0a5"
+        },
+        {
+          "file": "src/orders/api/cancel.ts",
+          "firstLine": 3,
+          "id": "src/orders/api/cancel.ts#cancelOrder",
+          "lastLine": 3,
+          "name": "cancelOrder",
+          "sourceHash": "95f66a96ad3c7c7086bb8741a1c1d4c1b254b5d85a21cf4742587f22a956499d"
+        },
+        {
+          "file": "src/orders/api/place.ts",
+          "firstLine": 4,
+          "id": "src/orders/api/place.ts#placeOrder",
+          "lastLine": 4,
+          "name": "placeOrder",
+          "sourceHash": "eefc0b403acd22e02467932344de04e263279357207ffdc2079dc401a7d8109b"
+        },
+        {
+          "file": "src/orders/api/place.ts",
+          "firstLine": 6,
+          "id": "src/orders/api/place.ts#track",
+          "lastLine": 6,
+          "name": "track",
+          "sourceHash": "08934b615a3aab2fdb779ebe93f111b4d8a8df39f86eeeefb51b9888e017b203"
+        },
+        {
+          "file": "src/orders/service/book.ts",
+          "firstLine": 5,
+          "id": "src/orders/service/book.ts#book",
+          "lastLine": 10,
+          "name": "book",
+          "sourceHash": "144783cc4e6fa342720d9d5dec26aba7908a5849470bc953a8e842e81bc5203f"
+        },
+        {
+          "file": "src/orders/service/refund.ts",
+          "firstLine": 3,
+          "id": "src/orders/service/refund.ts#refund",
+          "lastLine": 3,
+          "name": "refund",
+          "sourceHash": "8ba87f52e3ae796541e6ac0c088a46bf01592fa841c19dec839d8748e48f3c62"
+        },
+        {
+          "file": "src/shipping/carriers/courier.ts",
+          "firstLine": 4,
+          "id": "src/shipping/carriers/courier.ts#express",
+          "lastLine": 4,
+          "name": "express",
+          "sourceHash": "7d284170b5d29cb5d56dbc16a683cb7406b134531684903c25a613105480bf3d"
+        },
+        {
+          "file": "src/shipping/carriers/courier.ts",
+          "firstLine": 6,
+          "id": "src/shipping/carriers/courier.ts#dispatch",
+          "lastLine": 6,
+          "name": "dispatch",
+          "sourceHash": "997052e4db809e9f5faedae4e60922f3729d8824902e9c30a91170366baa4f71"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 1,
+          "id": "src/shipping/carriers/post.ts#ship",
+          "lastLine": 1,
+          "name": "ship",
+          "sourceHash": "de0c4c8a9669c8f623a1bcef41a8de54cb136e176ab11c33234606a86ef8c3f2"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 3,
+          "id": "src/shipping/carriers/post.ts#weigh",
+          "lastLine": 3,
+          "name": "weigh",
+          "sourceHash": "24355d02e3cca29d645d4209e4ba12d2c85a29979f67efd4fc5e5bafc4f7a4e3"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 5,
+          "id": "src/shipping/carriers/post.ts#measure",
+          "lastLine": 5,
+          "name": "measure",
+          "sourceHash": "c8455727701b4c6430af1d15e878e344a3bf0e78191c981e92cc1bc5c6dcfd10"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 12,
+          "id": "src/shipping/carriers/post.ts#Van.send",
+          "lastLine": 14,
+          "name": "Van.send",
+          "sourceHash": "61c63968ac0bf8830b4bc97a8eb178f26e70bab4deb97bf94f6077051a8e7ece"
+        },
+        {
+          "file": "src/shipping/carriers/post.ts",
+          "firstLine": 18,
+          "id": "src/shipping/carriers/post.ts#Bike.send",
+          "lastLine": 20,
+          "name": "Bike.send",
+          "sourceHash": "6ce195680d9cca59bd7c418a65632390a59f2a70c79b63a22d79cd37c7a9603c"
+        },
+        {
+          "file": "src/tax/rate.ts",
+          "firstLine": 3,
+          "id": "src/tax/rate.ts#taxOf",
+          "lastLine": 3,
+          "name": "taxOf",
+          "sourceHash": "26f24a651b22782a86db568c21f8109e9c95789fb4731396dae80f460c02c989"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [
+        {
+          "caller": "src/notify/sms.ts#relay",
+          "expression": "JSON.parse(raw).notify",
+          "line": 6,
+          "reason": "untyped"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "src/money/round.ts": "export const round = (amount: number): number => Math.round(amount * 100) / 100;\n\nexport const legacyRound = (amount: number): number => Math.floor(amount);\n",
+      "src/notify/sms.ts": "import { book } from '../orders/service/book';\n\nexport const retry = (prices: readonly number[]): number => book(prices);\n",
+      "src/orders/api/cancel.ts": "import { format } from '../../money/format';\nimport { refund } from '../service/refund';\n\nexport const cancelOrder = (paid: number): string => format(refund(paid));\n",
+      "src/orders/api/place.ts": "import { format } from '../../money/format';\nimport { book } from '../service/book';\n\nexport const placeOrder = (prices: readonly number[]): string => format(book(prices));\n",
+      "src/orders/service/book.ts": "import { round } from '../../money/round';\nimport { ship } from '../../shipping/carriers/post';\n\nexport const book = (prices: readonly number[]): number => {\n  ship(prices.length);\n  return round(prices.reduce((sum, price) => sum + price, 0));\n};\n",
+      "src/shipping/carriers/courier.ts": "import { ship, weigh } from './post';\nimport type { Carrier } from './post';\n\nexport const express = (parcels: number): number => ship(parcels) * 2 + weigh(parcels);\n\nexport const dispatch = (carrier: Carrier, parcels: number): number => carrier.send(parcels);\n"
+    },
+    "branch": {
+      "src/money/format.ts": "import { round } from './round';\n\nexport const format = (amount: number): string => `${round(amount).toFixed(2)} EUR`;\n",
+      "src/money/round.ts": "export const round = (amount: number): number => Math.round(amount * 100) / 100;\n",
+      "src/notify/channel.ts": "import { confirm } from './mail';\n\ninterface Channel {\n  deliver(text: string): string;\n}\n\nclass Letter implements Channel {\n  deliver(text: string): string {\n    return `letter ${text}`;\n  }\n}\n\nclass Push implements Channel {\n  deliver(text: string): string {\n    return `push ${text}`;\n  }\n}\n\nexport const broadcast = (channel: Channel, text: string): string => channel.deliver(text);\n\nexport const announce = (total: number): string => broadcast(new Letter(), confirm(total));\n\nexport const urgent = (text: string): string => broadcast(new Push(), text);\n",
+      "src/notify/mail.ts": "export const confirm = (total: number): string => `paid ${String(total)}`;\n",
+      "src/notify/sms.ts": "import { book } from '../orders/service/book';\n\nexport const retry = (prices: readonly number[]): number => book(prices);\n\nexport const relay = (raw: string): void => {\n  JSON.parse(raw).notify();\n};\n",
+      "src/orders/api/cancel.ts": "import { refund } from '../service/refund';\n\nexport const cancelOrder = (paid: number): string => String(refund(paid));\n",
+      "src/orders/api/place.ts": "import { format } from '../../money/format';\nimport { book } from '../service/book';\n\nexport const placeOrder = (prices: readonly number[]): string => format(book(prices));\n\nexport const track = (id: string): string => `tracking ${id}`;\n",
+      "src/orders/service/book.ts": "import { round } from '../../money/round';\nimport { confirm } from '../../notify/mail';\nimport { ship } from '../../shipping/carriers/post';\n\nexport const book = (prices: readonly number[]): number => {\n  ship(prices.length);\n  const total = round(prices.reduce((sum, price) => sum + price, 0));\n  confirm(total);\n  return total;\n};\n",
+      "src/orders/service/refund.ts": "import { round } from '../../money/round';\n\nexport const refund = (paid: number): number => round(paid * 0.9);\n",
+      "src/shipping/carriers/courier.ts": "import { measure, ship } from './post';\nimport type { Carrier } from './post';\n\nexport const express = (parcels: number): number => ship(parcels) * 2 + measure(parcels);\n\nexport const dispatch = (carrier: Carrier, parcels: number): number => carrier.send(parcels);\n",
+      "src/shipping/carriers/post.ts": "export const ship = (parcels: number): number => parcels;\n\nexport const weigh = (parcels: number): number => parcels * 3;\n\nexport const measure = (parcels: number): number => parcels * 4;\n\nexport interface Carrier {\n  send(parcels: number): number;\n}\n\nexport class Van implements Carrier {\n  send(parcels: number): number {\n    return parcels * 5;\n  }\n}\n\nexport class Bike implements Carrier {\n  send(parcels: number): number {\n    return parcels;\n  }\n}\n",
+      "src/tax/rate.ts": "import { round } from '../money/round';\n\nexport const taxOf = (amount: number): number => round(amount * 0.2);\n"
+    }
+  }
+}
