@@ -5,14 +5,14 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -27,12 +27,24 @@ jobs:
           go-version-file: packages/extractor-go/go/go.mod
           cache-dependency-path: packages/extractor-go/go/go.mod
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
       # npm trusted publishing with the OIDC token of the job needs npm 11.5.1 or later.
       - run: npm install --global npm@^11.5.1
 
       - run: npm ci
 
+      # The script runs the conformance suite on the fixture repos that it packs,
+      # so a failed suite stops the release before anything is published.
+      - run: npm run release-assets -- "$GITHUB_REF_NAME" release-assets node packages/cli/src/cli.ts
+
       - run: npm run test:pack
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes release-assets/*
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       # npm logs why the OIDC token exchange fails only at the verbose level.
       - run: npm publish --workspace @callmap/cli --loglevel verbose
