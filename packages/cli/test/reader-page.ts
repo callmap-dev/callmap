@@ -349,6 +349,11 @@ export const loadReaderPageWithDiffLimit = (html: string, diffLimit: number): Pr
     Object.assign(window, { [DIFF_LIMIT_HOOK]: diffLimit });
   });
 
+export const loadReaderPageWith = (
+  html: string,
+  beforeScripts: (window: JSDOM['window']) => void,
+): Promise<LoadedPage> => loadedPageOf(html, beforeScripts);
+
 const numberOf = (element: Element | null, name: string): number =>
   Number(element?.getAttribute(name) ?? Number.NaN);
 
