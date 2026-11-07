@@ -203,6 +203,19 @@ jobs:
             gh pr comment "$PR_NUMBER" --body "$body"
           done
 
+      - name: Continue the agent:auto loop
+        if: github.event.pull_request.state == 'open' && success()
+        env:
+          AGENT_PAT: ${{ secrets.AGENT_PAT }}
+        run: |
+          labels=$(gh pr view "$PR_NUMBER" --json labels --jq '[.labels[].name] | join(",")')
+          case ",$labels," in *,agent:auto,*) ;; *) exit 0 ;; esac
+          if [ -z "$AGENT_PAT" ]; then
+            gh pr comment "$PR_NUMBER" --body "The \`agent:auto\` loop cannot start the next review: the \`AGENT_PAT\` secret is not set."
+            exit 0
+          fi
+          GH_TOKEN="$AGENT_PAT" gh pr edit "$PR_NUMBER" --add-label "agent:review"
+
       - name: Mark blocked on failure
         if: github.event.pull_request.state == 'open' && failure()
         env:

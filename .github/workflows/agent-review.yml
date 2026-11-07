@@ -6,20 +6,24 @@ on:
 
 jobs:
   review:
-    if: github.event.label.name == 'agent:review'
+    if: github.event.label.name == 'agent:review' || github.event.label.name == 'agent:auto'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # 60 minutes for the review, plus the wait for CI in the agent:auto loop.
+    timeout-minutes: 100
     concurrency:
       group: agent-mutate-pr-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     permissions:
+      actions: read
       contents: write
+      issues: write
       pull-requests: write
 
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       BRANCH: ${{ github.event.pull_request.head.ref }}
       BRANCH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      TRIGGER_LABEL: ${{ github.event.label.name }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
       BASE_BRANCH: ${{ github.event.repository.default_branch }}
@@ -155,6 +159,15 @@ jobs:
             fi
             gh api --method POST "repos/{owner}/{repo}/pulls/${PR_NUMBER}/comments/${rest_id}/replies" -f body="$body"
           done
+
+      - name: Continue the agent:auto loop
+        if: success()
+        env:
+          AGENT_PAT: ${{ secrets.AGENT_PAT }}
+          VERDICT: ${{ runner.temp }}/verdict.json
+          CI_WORKFLOW: ${{ vars.AGENT_CI_WORKFLOW || 'ci.yml' }}
+          MAX_ROUNDS: ${{ vars.AGENT_AUTO_MAX_ROUNDS || '3' }}
+        run: bash "$RUNNER_TEMP/base-tooling/.sandcastle/agent-workflows/auto/continue.sh"
 
       - name: Mark blocked on failure
         if: failure()
