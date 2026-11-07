@@ -42,12 +42,28 @@ export class UnknownFormatVersionError extends Error {
   }
 }
 
+const isObject = (value: unknown): value is object => typeof value === 'object' && value !== null;
+
+const FIELD_SHAPES: readonly (readonly [
+  field: keyof ReviewInput,
+  shape: string,
+  fits: (value: unknown) => boolean,
+])[] = [
+  ['base', 'a list of graph documents', Array.isArray],
+  ['branch', 'a list of graph documents', Array.isArray],
+  ['packedSources', 'a text', (value) => typeof value === 'string'],
+  ['checkout', 'an object', isObject],
+  ['editor', 'an object', isObject],
+];
+
 export const knownReviewInput = (parsed: unknown): ReviewInput => {
-  const formatVersion: unknown =
-    typeof parsed === 'object' && parsed !== null
-      ? Reflect.get(parsed, 'formatVersion')
-      : undefined;
-  if (formatVersion !== REVIEW_INPUT_FORMAT_VERSION)
+  const formatVersion: unknown = isObject(parsed)
+    ? Reflect.get(parsed, 'formatVersion')
+    : undefined;
+  if (formatVersion !== REVIEW_INPUT_FORMAT_VERSION || !isObject(parsed))
     throw new UnknownFormatVersionError(formatVersion);
+  for (const [field, shape, fits] of FIELD_SHAPES)
+    if (!fits(Reflect.get(parsed, field)))
+      throw new Error(`The review input is malformed: "${field}" is not ${shape}.`);
   return parsed as ReviewInput;
 };

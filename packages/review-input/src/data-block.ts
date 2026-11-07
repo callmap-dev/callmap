@@ -18,29 +18,22 @@ export const dataBlockOf = (input: ReviewInput): string =>
   `${DATA_BLOCK_START}${escapedJsonOf(input)}${DATA_BLOCK_END}`;
 
 export const pageOfTemplate = (template: string, input: ReviewInput): string => {
-  const parts = template.split(REVIEW_INPUT_MARKER);
+  const parts = template.split(TEMPLATE_DATA_BLOCK);
   if (parts.length !== 2)
     throw new Error(
-      `the page template holds the marker ${REVIEW_INPUT_MARKER} ${String(parts.length - 1)} times, not once`,
+      `the page template holds the data block ${TEMPLATE_DATA_BLOCK} ${String(parts.length - 1)} times, not once`,
     );
-  return parts.join(escapedJsonOf(input));
+  return parts.join(dataBlockOf(input));
 };
 
 export const reviewInputOfDataBlock = (json: string): ReviewInput =>
   knownReviewInput(JSON.parse(json));
 
-const NO_DATA_BLOCK = 'the page holds no data block';
-
 const dataBlockJsonOf = (page: string): string => {
   const json = DATA_BLOCK.exec(page)?.[1];
-  if (json === undefined) throw new Error(NO_DATA_BLOCK);
+  if (json === undefined) throw new Error('the page holds no data block');
   return json;
 };
 
 export const reviewInputOfPage = (page: string): ReviewInput =>
   reviewInputOfDataBlock(dataBlockJsonOf(page));
-
-export const pageWithReviewInput = (page: string, input: ReviewInput): string => {
-  if (!DATA_BLOCK.test(page)) throw new Error(NO_DATA_BLOCK);
-  return page.replace(DATA_BLOCK, () => dataBlockOf(input));
-};

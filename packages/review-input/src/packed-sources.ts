@@ -44,7 +44,17 @@ export const packedSourcesOf = async (sources: Sources): Promise<string> =>
     ),
   );
 
-export const unpackedSourcesOf = async (packed: string): Promise<Sources> =>
-  JSON.parse(
+const isSourceTexts = (value: unknown): value is object =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+export const unpackedSourcesOf = async (packed: string): Promise<Sources> => {
+  const parsed: unknown = JSON.parse(
     new TextDecoder().decode(await bytesThrough(bytesOf(packed), new DecompressionStream('gzip'))),
-  ) as Sources;
+  );
+  for (const side of ['branch', 'base'])
+    if (!isSourceTexts(parsed) || !isSourceTexts(Reflect.get(parsed, side)))
+      throw new Error(
+        `The packed sources are malformed: "${side}" is not an object of source texts.`,
+      );
+  return parsed as Sources;
+};

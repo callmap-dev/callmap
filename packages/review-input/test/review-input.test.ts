@@ -2,16 +2,17 @@ import { describe, expect, it } from 'vitest';
 import {
   dataBlockOf,
   packedSourcesOf,
+  packedReviewInputOf,
   pageOfTemplate,
-  pageWithReviewInput,
   REVIEW_INPUT_FORMAT_VERSION,
   REVIEW_INPUT_MARKER,
   TEMPLATE_DATA_BLOCK,
   reviewInputOfPage,
+  unpackedReviewInputOf,
   unpackedSourcesOf,
   UnknownFormatVersionError,
 } from '../src/index.ts';
-import type { ReviewInput, Sources } from '../src/index.ts';
+import type { ReviewInput, Sources, UnpackedReviewInput } from '../src/index.ts';
 import type { GraphDocument } from '@callmap/graph-document';
 
 const documentOf = (functions: readonly string[]): GraphDocument => ({
@@ -82,14 +83,6 @@ describe('the review input', () => {
     expect(reviewInputOfPage(pageOf(block)).editor.repoRoot).toBe('/a</script>b');
   });
 
-  it('puts a new review input in the place of the data block of a page', async () => {
-    const input = await inputOf();
-    const changed = { ...input, checkout: { ...input.checkout, branch: 'other' } };
-    const page = pageWithReviewInput(pageOf(dataBlockOf(input)), changed);
-    expect(reviewInputOfPage(page)).toEqual(changed);
-    expect(page).toContain('<script>\nrun()\n</script>');
-  });
-
   it('fails on a page that holds no data block', () => {
     expect(() => reviewInputOfPage('<!doctype html><body></body>')).toThrow(
       'the page holds no data block',
@@ -120,17 +113,25 @@ describe('the page template', () => {
     expect(reviewInputOfPage(page)).toEqual(input);
   });
 
-  it('fails on a template with no marker', async () => {
+  it('puts the review input only at the marker of the data block, also when the page script holds the marker', async () => {
     const input = await inputOf();
-    expect(() => pageOfTemplate('<!doctype html><body></body>', input)).toThrow(
-      'the page template holds the marker {{CALLMAP_REVIEW_INPUT}} 0 times, not once',
-    );
+    const template = TEMPLATE.replace('run()', `run('${REVIEW_INPUT_MARKER}')`);
+    const page = pageOfTemplate(template, input);
+    expect(page).toContain(`<script>\nrun('${REVIEW_INPUT_MARKER}')\n</script>`);
+    expect(reviewInputOfPage(page)).toEqual(input);
   });
 
-  it('fails on a template with 2 markers', async () => {
+  it('fails on a template with no data block', async () => {
     const input = await inputOf();
-    expect(() => pageOfTemplate(`${TEMPLATE}${REVIEW_INPUT_MARKER}`, input)).toThrow(
-      'the page template holds the marker {{CALLMAP_REVIEW_INPUT}} 2 times, not once',
+    expect(() =>
+      pageOfTemplate(`<!doctype html><body>${REVIEW_INPUT_MARKER}</body>`, input),
+    ).toThrow(`the page template holds the data block ${TEMPLATE_DATA_BLOCK} 0 times, not once`);
+  });
+
+  it('fails on a template with 2 data blocks', async () => {
+    const input = await inputOf();
+    expect(() => pageOfTemplate(`${TEMPLATE}${TEMPLATE_DATA_BLOCK}`, input)).toThrow(
+      `the page template holds the data block ${TEMPLATE_DATA_BLOCK} 2 times, not once`,
     );
   });
 });
@@ -153,6 +154,42 @@ describe('the packed sources', () => {
 
   it('give the same text for the same sources', async () => {
     expect(await packedSourcesOf(SOURCES)).toBe(await packedSourcesOf(SOURCES));
+  });
+
+  it('fail with a clear message when they do not unpack to the sources of both sides', async () => {
+    const packedOf = async (value: unknown): Promise<string> => packedSourcesOf(value as Sources);
+    await expect(unpackedSourcesOf(await packedOf([]))).rejects.toThrow(
+      'The packed sources are malformed: "branch" is not an object of source texts.',
+    );
+    await expect(unpackedSourcesOf(await packedOf({ branch: {}, base: 'a' }))).rejects.toThrow(
+      'The packed sources are malformed: "base" is not an object of source texts.',
+    );
+  });
+});
+
+describe('the review input with its sources unpacked', () => {
+  it('packs to the review input, and unpacks back to the same value', async () => {
+    const input = await inputOf();
+    const { packedSources: _packed, ...rest } = input;
+    const unpacked: UnpackedReviewInput = { ...rest, sources: SOURCES };
+    expect(await unpackedReviewInputOf(input)).toEqual(unpacked);
+    expect(await packedReviewInputOf(unpacked)).toEqual(input);
+  });
+});
+
+describe('a review input whose top-level shape is wrong', () => {
+  const pageWith = async (key: string, value: unknown): Promise<string> =>
+    pageOf(dataBlockOf({ ...(await inputOf()), [key]: value } as ReviewInput));
+
+  it.each([
+    ['base', undefined, '"base" is not a list of graph documents'],
+    ['branch', {}, '"branch" is not a list of graph documents'],
+    ['packedSources', { branch: {}, base: {} }, '"packedSources" is not a text'],
+    ['checkout', 'main', '"checkout" is not an object'],
+    ['editor', null, '"editor" is not an object'],
+  ])('fails with a message that names the field %s', async (key, value, problem) => {
+    const page = await pageWith(key, value);
+    expect(() => reviewInputOfPage(page)).toThrow(`The review input is malformed: ${problem}.`);
   });
 });
 

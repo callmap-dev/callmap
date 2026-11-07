@@ -2,7 +2,6 @@ export {
   DATA_BLOCK_ID,
   dataBlockOf,
   pageOfTemplate,
-  pageWithReviewInput,
   REVIEW_INPUT_MARKER,
   reviewInputOfDataBlock,
   reviewInputOfPage,
@@ -12,3 +11,5 @@ export { packedSourcesOf, unpackedSourcesOf } from './packed-sources.ts';
 export type { SourceTexts, Sources } from './packed-sources.ts';
 export { REVIEW_INPUT_FORMAT_VERSION, UnknownFormatVersionError } from './review-input.ts';
 export type { Checkout, EditorChoice, ReviewInput } from './review-input.ts';
+export { packedReviewInputOf, unpackedReviewInputOf } from './unpacked-review-input.ts';
+export type { UnpackedReviewInput } from './unpacked-review-input.ts';
