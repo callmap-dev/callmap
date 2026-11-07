@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effectiveScope, inScope } from '../src/index.ts';
+import testGlobs from '../test-globs.json' with { type: 'json' };
 
 describe('inScope', () => {
   it('takes every file when no glob narrows the repo', () => {
@@ -105,6 +106,10 @@ describe('effectiveScope', () => {
       '!**/tests/**',
       '!**/spec/**',
     ]);
+  });
+
+  it('adds the test globs of the data file that every distribution reads, in its order', () => {
+    expect(effectiveScope([], false)).toEqual(testGlobs.map((glob) => `!${glob}`));
   });
 
   it('keeps the scope of the user as it is when the tests are asked for', () => {

@@ -222,6 +222,7 @@ Then ask Claude for a Callmap review of the branch. The skill needs the `callmap
 - `docs/product.md` holds the product record.
 - `GLOSSARY.md` holds the vocabulary.
 - `docs/adr/` holds the architectural decisions. ADR-0012 tells how the product became a call graph reader. ADR-0014 tells why it is named callmap.
+- `docs/command-contract.md` holds the command contract that every distribution follows.
 - `docs/research/` holds the measurements and the research behind the decisions.
 
 ## Packages
