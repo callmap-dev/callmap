@@ -6,7 +6,7 @@ on:
 
 jobs:
   implement-spec:
-    if: github.event.label.name == 'agent:implement-spec'
+    if: github.event.label.name == 'agent:implement-spec' || github.event.label.name == 'agent:auto'
     runs-on: ubuntu-latest
     # A spec runs one agent per ticket in a row, so it needs far more time than
     # one issue. 350 minutes stays under the 360 minute cap of a hosted runner.
@@ -22,6 +22,7 @@ jobs:
     env:
       SPEC_NUMBER: ${{ github.event.issue.number }}
       SPEC_TITLE: ${{ github.event.issue.title }}
+      TRIGGER_LABEL: ${{ github.event.label.name }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
       BASE_BRANCH: ${{ github.event.repository.default_branch }}
@@ -39,10 +40,11 @@ jobs:
             echo "proceed=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # agent:auto on a single issue belongs to agent-implement.yml, so skip it quietly.
       - name: Refuse issue without open sub-issues
-        if: steps.shape.outputs.proceed != 'true'
+        if: steps.shape.outputs.proceed != 'true' && github.event.label.name != 'agent:auto'
         run: |
-          gh issue edit "$SPEC_NUMBER" --remove-label "agent:implement-spec" || true
+          gh issue edit "$SPEC_NUMBER" --remove-label "$TRIGGER_LABEL" || true
           gh issue comment "$SPEC_NUMBER" --body "Refused to run: issue #${SPEC_NUMBER} has no open sub-issues. Use \`agent:implement\` for a single issue."
 
       - name: Preflight existing PR
@@ -75,13 +77,13 @@ jobs:
         env:
           EXISTING_PR_URL: ${{ steps.preflight.outputs.existing_pr_url }}
         run: |
-          gh issue edit "$SPEC_NUMBER" --remove-label "agent:implement-spec" || true
-          gh issue comment "$SPEC_NUMBER" --body "Refused to run: $EXISTING_PR_URL already targets this spec. Close it first, then re-add \`agent:implement-spec\`."
+          gh issue edit "$SPEC_NUMBER" --remove-label "$TRIGGER_LABEL" || true
+          gh issue comment "$SPEC_NUMBER" --body "Refused to run: $EXISTING_PR_URL already targets this spec. Close it first, then re-add \`$TRIGGER_LABEL\`."
 
       - name: Transition labels
         if: steps.shape.outputs.proceed == 'true' && steps.preflight.outputs.refused != 'true'
         run: |
-          gh issue edit "$SPEC_NUMBER" --remove-label "agent:implement-spec" || true
+          gh issue edit "$SPEC_NUMBER" --remove-label "$TRIGGER_LABEL" || true
           gh issue edit "$SPEC_NUMBER" --remove-label "agent:blocked" || true
           gh issue edit "$SPEC_NUMBER" --add-label "agent:in-progress"
 
@@ -205,6 +207,11 @@ jobs:
           # (GitHub anti-recursion), so agent-review.yml only fires when the
           # label is applied with AGENT_PAT.
           set +e
+          # agent:auto on the PR starts the review and marks the PR for the
+          # review and fix loop in .sandcastle/agent-workflows/auto/continue.sh.
+          if [ "$TRIGGER_LABEL" = "agent:auto" ] && [ -n "$AGENT_PAT" ]; then
+            GH_TOKEN="$AGENT_PAT" gh pr edit "$PR_NUMBER" --add-label "agent:auto" && exit 0
+          fi
           if [ -n "$AGENT_PAT" ]; then
             GH_TOKEN="$AGENT_PAT" gh pr edit "$PR_NUMBER" --add-label "agent:review"
             status=$?
@@ -225,7 +232,7 @@ jobs:
             reason=$(cat "${RUNNER_TEMP}/failure_reason.txt")
           fi
           body_file="${RUNNER_TEMP}/failure-comment.md"
-          printf '`agent:implement-spec` run failed.\n\n**Reason:** %s\n\n**Workflow run:** %s\n\nRe-add `agent:implement-spec` to retry.\n' "$reason" "$RUN_URL" > "$body_file"
+          printf '`%s` run failed.\n\n**Reason:** %s\n\n**Workflow run:** %s\n\nRe-add `%s` to retry.\n' "$TRIGGER_LABEL" "$reason" "$RUN_URL" "$TRIGGER_LABEL" > "$body_file"
           gh issue edit "$SPEC_NUMBER" --add-label "agent:blocked" || true
           gh issue comment "$SPEC_NUMBER" --body-file "$body_file"
 

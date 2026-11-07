@@ -15,6 +15,7 @@ export interface ReviewOutput {
   readonly summary: string;
   readonly specConformant: boolean;
   readonly unmetCriteria: string[];
+  readonly needsChanges: boolean;
   readonly inlineComments: InlineComment[];
   readonly replies: ThreadReply[];
 }
@@ -56,13 +57,20 @@ const parseReply = (value: unknown): ThreadReply => {
 
 export const reviewOutputSchema = standardSchema<ReviewOutput>((value) => {
   const record = asRecord(value, 'review output');
+  const inlineComments = asArray(record.inlineComments ?? [], 'inlineComments').map(
+    parseInlineComment,
+  );
   return {
     summary: asString(record.summary, 'summary'),
     specConformant: asBoolean(record.specConformant, 'specConformant'),
     unmetCriteria: asArray(record.unmetCriteria ?? [], 'unmetCriteria').map((criterion) =>
       asString(criterion, 'unmet criterion'),
     ),
-    inlineComments: asArray(record.inlineComments ?? [], 'inlineComments').map(parseInlineComment),
+    needsChanges:
+      record.needsChanges === undefined
+        ? inlineComments.length > 0
+        : asBoolean(record.needsChanges, 'needsChanges'),
+    inlineComments,
     replies: asArray(record.replies ?? [], 'replies').map(parseReply),
   };
 });

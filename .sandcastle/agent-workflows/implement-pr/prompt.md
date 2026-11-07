@@ -34,6 +34,8 @@ For each actionable comment or unresolved thread:
 - Decline clearly when the requested change is wrong or out of scope.
 - Ignore stale/context-only comments.
 
+A comment that contains `<!-- agent:auto round -->` comes from the `agent:auto` loop. It names the unmet acceptance criteria, the review comments to fix, and the failed CI log. Fix each cause it names, and run the failing CI command locally before you commit.
+
 Run the checks for the package(s) you touched before committing — the exact commands are in `.sandcastle/PROJECT.md`. Run focused tests where relevant.
 
 If you change code, commit in the format of `CONTRIBUTING.md`.

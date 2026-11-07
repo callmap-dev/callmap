@@ -75,10 +75,16 @@ try {
     })),
   });
   writeJson('replies.json', validReplies);
+  writeJson('verdict.json', {
+    specConformant: result.output.specConformant,
+    unmetCriteria: result.output.unmetCriteria,
+    needsChanges: result.output.needsChanges,
+  });
   writeText('summary.md', reviewBody);
 
   console.log('Review complete.');
   console.log(`Spec conformant: ${result.output.specConformant}.`);
+  console.log(`Needs changes: ${result.output.needsChanges}.`);
   console.log(`Commits: ${result.commits.length}.`);
   console.log(`Inline comments: ${validInlineComments.length}.`);
   console.log(`Replies: ${validReplies.length}.`);
