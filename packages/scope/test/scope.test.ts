@@ -108,8 +108,21 @@ describe('effectiveScope', () => {
     ]);
   });
 
-  it('adds the test globs of the data file that every distribution reads, in its order', () => {
-    expect(effectiveScope([], false)).toEqual(testGlobs.map((glob) => `!${glob}`));
+  it('keys the test globs of the data file by the language tag of a graph document', () => {
+    expect(testGlobs).toEqual({
+      go: ['**/*_test.go'],
+      typescript: ['**/*.test.*', '**/*.spec.*'],
+      ruby: ['**/*_spec.rb', '**/*_test.rb'],
+      'every language': ['**/__tests__/**', '**/test/**', '**/tests/**', '**/spec/**'],
+    });
+  });
+
+  it('adds the test globs of every language in the data file, in its order', () => {
+    expect(effectiveScope([], false)).toEqual(
+      Object.values(testGlobs)
+        .flat()
+        .map((glob) => `!${glob}`),
+    );
   });
 
   it('keeps the scope of the user as it is when the tests are asked for', () => {

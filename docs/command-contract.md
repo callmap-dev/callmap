@@ -53,9 +53,12 @@ A scope glob matches a repo-relative path with forward slashes. It matches the w
 
 ### The test globs
 
-The test globs live in one data file, `packages/scope/test-globs.json`. The file holds one JSON array of scope globs. Every distribution reads this file.
+The test globs live in one data file, `packages/scope/test-globs.json`. Every distribution reads this file. The file holds one JSON object, keyed by language:
 
-If `--tests` is absent, the command adds each test glob as a `!` glob after the globs of the user. It adds them in the order of the file. It does not add a `!` glob that the scope of the user already holds. The result is the effective scope, as ADR-0029 records.
+- The key `go`, `typescript` or `ruby` is the language tag of a graph document. Its value lists the file-name globs of the test files of that language.
+- The key `every language` lists the folder globs, such as `**/test/**`. A test folder can hold the tests of any language.
+
+If `--tests` is absent, the command adds each test glob as a `!` glob after the globs of the user. It adds them in the order of the file: the keys in their order, and the globs of each key in their order. It does not add a glob twice, and it does not add a `!` glob that the scope of the user already holds. The result is the effective scope, as ADR-0029 records.
 
 Every distribution adds every glob of the file, also the globs for the files of another language. The graph document records the effective scope, and the base cache key reads it. So the same scope gives the same document in every distribution.
 

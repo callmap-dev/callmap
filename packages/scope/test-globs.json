@@ -1,11 +1,6 @@
-[
-  "**/*_test.go",
-  "**/*.test.*",
-  "**/*.spec.*",
-  "**/*_spec.rb",
-  "**/*_test.rb",
-  "**/__tests__/**",
-  "**/test/**",
-  "**/tests/**",
-  "**/spec/**"
-]
+{
+  "go": ["**/*_test.go"],
+  "typescript": ["**/*.test.*", "**/*.spec.*"],
+  "ruby": ["**/*_spec.rb", "**/*_test.rb"],
+  "every language": ["**/__tests__/**", "**/test/**", "**/tests/**", "**/spec/**"]
+}
