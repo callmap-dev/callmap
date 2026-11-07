@@ -1,4 +1,4 @@
-import { isChangeMark, markedCallsOf, pageFunctionsOf } from '../functions.ts';
+import { isChangeMark, pageFunctionsOf } from '../functions.ts';
 import { sceneOf } from '../scene.ts';
 import type { View } from '../view.ts';
 import { countWordsOf } from '../words.ts';
@@ -22,7 +22,7 @@ export const diffView: View = {
       ...sceneOf(
         data,
         [...shown].flatMap((id) => functions.get(id) ?? []),
-        markedCallsOf(data).filter(({ caller, callee }) => shown.has(caller) && shown.has(callee)),
+        data.review.allCalls.filter(({ caller, callee }) => shown.has(caller) && shown.has(callee)),
       ),
       modelOrder: 'NONE',
     };

@@ -220,10 +220,12 @@ describe('the order of a review', () => {
       ],
       basePlaces: {},
       allFunctions: [fn(A), fn(B)],
-      markedCalls: [{ caller: A, callee: B, mark: 'kept' }],
+      allCalls: [{ caller: A, callee: B, mark: 'kept' }],
+      callLines: { [A]: { [B]: 2 } },
       openEndsByCaller: {},
       oneOfLabels: [],
       entryPoints: [{ id: A, reachesChange: false }],
+      routeEntryByFunction: { [A]: A, [B]: A },
     });
   });
 });
@@ -246,11 +248,22 @@ describe('every function and every call of a review', () => {
       [fn(A, 'new'), fn(B), fn(C), fn(D)],
       [call(C, D, 2), call(A, C), call(C, D, 5)],
     );
-    expect(reviewOf({ base: [base], branch: [branch] }).markedCalls).toEqual([
+    expect(reviewOf({ base: [base], branch: [branch] }).allCalls).toEqual([
       { caller: A, callee: B, mark: 'removed' },
       { caller: A, callee: C, mark: 'added' },
       { caller: C, callee: D, mark: 'kept' },
     ]);
+  });
+});
+
+describe('the call lines of a review', () => {
+  it('holds the first line of each call of the branch graph, by caller and by callee', () => {
+    const base = graph([fn(A), fn(B), fn(C)], [call(A, C, 4)]);
+    const branch = graph([fn(A), fn(B), fn(C)], [call(A, B, 7), call(A, B, 3), call(B, C, 9)]);
+    expect(reviewOf({ base: [base], branch: [branch] }).callLines).toEqual({
+      [A]: { [B]: 3 },
+      [B]: { [C]: 9 },
+    });
   });
 });
 

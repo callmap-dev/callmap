@@ -1,7 +1,7 @@
 import { addTo, byText } from '@callmap/review';
 import type { CallMark } from '@callmap/review';
 import type { ReaderPageData } from './data.ts';
-import { markedCallsOf, pageFunctionsOf } from './functions.ts';
+import { pageFunctionsOf } from './functions.ts';
 import type { PageFunction } from './functions.ts';
 import { folderIdOf, foldersAbove } from './nested-scene.ts';
 import { arrowKeyOf, sceneOf as functionSceneOf } from './scene.ts';
@@ -163,7 +163,7 @@ const levelsFor = (data: ReaderPageData): Levels => {
   const fileSceneOf = (file: string): Scene => {
     const own = [...functions.values()].filter((shown) => shown.file === file);
     const ownIds = new Set(own.map(({ id }) => id));
-    const calls = markedCallsOf(data).filter(
+    const calls = data.review.allCalls.filter(
       ({ caller, callee }) =>
         functions.has(caller) &&
         functions.has(callee) &&
@@ -196,7 +196,7 @@ const levelsFor = (data: ReaderPageData): Levels => {
       level === top ? [] : [{ kind: 'folder', id: folderIdOf(level), label: `${level}/` }];
     const frame = frames[0]?.id ?? '';
     const lines = linesByEndsOf(
-      markedCallsOf(data).flatMap(({ caller, callee, mark }): EndedCall[] => {
+      data.review.allCalls.flatMap(({ caller, callee, mark }): EndedCall[] => {
         const from = functions.get(caller);
         const to = functions.get(callee);
         if (from === undefined || to === undefined) return [];

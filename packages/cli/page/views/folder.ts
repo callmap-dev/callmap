@@ -1,7 +1,7 @@
 import type { FunctionId } from '@callmap/graph-document';
 import { byText } from '@callmap/review';
 import type { ReaderPageData } from '../data.ts';
-import { markedCallsOf, pageFunctionsOf } from '../functions.ts';
+import { pageFunctionsOf } from '../functions.ts';
 import { foldersAbove, nestedSceneOf } from '../nested-scene.ts';
 import type { View } from '../view.ts';
 
@@ -19,7 +19,7 @@ export const folderView: View = {
     const folder = choice?.kind === 'folder' ? choice.folder : undefined;
     const functions = [...pageFunctionsOf(data).values()];
     const inside = new Set(functions.filter(({ file }) => holds(folder, file)).map(({ id }) => id));
-    const calls = markedCallsOf(data).filter(
+    const calls = data.review.allCalls.filter(
       ({ caller, callee }) => inside.has(caller) || inside.has(callee),
     );
     const outside = new Set<FunctionId>(

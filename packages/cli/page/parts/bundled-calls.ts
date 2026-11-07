@@ -5,7 +5,7 @@ import type { ChipMark } from '../chips.ts';
 import { isChangeMark, pageFunctionsOf } from '../functions.ts';
 import { moreButtonOf } from '../panel-elements.ts';
 import type { PagePart } from '../reader-page.ts';
-import { callKeyOf, fileOfFrameId } from '../scene.ts';
+import { fileOfFrameId } from '../scene.ts';
 import type { SceneLine } from '../scene.ts';
 import { countWordsOf } from '../words.ts';
 
@@ -37,11 +37,6 @@ const byRankThenLine = (left: BundledCallRow, right: BundledCallRow): number =>
 const bundledCalls: PagePart = (page) => {
   const functions = pageFunctionsOf(page.data);
   const nameOf = (id: string): string => functions.get(id)?.name ?? id;
-  const lines = new Map<string, number>();
-  for (const call of page.data.review.branch.calls) {
-    const key = callKeyOf(call);
-    lines.set(key, Math.min(call.line, lines.get(key) ?? call.line));
-  }
 
   const rowOf = (call: SceneLine): BundledCallRow => {
     const callerMark = functions.get(call.from)?.mark;
@@ -49,10 +44,7 @@ const bundledCalls: PagePart = (page) => {
       call,
       chip: call.mark === 'kept' ? callerMark : call.mark,
       rank: rankOf(call, callerMark),
-      line:
-        call.mark === 'removed'
-          ? undefined
-          : lines.get(callKeyOf({ caller: call.from, callee: call.to })),
+      line: call.mark === 'removed' ? undefined : page.data.review.callLines[call.from]?.[call.to],
     };
   };
 

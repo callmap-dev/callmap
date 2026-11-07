@@ -1,5 +1,5 @@
 import type { FunctionId } from '@callmap/graph-document';
-import type { FunctionMark, LineSpan, MarkedCall, ReviewFunction } from '@callmap/review';
+import type { FunctionMark, LineSpan, ReviewFunction } from '@callmap/review';
 import type { SourceTexts, Sources } from '@callmap/review-input';
 import type { ReaderPageData } from './data.ts';
 
@@ -10,9 +10,6 @@ export const isChangeMark = (mark: FunctionMark | undefined): boolean =>
 
 export const pageFunctionsOf = (data: ReaderPageData): ReadonlyMap<FunctionId, PageFunction> =>
   new Map(data.review.allFunctions.map((shown): [FunctionId, PageFunction] => [shown.id, shown]));
-
-export const markedCallsOf = (data: ReaderPageData): readonly MarkedCall[] =>
-  data.review.markedCalls;
 
 export interface FunctionText {
   readonly firstLine: number;

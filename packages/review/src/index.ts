@@ -1,8 +1,9 @@
 export type { BasePlaces, LineSpan } from './base-places.ts';
 export type { CallGraph } from './call-graph.ts';
+export type { CallLines } from './call-lines.ts';
 export type { CallMark, MarkedCall } from './calls.ts';
 export { callTreeOf, entryPointsOf } from './entry-points.ts';
-export type { EntryPoint } from './entry-points.ts';
+export type { EntryPoint, RouteEntryByFunction } from './entry-points.ts';
 export { hopsOf, oneHopFrom } from './hops.ts';
 export type { Hops } from './hops.ts';
 export { addTo, appendTo } from './indexes.ts';

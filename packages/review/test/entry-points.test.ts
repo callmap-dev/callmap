@@ -82,6 +82,31 @@ describe('the entry points of a review', () => {
   });
 });
 
+describe('the route of each function of a review', () => {
+  it('names the first entry point of the review whose call tree holds the function', () => {
+    const base = graph([A, B, C, D], [call(A, B), call(D, C), call(C, B)]);
+    const branch = {
+      ...base,
+      functions: base.functions.map((graphFunction) =>
+        graphFunction.id === C ? { ...graphFunction, sourceHash: 'new' } : graphFunction,
+      ),
+    };
+    expect(reviewOf({ base: [base], branch: [branch] }).routeEntryByFunction).toEqual({
+      [D]: D,
+      [C]: D,
+      [B]: D,
+      [A]: A,
+    });
+  });
+
+  it('names no entry point for a function that no entry point reaches', () => {
+    const document = graph([A, B, C], [call(A, B), call(B, A)]);
+    expect(reviewOf({ base: [document], branch: [document] }).routeEntryByFunction).toEqual({
+      [C]: C,
+    });
+  });
+});
+
 describe('the call tree of an entry point', () => {
   it('holds the entry point and every function that it reaches, down to the last callee', () => {
     const document = graph([A, B, C, D], [call(A, B), call(B, C)]);

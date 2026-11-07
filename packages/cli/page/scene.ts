@@ -141,10 +141,12 @@ export const callKeyOf = ({ caller, callee }: Pick<Call, 'caller' | 'callee'>): 
 
 export const byLine = (left: OpenEnd, right: OpenEnd): number => left.line - right.line;
 
-export const openEndsOf = ({ review }: ReaderPageData, caller: FunctionId): readonly OpenEnd[] =>
-  review.openEndsByCaller[caller] ?? [];
+export const openEndsOfCaller = (
+  { review }: ReaderPageData,
+  caller: FunctionId,
+): readonly OpenEnd[] => review.openEndsByCaller[caller] ?? [];
 
-export const oneOfLabelsOf = ({ review }: ReaderPageData): ReadonlyMap<string, string> =>
+export const oneOfLabelByCallKeyOf = ({ review }: ReaderPageData): ReadonlyMap<string, string> =>
   new Map(review.oneOfLabels.map((oneOf): [string, string] => [callKeyOf(oneOf), oneOf.label]));
 
 const inFileOrder = (left: PageFunction, right: PageFunction): number =>
@@ -156,7 +158,7 @@ export const sceneOf = (
   calls: readonly MarkedCall[],
   outside: ReadonlySet<FunctionId> = new Set(),
 ): Scene => {
-  const oneOfLabels = oneOfLabelsOf(data);
+  const oneOfLabels = oneOfLabelByCallKeyOf(data);
   const ordered = [...functions].sort(inFileOrder);
   const files = [...new Set(ordered.map(({ file }) => file))];
 
@@ -169,7 +171,7 @@ export const sceneOf = (
       pageFunction: shown,
       outside: outside.has(shown.id),
     },
-    ...openEndsOf(data, shown.id).map(({ expression, line }, index): OpenEndBox => ({
+    ...openEndsOfCaller(data, shown.id).map(({ expression, line }, index): OpenEndBox => ({
       kind: 'open-end',
       id: `open-end:${shown.id}:${String(index)}`,
       label: `${expression} :${String(line)}`,

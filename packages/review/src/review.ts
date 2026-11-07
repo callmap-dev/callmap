@@ -2,11 +2,13 @@ import type { FunctionId, GraphDocument, GraphFunction } from '@callmap/graph-do
 import { basePlacesOf } from './base-places.ts';
 import type { BasePlaces } from './base-places.ts';
 import { callGraphOf } from './call-graph.ts';
+import { callLinesOf } from './call-lines.ts';
+import type { CallLines } from './call-lines.ts';
 import { markedCallsOf } from './calls.ts';
 import type { MarkedCall } from './calls.ts';
 import { changesOf, functionsById } from './changes.ts';
-import { entryPointsOf } from './entry-points.ts';
-import type { EntryPoint } from './entry-points.ts';
+import { entryPointsOf, routeEntryByFunctionOf } from './entry-points.ts';
+import type { EntryPoint, RouteEntryByFunction } from './entry-points.ts';
 import type { ChangeMark } from './changes.ts';
 import { hopsOf, oneHopFrom } from './hops.ts';
 import { byText } from './order.ts';
@@ -14,7 +16,7 @@ import { resolutionRatesOf } from './rate.ts';
 import type { LanguageRate } from './rate.ts';
 import { resolutionOf } from './resolution.ts';
 import type { CallGraphs, Resolution } from './resolution.ts';
-import { allFunctionsOf, allMarkedCallsOf } from './whole-graph.ts';
+import { allCallsOf, allFunctionsOf } from './whole-graph.ts';
 import type { ReviewFunction } from './whole-graph.ts';
 
 export type FunctionMark = ChangeMark | 'neighbour';
@@ -34,8 +36,10 @@ export interface Review extends CallGraphs, Resolution {
   readonly resolutionRates: readonly LanguageRate[];
   readonly basePlaces: BasePlaces;
   readonly allFunctions: readonly ReviewFunction[];
-  readonly markedCalls: readonly MarkedCall[];
+  readonly allCalls: readonly MarkedCall[];
+  readonly callLines: CallLines;
   readonly entryPoints: readonly EntryPoint[];
+  readonly routeEntryByFunction: RouteEntryByFunction;
 }
 
 export const reviewOf = (documents: ReviewDocuments): Review => {
@@ -65,6 +69,8 @@ export const reviewOf = (documents: ReviewDocuments): Review => {
     (left, right) => byText(left.caller, right.caller) || byText(left.callee, right.callee),
   );
 
+  const entryPoints = entryPointsOf(branch, new Set(changes.keys()));
+
   return {
     base,
     branch,
@@ -74,7 +80,9 @@ export const reviewOf = (documents: ReviewDocuments): Review => {
     resolutionRates: resolutionRatesOf(documents.branch),
     basePlaces: basePlacesOf(base, changes),
     allFunctions: allFunctionsOf(branch, functions),
-    markedCalls: allMarkedCallsOf(branch, calls),
-    entryPoints: entryPointsOf(branch, new Set(changes.keys())),
+    allCalls: allCallsOf(branch, calls),
+    callLines: callLinesOf(branch),
+    entryPoints,
+    routeEntryByFunction: routeEntryByFunctionOf(branch, entryPoints),
   };
 };

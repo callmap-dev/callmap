@@ -22,7 +22,7 @@ export const allFunctionsOf = (
   ]).values(),
 ];
 
-export const allMarkedCallsOf = (
+export const allCallsOf = (
   branch: CallGraph,
   marked: readonly MarkedCall[],
 ): readonly MarkedCall[] => {
