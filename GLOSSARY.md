@@ -79,7 +79,7 @@ What one extractor emits for one repo: its files, its functions, its calls, its 
 _Avoid_: graph JSON, payload, manifest
 
 **Review input**:
-What a distribution gives the reader page for one review: the graph documents of the base and the branch, the source of the files that the page shows, and the facts from git. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
+What a distribution gives the reader page for one review: the graph documents of the base and the branch, the source of the files that the page shows, the facts from git and the editor that the editor links open. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
 _Avoid_: page data, payload, review data
 
 **Checker**:
