@@ -9,7 +9,7 @@ interface FinishedExtractorProcess {
   readonly stderr: string;
 }
 
-export const runExtractorProcess = (
+const runExtractorProcess = (
   command: string,
   args: readonly string[],
   env: Readonly<Record<string, string>> = {},
@@ -35,10 +35,30 @@ export const runExtractorProcess = (
   });
 
 /** The review command already put the test globs in the scope, so the extractor reads it as it is. */
-export const effectiveScopeArgumentsOf = (scope: readonly string[]): readonly string[] => [
+const effectiveScopeArgumentsOf = (scope: readonly string[]): readonly string[] => [
   ...scope.flatMap((glob) => ['--scope', glob]),
   '--tests',
 ];
+
+interface Extraction {
+  readonly document: GraphDocument;
+  readonly stderr: string;
+}
+
+export const extractionOf = async (
+  extractor: string,
+  repo: string,
+  scope: readonly string[],
+  args: readonly string[] = [],
+  env: Readonly<Record<string, string>> = {},
+): Promise<Extraction> => {
+  const { stdout, stderr } = await runExtractorProcess(
+    process.execPath,
+    [extractor, repo, ...effectiveScopeArgumentsOf(scope), ...args],
+    env,
+  );
+  return { document: readGraphDocument(JSON.parse(stdout)), stderr };
+};
 
 export interface Extractor extends CachedExtractor {
   readonly claimsAnyOf: (inScope: readonly string[], files: readonly string[]) => boolean;
@@ -62,13 +82,9 @@ export const notingExtractionOf = (
   return {
     notes: () => [...notes],
     extract: async (repo, scope) => {
-      const { stdout, stderr } = await runExtractorProcess(
-        process.execPath,
-        [extractor, repo, ...effectiveScopeArgumentsOf(scope)],
-        envOf(),
-      );
+      const { document, stderr } = await extractionOf(extractor, repo, scope, [], envOf());
       for (const note of notesIn(stderr)) notes.add(note);
-      return readGraphDocument(JSON.parse(stdout));
+      return document;
     },
   };
 };

@@ -1,8 +1,7 @@
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, isAbsolute, join, relative, resolve } from 'node:path';
-import { readGraphDocument } from '@callmap/graph-document';
 import { assets } from './assets.ts';
-import { effectiveScopeArgumentsOf, runExtractorProcess } from './extractor.ts';
+import { extractionOf } from './extractor.ts';
 import type { Extractor } from './extractor.ts';
 import type { BaseWorktree } from './git.ts';
 
@@ -40,19 +39,15 @@ export const typescriptExtractor = (root: string, typedTsconfig: string | undefi
     readsInParallel: true,
     prepareBase: linkPackageFolders,
     extract: async (repo, scope) =>
-      readGraphDocument(
-        JSON.parse(
-          (
-            await runExtractorProcess(process.execPath, [
-              assets.typescriptExtractor,
-              repo,
-              ...effectiveScopeArgumentsOf(scope),
-              ...(tsconfig === undefined
-                ? []
-                : ['--tsconfig', isAbsolute(tsconfig) ? tsconfig : join(repo, tsconfig)]),
-            ])
-          ).stdout,
-        ),
-      ),
+      (
+        await extractionOf(
+          assets.typescriptExtractor,
+          repo,
+          scope,
+          tsconfig === undefined
+            ? []
+            : ['--tsconfig', isAbsolute(tsconfig) ? tsconfig : join(repo, tsconfig)],
+        )
+      ).document,
   };
 };

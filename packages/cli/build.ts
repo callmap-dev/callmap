@@ -20,8 +20,8 @@ import {
 } from './src/clone-assets.ts';
 import { sha256OfFiles } from './src/file-hash.ts';
 import { packageManifestAt } from './src/package-manifest.ts';
-import { pageBundle, pageStyle } from './src/page-build.ts';
-import { PAGE_TEMPLATE_FILE, pageTemplateOf } from './src/page-template.ts';
+import { pageTemplateBuild } from './src/page-build.ts';
+import { PAGE_TEMPLATE_FILE } from './src/page-template.ts';
 
 const PACKAGE = import.meta.dirname;
 const REPO_ROOT = join(PACKAGE, '..', '..');
@@ -107,8 +107,8 @@ const { output } = await build({
 // npm makes a bin executable only when it links it, and a linked clone runs each new build.
 chmodSync(join(DIST, 'cli.js'), 0o755);
 
-const page = await pageBundle();
-writeFileSync(join(DIST, PAGE_TEMPLATE_FILE), pageTemplateOf(pageStyle(), page.script));
+const page = await pageTemplateBuild();
+writeFileSync(join(DIST, PAGE_TEMPLATE_FILE), page.template);
 writeFileSync(join(DIST, 'extractor-source.sha256'), sha256OfFiles(extractorSourceFiles()));
 cpSync(GO_PROGRAM, join(DIST, 'go'), {
   recursive: true,

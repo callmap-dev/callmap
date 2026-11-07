@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { canonicalJsonOf } from './canonical-json.ts';
+import { messageOf } from './error-message.ts';
 import { fixtureRepoAt } from './fixture-repo.ts';
 import { lineDiffOf } from './line-diff.ts';
 import { maskedReviewInputOfPage } from './masked-review-input.ts';
@@ -80,9 +81,6 @@ const differenceFrom = (expectedFile: string, actual: string): string | undefine
   const expected = canonicalJsonOf(JSON.parse(readFileSync(expectedFile, 'utf8')));
   return expected === actual ? undefined : lineDiffOf(expected, actual);
 };
-
-const messageOf = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
 
 const outcomeOf = async (settings: SuiteSettings, fixture: string): Promise<FixtureOutcome> => {
   const folder = join(settings.fixtures, fixture);

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { fileURLToPath } from 'node:url';
+import { messageOf } from './error-message.ts';
 import { runSuite } from './suite.ts';
 import type { SuiteSettings } from './suite.ts';
 
@@ -42,6 +43,6 @@ try {
     process.stdout.write(`${verdict} ${fixture}\n${detail === '' ? '' : `${detail}\n`}`);
   if (outcomes.some(({ verdict }) => verdict === 'FAIL')) process.exitCode = 1;
 } catch (error) {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${messageOf(error)}\n`);
   process.exitCode = 1;
 }

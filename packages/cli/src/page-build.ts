@@ -25,12 +25,12 @@ const entrySource = (): string => {
   ].join('\n');
 };
 
-export interface PageBundle {
+interface PageBundle {
   readonly script: string;
   readonly moduleIds: readonly string[];
 }
 
-export const pageBundle = async (): Promise<PageBundle> => {
+const pageBundle = async (): Promise<PageBundle> => {
   const bundle = await rolldown({
     input: ENTRY,
     platform: 'browser',
@@ -58,10 +58,19 @@ export const pageBundle = async (): Promise<PageBundle> => {
   }
 };
 
-export const pageStyle = (): string =>
+const pageStyle = (): string =>
   [join(PAGE, 'page.css'), join(PAGE, 'drawing.css'), ...partsWith('.css')]
     .map((path) => readFileSync(path, 'utf8'))
     .join('\n');
 
-export const pageTemplate = async (): Promise<string> =>
-  pageTemplateOf(pageStyle(), (await pageBundle()).script);
+export interface PageTemplateBuild {
+  readonly template: string;
+  readonly moduleIds: readonly string[];
+}
+
+export const pageTemplateBuild = async (): Promise<PageTemplateBuild> => {
+  const { script, moduleIds } = await pageBundle();
+  return { template: pageTemplateOf(pageStyle(), script), moduleIds };
+};
+
+export const pageTemplate = async (): Promise<string> => (await pageTemplateBuild()).template;

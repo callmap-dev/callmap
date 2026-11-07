@@ -12,6 +12,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { messageOf } from '../packages/conformance/src/error-message.ts';
 
 const USAGE = 'usage: release-assets <tag> <out folder> <conformance argument>...';
 
@@ -81,6 +82,6 @@ const writeArchive = ({ version, out, conformanceArgs }: Release): void => {
 try {
   writeArchive(releaseOf(process.argv.slice(2)));
 } catch (error) {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(`${messageOf(error)}\n`);
   process.exitCode = 1;
 }
