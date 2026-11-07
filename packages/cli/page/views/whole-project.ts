@@ -4,7 +4,6 @@ import type { View } from '../view.ts';
 
 export const wholeProjectView: View = {
   name: 'Whole project',
-  laidOutByCommand: true,
   firstChoice: (data) => ({ kind: 'level', path: levelsOf(data).top }),
   sceneOf: (data, _opened, choice) => {
     const levels = levelsOf(data);

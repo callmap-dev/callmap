@@ -1,5 +1,7 @@
-import ELK from 'elkjs/lib/elk.bundled.js';
-import type { ElkExtendedEdge, ElkLabel, ElkNode } from 'elkjs/lib/elk-api.js';
+import ElkInWorker from 'elkjs/lib/elk-api.js';
+import type { ELK, ElkExtendedEdge, ElkLabel, ElkNode } from 'elkjs/lib/elk-api.js';
+import ElkInPage from 'elkjs/lib/elk.bundled.js';
+import type { FunctionId } from '@callmap/graph-document';
 import { appendTo, byText } from '@callmap/review';
 import {
   COUNTS_GAP,
@@ -14,6 +16,11 @@ import {
 } from './box-sizes.ts';
 import { arrowKeyOf, chipMarkOf, lineLabelOf, markCountsOf } from './scene.ts';
 import type { FunctionBox, LevelBox, Scene, SceneBox, SceneFrame, SceneLine } from './scene.ts';
+import { choiceKeyOf } from './view.ts';
+import type { Choice, View } from './view.ts';
+
+// The page build replaces this name with the source of elkjs/lib/elk-worker.min.js.
+declare const ELK_WORKER_SOURCE: string;
 
 export interface Rect {
   readonly x: number;
@@ -225,10 +232,17 @@ const pointsOf = (edge: ElkExtendedEdge | undefined): readonly Point[] =>
 
 const NOWHERE: Place = [0, 0, 0, 0];
 
-let elk: InstanceType<typeof ELK> | undefined;
+const elkOf = (): ELK =>
+  typeof Worker === 'undefined'
+    ? new ElkInPage()
+    : new ElkInWorker({
+        workerUrl: URL.createObjectURL(new Blob([ELK_WORKER_SOURCE], { type: 'text/javascript' })),
+      });
+
+let elk: ELK | undefined;
 
 export const placementOf = async (scene: Scene): Promise<Placement> => {
-  elk ??= new ELK();
+  elk ??= elkOf();
   const laid = await elk.layout(elkGraphOf(scene));
   const placed = placedOf(laid);
   const placeFor = ({ id }: { readonly id: string }): Place => placed.get(id) ?? NOWHERE;
@@ -293,7 +307,7 @@ const lineLabelFor = (
   };
 };
 
-export const laidOf = (scene: Scene, placement: Placement): Laid => ({
+const laidOf = (scene: Scene, placement: Placement): Laid => ({
   frames: scene.frames.map((frame, index) => ({ ...frame, ...rectOf(placement.frames[index]) })),
   boxes: scene.boxes.map((box, index) => ({ ...box, ...rectOf(placement.boxes[index]) })),
   lines: scene.lines.map((line, index) => {
@@ -312,5 +326,56 @@ export const laidOf = (scene: Scene, placement: Placement): Laid => ({
   height: placement.height,
 });
 
-export const layoutOf = async (scene: Scene): Promise<Laid> =>
-  laidOf(scene, await placementOf(scene));
+export interface LayoutRequest {
+  readonly view: View;
+  readonly choice: Choice | undefined;
+  readonly opened: ReadonlySet<FunctionId>;
+  readonly scene: Scene;
+}
+
+export interface ViewLayouts {
+  readonly layoutOf: (request: LayoutRequest) => Promise<Laid>;
+  readonly whileBusy: (work: () => Promise<void>) => Promise<void>;
+  readonly idle: () => Promise<void>;
+}
+
+const choiceTextOf = (choice: Choice | undefined): string =>
+  choice === undefined ? '' : choiceKeyOf(choice);
+
+export const viewLayoutsOf = (graph: HTMLElement): ViewLayouts => {
+  const kept = new Map<View, Map<string, Promise<Laid>>>();
+  let queue = Promise.resolve();
+  let pending = 0;
+
+  const measuredLayoutOf = async ({ view, choice, scene }: LayoutRequest): Promise<Laid> => {
+    const start = performance.now();
+    const laid = laidOf(scene, await placementOf(scene));
+    performance.measure(`callmap layout: ${view.name} ${choiceTextOf(choice)}`.trim(), { start });
+    return laid;
+  };
+
+  const layoutOf = (request: LayoutRequest): Promise<Laid> => {
+    if (request.opened.size > 0) return measuredLayoutOf(request);
+    const keptForView = kept.get(request.view) ?? new Map<string, Promise<Laid>>();
+    kept.set(request.view, keptForView);
+    const key = choiceTextOf(request.choice);
+    const known = keptForView.get(key);
+    if (known !== undefined) return known;
+    const layout = measuredLayoutOf(request);
+    keptForView.set(key, layout);
+    return layout;
+  };
+
+  const whileBusy = (work: () => Promise<void>): Promise<void> => {
+    pending += 1;
+    graph.setAttribute('aria-busy', 'true');
+    const done = queue.then(work).finally(() => {
+      pending -= 1;
+      if (pending === 0) graph.setAttribute('aria-busy', 'false');
+    });
+    queue = done.catch(() => undefined);
+    return done;
+  };
+
+  return { layoutOf, whileBusy, idle: () => queue };
+};

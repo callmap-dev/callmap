@@ -4,6 +4,7 @@ Each version of Callmap gets a section here. The changes that no version holds y
 
 ## Unreleased
 
+- The reader page lays out the Diff view and the Whole project view itself, with ELK in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. The command lays out no view and no longer prints the note that a view is over the Diff limit.
 - `callmap review` also reads Ruby with the Callmap Ruby rules when `ruby` is on the `PATH`. Ripper parses each file, so the review needs no gem. A call that the rules do not prove is an open end.
 - The npm package carries the Ruby extractor and its Ripper script.
 - The repo is a Claude Code plugin marketplace. Its plugin `callmap` holds the skill `callmap-review`, so `/plugin install callmap --marketplace spasoye-json/callmap` installs the skill with no clone.

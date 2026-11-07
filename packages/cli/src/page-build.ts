@@ -1,4 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rolldown } from 'rolldown';
@@ -6,6 +7,7 @@ import { rolldown } from 'rolldown';
 const PAGE = fileURLToPath(new URL('../page/', import.meta.url));
 const PARTS = join(PAGE, 'parts');
 const ENTRY = '\0reader-page-entry';
+const ELK_WORKER = createRequire(import.meta.url).resolve('elkjs/lib/elk-worker.min.js');
 
 const partsWith = (extension: string): readonly string[] =>
   readdirSync(PARTS)
@@ -32,6 +34,9 @@ export const pageBundle = async (): Promise<PageBundle> => {
     input: ENTRY,
     platform: 'browser',
     logLevel: 'silent',
+    transform: {
+      define: { ELK_WORKER_SOURCE: JSON.stringify(readFileSync(ELK_WORKER, 'utf8')) },
+    },
     plugins: [
       {
         name: 'reader-page-entry',

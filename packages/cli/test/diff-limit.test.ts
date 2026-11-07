@@ -55,16 +55,16 @@ const ONE_MORE_HOP_OVER_LIMIT =
 const selectedTabOf = ({ window }: LoadedPage): string =>
   within(window.document.body).getByRole('tab', { selected: true }).firstChild?.textContent ?? '';
 
+const diffLayoutsOf = (page: LoadedPage): readonly string[] =>
+  page.layouts.filter((name) => name.startsWith('callmap layout: Diff'));
+
 const diffLimitMessageOf = ({ window }: LoadedPage): HTMLElement | null =>
   within(window.document.body).queryByRole('status', { name: 'Over the Diff limit' });
 
 describe('a review over the Diff limit', () => {
-  it('writes no places for the Diff view, and prints the counts and the limit to stderr', async () => {
+  it('prints no note to stderr, because the page says that the review is over the limit', async () => {
     const over = await reviewWithLimit(DIFF_CALLS - 1);
-    expect(Object.keys(pageDataOf(over.html).placements)).toEqual(['Whole project']);
-    expect(over.notes).toEqual([
-      'The Diff view holds 11 functions and 11 calls, over the Diff limit of 10 calls. The page opens on the Whole project view.',
-    ]);
+    expect(over.notes).toEqual([]);
   }, 120_000);
 
   it('opens on the Whole project view, and the Diff tab says what it left out', async () => {
@@ -76,7 +76,7 @@ describe('a review over the Diff limit', () => {
     expect(diffLimitMessageOf(page)?.textContent).toContain(
       'This review holds 11 functions and 11 calls. The Diff view draws up to 10 calls, so it draws none of them. Open the Whole project view to read the changes level by level.',
     );
-    expect(page.layouts).toEqual([]);
+    expect(diffLayoutsOf(page)).toEqual([]);
   }, 120_000);
 
   it('opens the Whole project view from the button in the message', async () => {
@@ -103,7 +103,6 @@ describe('a review at exactly the Diff limit', () => {
   it('lays out the Diff view as before, and prints nothing', async () => {
     const atLimit = await reviewWithLimit(DIFF_CALLS);
     expect(atLimit.notes).toEqual([]);
-    expect(pageDataOf(atLimit.html).placements).toEqual(pageDataOf(html).placements);
     const page = await loadReaderPage(atLimit.html);
     expect(selectedTabOf(page)).toBe('Diff');
     expect(boxesOf(page).filter(({ kind }) => kind === 'function')).toHaveLength(11);
@@ -114,10 +113,11 @@ describe('a next hop that takes the Diff view over the Diff limit', () => {
   it('shows the message with the new counts, and does not lay out the Diff view', async () => {
     const page = await loadReaderPage(withDiffLimit(DIFF_CALLS));
     expect(diffLimitMessageOf(page)).toBeNull();
+    const layoutsBefore = [...page.layouts];
 
     await clickBox(page, `${MONEY}#format`);
     expect(diffLimitMessageOf(page)?.textContent).toContain(ONE_MORE_HOP_OVER_LIMIT);
-    expect(page.layouts).toEqual([]);
+    expect(page.layouts).toEqual(layoutsBefore);
   });
 });
 
@@ -125,6 +125,7 @@ describe('a search that takes the Diff view over the Diff limit', () => {
   it('shows the message with the new counts, and does not lay out the Diff view', async () => {
     const page = await loadReaderPage(withDiffLimit(DIFF_CALLS));
     expect(diffLimitMessageOf(page)).toBeNull();
+    const layoutsBefore = [...page.layouts];
 
     const body = within(page.window.document.body);
     fireEvent.input(body.getByRole('searchbox', { name: 'Find a function' }), {
@@ -137,6 +138,6 @@ describe('a search that takes the Diff view over the Diff limit', () => {
     );
     await settled(page);
     expect(diffLimitMessageOf(page)?.textContent).toContain(ONE_MORE_HOP_OVER_LIMIT);
-    expect(page.layouts).toEqual([]);
+    expect(page.layouts).toEqual(layoutsBefore);
   });
 });

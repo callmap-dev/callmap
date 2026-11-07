@@ -69,7 +69,6 @@ export const rubySourceFiles = (): readonly NamedFile[] => {
 
 export const assets: Assets = {
   typescriptExtractor: TYPESCRIPT_EXTRACTOR,
-  layoutWorker: new URL('layout-worker.ts', import.meta.url),
   pageScript,
   pageStyle,
   typescriptExtractorVersion: () =>

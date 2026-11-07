@@ -2,13 +2,13 @@ import type { FunctionId } from '@callmap/graph-document';
 import type { FunctionMark } from '@callmap/review';
 import type { ReaderPageData } from './data.ts';
 import { drawingOf } from './drawing.ts';
-import { laidOf, layoutOf } from './layout.ts';
+import { viewLayoutsOf } from './layout.ts';
 import type { Laid, LaidFunction, Rect } from './layout.ts';
 import type { ReaderPage } from './reader-page.ts';
 import { isHiddenBy } from './scene.ts';
 import type { FunctionBox, Scene } from './scene.ts';
 import { tabBarOf } from './tabs.ts';
-import { choiceKeyOf, openingOf, overLimitOf } from './view.ts';
+import { openingOf, overLimitOf } from './view.ts';
 import type { Choice, OverLimit, View } from './view.ts';
 
 export interface Interaction {
@@ -28,11 +28,7 @@ interface ViewState {
   choice: Choice | undefined;
   scene: Scene | undefined;
   laid: Promise<Laid> | undefined;
-  readonly kept: Map<string, Promise<Laid>>;
 }
-
-const keyOf = (choice: Choice | undefined): string =>
-  choice === undefined ? '' : choiceKeyOf(choice);
 
 const middleOf = ({ y, height }: Rect): number => y + height / 2;
 
@@ -79,24 +75,11 @@ export const interactionOf = (
     choice: view.firstChoice?.(data),
     scene: undefined,
     laid: undefined,
-    kept: new Map(),
   })) as [ViewState, ...ViewState[]];
   let selected: FunctionId | undefined;
   let hovered: string | undefined;
   let drawn: ViewState | undefined;
-  let queue = Promise.resolve();
-  let pending = 0;
-
-  const queued = (work: () => Promise<void>): Promise<void> => {
-    pending += 1;
-    graph.setAttribute('aria-busy', 'true');
-    const done = queue.then(work).finally(() => {
-      pending -= 1;
-      if (pending === 0) graph.setAttribute('aria-busy', 'false');
-    });
-    queue = done.catch(() => undefined);
-    return done;
-  };
+  const layouts = viewLayoutsOf(graph);
 
   const sceneOf = (target: ViewState): Scene => {
     target.scene ??= target.view.sceneOf(data, target.opened, target.choice);
@@ -133,43 +116,24 @@ export const interactionOf = (
       (box): box is FunctionBox => box.kind === 'function' && box.id === id,
     );
 
-  const laidOutInPage = async ({ view, choice }: ViewState, scene: Scene): Promise<Laid> => {
-    const start = performance.now();
-    const laid = await layoutOf(scene);
-    performance.measure(`callmap layout: ${view.name} ${keyOf(choice)}`.trim(), { start });
-    return laid;
-  };
-
-  const layoutFor = (target: ViewState, scene: Scene): Promise<Laid> => {
-    if (target.opened.size > 0) return laidOutInPage(target, scene);
-    const key = keyOf(target.choice);
-    const kept = target.kept.get(key);
-    if (kept !== undefined) return kept;
-    const placement =
-      key === keyOf(target.view.firstChoice?.(data))
-        ? data.placements[target.view.name]
-        : undefined;
-    const layout =
-      placement === undefined
-        ? laidOutInPage(target, scene)
-        : Promise.resolve(laidOf(scene, placement));
-    target.kept.set(key, layout);
-    return layout;
-  };
-
   const render = (target: ViewState, anchor?: FunctionId): Promise<void> => {
     target.scene = undefined;
     const over = overLimitAt(target);
     if (over !== undefined) {
       target.laid = undefined;
-      return queued(() => {
+      return layouts.whileBusy(() => {
         leaveUndrawn(target, over);
         return Promise.resolve();
       });
     }
-    const layout = layoutFor(target, sceneOf(target));
+    const layout = layouts.layoutOf({
+      view: target.view,
+      choice: target.choice,
+      opened: target.opened,
+      scene: sceneOf(target),
+    });
     target.laid = layout;
-    return queued(async () => {
+    return layouts.whileBusy(async () => {
       paint(target, await layout, anchor);
     });
   };
@@ -248,7 +212,7 @@ export const interactionOf = (
 
   const show = (ids: readonly FunctionId[], anchor?: FunctionId): Promise<void> => {
     const fresh = ids.filter((id) => !current.opened.has(id) && functionBoxOf(id) === undefined);
-    if (fresh.length === 0) return queue;
+    if (fresh.length === 0) return layouts.idle();
     for (const id of fresh) current.opened.add(id);
     return render(current, anchor);
   };
@@ -262,7 +226,7 @@ export const interactionOf = (
   };
 
   const reveal = (id: FunctionId): Promise<void> => {
-    if (functionBoxOf(id) !== undefined) return queue;
+    if (functionBoxOf(id) !== undefined) return layouts.idle();
     const choice = current.view.choiceShowing?.(data, id);
     return choice === undefined ? show([id]) : choose(choice);
   };
@@ -277,14 +241,14 @@ export const interactionOf = (
 
   const showView = (name: string): Promise<void> => {
     const target = states.find(({ view }) => view.name === name);
-    if (target === undefined || target === current) return queue;
+    if (target === undefined || target === current) return layouts.idle();
     current = target;
     tabBar.select(name);
     for (const handler of viewHandlers) handler(target.view);
     tellOverLimit(undefined);
     const { laid } = target;
     if (laid === undefined) return render(target);
-    return queued(async () => {
+    return layouts.whileBusy(async () => {
       paint(target, await laid);
     });
   };

@@ -84,7 +84,6 @@ rmSync(DIST, { recursive: true, force: true });
 const { output } = await build({
   input: {
     cli: join(PACKAGE, 'src', 'cli.ts'),
-    'layout-worker': join(PACKAGE, 'src', 'layout-worker.ts'),
     'extract-typescript': assets.typescriptExtractor,
     'extract-go': assets.goExtractor,
     'extract-ruby': assets.rubyExtractor,
