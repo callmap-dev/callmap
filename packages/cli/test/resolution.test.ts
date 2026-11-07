@@ -205,11 +205,11 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
     const page = await loadReaderPage(
       withPageData(html, {
         ...data,
-        branchGraph: {
-          ...data.branchGraph,
-          functions: [...data.branchGraph.functions, ...callers],
+        review: {
+          ...data.review,
+          openEnds,
+          allFunctions: [...data.review.allFunctions, ...callers],
         },
-        review: { ...data.review, openEnds },
       }),
     );
     const region = within(page.window.document.body).getByRole('region', { name: 'Open ends' });

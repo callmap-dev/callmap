@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
-import { reviewGraphsOf, reviewOf } from '@callmap/review';
+import { reviewOf } from '@callmap/review';
 import { extractRuby } from '../src/index.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
@@ -499,9 +499,10 @@ describe('the one-of groups of extractRuby', () => {
       `rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice rules/concern-one-of/app/models/refund.rb#Refund#total 3 ${group}`,
     ]);
     expect(
-      reviewOf(reviewGraphsOf({ base: [], branch: [document] })).resolutionRates.map(
-        ({ resolved, open }) => ({ resolved, open }),
-      ),
+      reviewOf({ base: [], branch: [document] }).resolutionRates.map(({ resolved, open }) => ({
+        resolved,
+        open,
+      })),
     ).toEqual([{ resolved: 1, open: 0 }]);
   });
 

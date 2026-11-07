@@ -38,7 +38,7 @@ const bundledCalls: PagePart = (page) => {
   const functions = pageFunctionsOf(page.data);
   const nameOf = (id: string): string => functions.get(id)?.name ?? id;
   const lines = new Map<string, number>();
-  for (const call of page.data.branchGraph.calls) {
+  for (const call of page.data.review.branch.calls) {
     const key = callKeyOf(call);
     lines.set(key, Math.min(call.line, lines.get(key) ?? call.line));
   }

@@ -76,14 +76,14 @@ beforeAll(() => {
 
 describe('the test files of a review', () => {
   it('shows no function of a test file, in the Diff view and in the Whole project view', () => {
-    const { review, branchGraph } = pageOfReview();
+    const { review } = pageOfReview();
     expect(review.functions.filter(({ file }) => isTestFile(file))).toEqual([]);
-    expect(branchGraph.functions.filter(({ file }) => isTestFile(file))).toEqual([]);
+    expect(review.branch.functions.filter(({ file }) => isTestFile(file))).toEqual([]);
     expect(review.functions.map(({ file }) => file)).toContain('checkout/checkout.go');
   }, 120_000);
 
   it('reads the test files with --tests, from a base entry of its own', () => {
-    const { review, branchGraph } = pageOfReview('--tests');
+    const { review } = pageOfReview('--tests');
     const marks = review.functions
       .filter(({ file }) => isTestFile(file))
       .map(({ id, mark }) => `${mark} ${id}`);
@@ -91,7 +91,7 @@ describe('the test files of a review', () => {
       expect.arrayContaining([`changed ${GO_TEST}#TestTotal`, `changed ${TS_TEST}#checkGreet`]),
     );
     expect(marks.filter((mark) => mark.startsWith('added'))).toEqual([]);
-    expect(new Set(branchGraph.functions.map(({ file }) => file))).toEqual(
+    expect(new Set(review.branch.functions.map(({ file }) => file))).toEqual(
       new Set([
         ...TEST_FILES,
         'checkout/checkout.go',
@@ -105,7 +105,7 @@ describe('the test files of a review', () => {
   it('keeps a test file out under a --scope glob of the user, and --tests puts it back', () => {
     const filesOf = (...flags: readonly string[]): ReadonlySet<string> =>
       new Set(
-        pageOfReview('--scope', 'web/**', ...flags).branchGraph.functions.map(({ file }) => file),
+        pageOfReview('--scope', 'web/**', ...flags).review.branch.functions.map(({ file }) => file),
       );
     expect(filesOf()).toEqual(new Set(['web/greet.ts']));
     expect(filesOf('--tests')).toEqual(new Set(['web/greet.ts', TS_TEST, TS_TEST_FOLDER]));

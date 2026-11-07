@@ -87,13 +87,10 @@ const outsideEndsOf = (
     .filter((path) => !isInside(path))
     .sort(byText);
 
-const openEndCallersOf = ({ review, branchGraph }: ReaderPageData): readonly string[] => {
-  const reviewed = new Set(review.functions.map(({ id }) => id));
-  return [
-    ...review.openEnds,
-    ...branchGraph.openEnds.filter(({ caller }) => !reviewed.has(caller)),
-  ].map(({ caller }) => caller);
-};
+const openEndCallersOf = ({ review }: ReaderPageData): readonly string[] =>
+  Object.values(review.openEndsByCaller).flatMap((openEnds) =>
+    openEnds.map(({ caller }) => caller),
+  );
 
 const levelsFor = (data: ReaderPageData): Levels => {
   const functions = pageFunctionsOf(data);

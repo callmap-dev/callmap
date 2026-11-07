@@ -82,9 +82,14 @@ describe('callmap review on a feature branch', () => {
     ]);
   });
 
-  it('holds the whole branch graph in the data block, so the page can open more of it', () => {
-    const { branchGraph } = pageDataOf(html);
-    expect(branchGraph.functions.map(({ id }) => id)).toContain(`${MONEY}#round`);
+  it('holds the whole branch graph in the review of the data block, so the page can open more of it', () => {
+    const { review } = pageDataOf(html);
+    expect(review.branch.functions.map(({ id }) => id)).toContain(`${MONEY}#round`);
+  });
+
+  it('holds no branch call graph and no base places beside the review in the data block', () => {
+    expect(Object.keys(pageDataOf(html))).not.toContain('branchGraph');
+    expect(Object.keys(pageDataOf(html))).not.toContain('basePlaces');
   });
 
   it('holds no plain file text in the data block', () => {
@@ -120,7 +125,7 @@ describe('callmap review on a feature branch', () => {
   });
 
   it('holds the lines that each changed function had in the base, so the page can show its diff', () => {
-    expect(pageDataOf(html).basePlaces).toEqual({
+    expect(pageDataOf(html).review.basePlaces).toEqual({
       [`${ALERTS}#alert`]: { firstLine: 3, lastLine: 3 },
       [`${CART}#receipt`]: { firstLine: 10, lastLine: 13 },
     });

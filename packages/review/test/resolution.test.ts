@@ -6,7 +6,7 @@ import type {
   OpenEnd,
   OpenEndReason,
 } from '@callmap/graph-document';
-import { reviewGraphsOf, reviewOf } from '../src/index.ts';
+import { reviewOf } from '../src/index.ts';
 
 const fn = (id: string, sourceHash = `${id}@1`): GraphFunction => {
   const [file = '', name = ''] = id.split('#');
@@ -62,7 +62,7 @@ const inLanguage = (
 ): GraphDocument => ({ ...document, language, checker });
 
 const ratesOf = (branch: readonly GraphDocument[], base: readonly GraphDocument[] = []) =>
-  reviewOf(reviewGraphsOf({ base, branch })).resolutionRates;
+  reviewOf({ base, branch }).resolutionRates;
 
 describe('the resolution rates of a review', () => {
   it('divides the calls of the branch graph by those calls plus its open ends', () => {
@@ -135,7 +135,7 @@ describe('the open ends of a review', () => {
       [],
       [openEnd(A, 'JSON.parse(raw).notify', 7, 'untyped'), openEnd(D, 'hook', 9)],
     );
-    expect(reviewOf(reviewGraphsOf({ base: [base], branch: [branch] })).openEnds).toEqual([
+    expect(reviewOf({ base: [base], branch: [branch] }).openEnds).toEqual([
       { caller: A, line: 7, expression: 'JSON.parse(raw).notify', reason: 'untyped' },
       { caller: B, line: 3, expression: 'legacy.run', reason: 'missing-module' },
     ]);
@@ -149,7 +149,7 @@ describe('the one-of groups of a review', () => {
       [fn(A), fn(B), fn(C), fn(D)],
       [oneOf(A, B, 'src/a.ts:4:3'), oneOf(A, C, 'src/a.ts:4:3'), oneOf(D, B, 'src/d.ts:2:1')],
     );
-    expect(reviewOf(reviewGraphsOf({ base: [base], branch: [branch] })).oneOfGroups).toEqual([
+    expect(reviewOf({ base: [base], branch: [branch] }).oneOfGroups).toEqual([
       { id: 'src/a.ts:4:3', caller: A, line: 4, callees: [B, C] },
     ]);
   });
@@ -157,9 +157,53 @@ describe('the one-of groups of a review', () => {
   it('marks the calls of a one-of group as calls the branch added, like any other call', () => {
     const base = graph([fn(B), fn(C)]);
     const branch = graph([fn(A), fn(B), fn(C)], [oneOf(A, B, 'g'), oneOf(A, C, 'g')]);
-    expect(reviewOf(reviewGraphsOf({ base: [base], branch: [branch] })).calls).toEqual([
+    expect(reviewOf({ base: [base], branch: [branch] }).calls).toEqual([
       { caller: A, callee: B, mark: 'added' },
       { caller: A, callee: C, mark: 'added' },
+    ]);
+  });
+});
+
+describe('the open ends of each caller', () => {
+  it('takes the open ends of a function the review shows from the review, and of any other function from the branch graph', () => {
+    const base = graph([fn(A, 'old'), fn(B), fn(D)], [], [openEnd(B, 'legacy.run', 3)]);
+    const branch = graph(
+      [fn(A, 'new'), fn(D)],
+      [],
+      [openEnd(D, 'hook', 9), openEnd(A, 'z', 7), openEnd(D, 'later', 3), openEnd(A, 'y', 7)],
+    );
+    expect(reviewOf({ base: [base], branch: [branch] }).openEndsByCaller).toEqual({
+      [A]: [openEnd(A, 'y', 7), openEnd(A, 'z', 7)],
+      [B]: [openEnd(B, 'legacy.run', 3)],
+      [D]: [openEnd(D, 'hook', 9), openEnd(D, 'later', 3)],
+    });
+  });
+});
+
+describe('the one-of labels', () => {
+  it('labels each call of a one-of group with the size of its group, from the graph that holds its caller', () => {
+    const E = 'src/e.ts#e';
+    const F = 'src/f.ts#f';
+    const base = graph([fn(B), fn(C), fn(D), fn(E), fn(F)], [oneOf(F, B, 'g3'), oneOf(F, C, 'g3')]);
+    const branch = graph(
+      [fn(A), fn(B), fn(C), fn(D), fn(E)],
+      [
+        oneOf(A, B, 'g1'),
+        oneOf(A, C, 'g1'),
+        oneOf(D, B, 'g2'),
+        oneOf(D, C, 'g2'),
+        oneOf(D, E, 'g2'),
+        call(D, E),
+      ],
+    );
+    expect(reviewOf({ base: [base], branch: [branch] }).oneOfLabels).toEqual([
+      { caller: A, callee: B, label: 'one of 2' },
+      { caller: A, callee: C, label: 'one of 2' },
+      { caller: F, callee: B, label: 'one of 2' },
+      { caller: F, callee: C, label: 'one of 2' },
+      { caller: D, callee: B, label: 'one of 3' },
+      { caller: D, callee: C, label: 'one of 3' },
+      { caller: D, callee: E, label: 'one of 3' },
     ]);
   });
 });
