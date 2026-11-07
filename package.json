@@ -19,6 +19,7 @@
     "test:browser": "vitest run --config vitest.browser.config.ts",
     "test:pack": "vitest run --config vitest.pack.config.ts",
     "conformance": "node packages/conformance/src/cli.ts",
+    "release-assets": "node scripts/release-assets.ts",
     "screenshots": "vitest run --config vitest.screenshots.config.ts"
   },
   "engines": {

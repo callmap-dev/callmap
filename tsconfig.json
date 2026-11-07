@@ -24,6 +24,7 @@
     "packages/*/test/**/*.ts",
     "packages/*/test-pack/**/*.ts",
     "packages/cli/build.ts",
+    "scripts/**/*.ts",
     "test/**/*.ts",
     "vitest.config.ts",
     "vitest.browser.config.ts",
