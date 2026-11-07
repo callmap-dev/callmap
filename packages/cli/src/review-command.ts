@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import type { GraphDocument } from '@callmap/graph-document';
-import { reviewGraphsOf, reviewOf } from '@callmap/review';
+import { reviewOf } from '@callmap/review';
 import { effectiveScope, inScope, isSkippedDirectory } from '@callmap/scope';
 import { DIFF_LIMIT } from '../page/views/diff.ts';
 import type { Checkout } from '../page/data.ts';
@@ -25,7 +25,7 @@ import {
   workingTreeFilesOf,
 } from './git.ts';
 import { readerPageOf } from './reader-page.ts';
-import { basePlacesOf, sourcesOf } from './sources.ts';
+import { sourcesOf } from './sources.ts';
 
 export class UnreadableGraphError extends Error {
   override readonly name = 'UnreadableGraphError';
@@ -152,16 +152,13 @@ export const runReview = async (
   for (const { extractor } of checked.filter(({ skipNote }) => skipNote === undefined)) {
     read.push(await documentsOf(extractor));
   }
-  const graphs = reviewGraphsOf({
+  const review = reviewOf({
     base: read.map(({ base }) => base),
     branch: read.map(({ branch }) => branch),
   });
-  const review = reviewOf(graphs);
   const { html, notes } = await readerPageOf({
     review,
-    branchGraph: graphs.branch,
-    sources: sourcesOf(root, base, review, graphs.branch),
-    basePlaces: basePlacesOf(review, graphs.base),
+    sources: sourcesOf(root, base, review),
     editor: { name: invocation.editor, repoRoot: root },
     checkout: checkoutOf(root, reviewBase, scope),
     diffLimit,

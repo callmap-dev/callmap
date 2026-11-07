@@ -1,21 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { FunctionId } from '@callmap/graph-document';
-import type { CallGraph, Review } from '@callmap/review';
-import type { LineSpan, SourceTexts, Sources } from '../page/data.ts';
+import type { Review } from '@callmap/review';
+import type { SourceTexts, Sources } from '../page/data.ts';
 import { fileAt } from './git.ts';
 
 const textsOf = (files: Iterable<string>, read: (file: string) => string): SourceTexts =>
   Object.fromEntries([...new Set(files)].sort().map((file) => [file, read(file)]));
 
-export const sourcesOf = (
-  root: string,
-  base: string,
-  review: Review,
-  branchGraph: CallGraph,
-): Sources => ({
+export const sourcesOf = (root: string, base: string, review: Review): Sources => ({
   branch: textsOf(
-    branchGraph.functions.map(({ file }) => file),
+    review.branch.functions.map(({ file }) => file),
     (file) => readFileSync(join(root, file), 'utf8'),
   ),
   base: textsOf(
@@ -25,17 +19,3 @@ export const sourcesOf = (
     (file) => fileAt(root, base, file),
   ),
 });
-
-export const basePlacesOf = (
-  review: Review,
-  baseGraph: CallGraph,
-): Readonly<Record<FunctionId, LineSpan>> => {
-  const changed = new Set(
-    review.functions.filter(({ mark }) => mark === 'changed').map(({ id }) => id),
-  );
-  return Object.fromEntries(
-    baseGraph.functions
-      .filter(({ id }) => changed.has(id))
-      .map(({ id, firstLine, lastLine }) => [id, { firstLine, lastLine }]),
-  );
-};

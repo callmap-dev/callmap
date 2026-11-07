@@ -36,18 +36,20 @@ describe('the scope of a review', () => {
   }, 60_000);
 
   it('takes the files of every --scope glob', () => {
-    const { review, branchGraph } = pageOfReview('--scope', 'src/c*.ts', '--scope', MONEY);
+    const { review } = pageOfReview('--scope', 'src/c*.ts', '--scope', MONEY);
     expect(new Set(review.functions.map(({ file }) => file))).toEqual(
       new Set([CART, 'src/checkout.ts', MONEY]),
     );
-    expect(new Set(branchGraph.functions.map(({ file }) => file))).toEqual(
+    expect(new Set(review.branch.functions.map(({ file }) => file))).toEqual(
       new Set([CART, 'src/checkout.ts', MONEY]),
     );
   }, 60_000);
 
   it('leaves out the files of a negated --scope glob, from the graph and from the review', () => {
-    const { review, branchGraph } = pageOfReview('--scope', 'src/**', '--scope', '!src/c*.ts');
-    const files = new Set([...review.functions, ...branchGraph.functions].map(({ file }) => file));
+    const { review } = pageOfReview('--scope', 'src/**', '--scope', '!src/c*.ts');
+    const files = new Set(
+      [...review.functions, ...review.branch.functions].map(({ file }) => file),
+    );
     expect([...files].filter((file) => file.startsWith('src/c'))).toEqual([]);
     expect(files.has(MONEY)).toBe(true);
   }, 60_000);

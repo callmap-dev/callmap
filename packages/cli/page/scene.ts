@@ -1,5 +1,5 @@
 import type { Call, FunctionId, OpenEnd } from '@callmap/graph-document';
-import { appendTo, byText } from '@callmap/review';
+import { byText } from '@callmap/review';
 import type { CallMark, FunctionMark, MarkedCall } from '@callmap/review';
 import type { ReaderPageData } from './data.ts';
 import type { PageFunction } from './functions.ts';
@@ -141,42 +141,11 @@ export const callKeyOf = ({ caller, callee }: Pick<Call, 'caller' | 'callee'>): 
 
 export const byLine = (left: OpenEnd, right: OpenEnd): number => left.line - right.line;
 
-export const openEndsByCallerOf = (
-  { review, branchGraph }: ReaderPageData,
-  reviewed: ReadonlySet<FunctionId>,
-): ReadonlyMap<FunctionId, readonly OpenEnd[]> => {
-  const byCaller = new Map<FunctionId, OpenEnd[]>();
-  for (const openEnd of [
-    ...review.openEnds,
-    ...branchGraph.openEnds.filter(({ caller }) => !reviewed.has(caller)),
-  ]) {
-    appendTo(byCaller, openEnd.caller, openEnd);
-  }
-  return byCaller;
-};
+export const openEndsOf = ({ review }: ReaderPageData, caller: FunctionId): readonly OpenEnd[] =>
+  review.openEndsByCaller[caller] ?? [];
 
-type GroupCall = Pick<Call, 'caller' | 'callee'> & { readonly group: string };
-
-export const oneOfLabelsOf = (
-  { review, branchGraph }: ReaderPageData,
-  reviewed: ReadonlySet<FunctionId>,
-): ReadonlyMap<string, string> => {
-  const groups = new Map<string, GroupCall[]>();
-  const add = (call: GroupCall): void => {
-    appendTo(groups, `${call.caller} ${call.group}`, call);
-  };
-  for (const { id, caller, callees } of review.oneOfGroups) {
-    for (const callee of callees) add({ group: id, caller, callee });
-  }
-  for (const { group, caller, callee } of branchGraph.calls) {
-    if (group !== undefined && !reviewed.has(caller)) add({ group, caller, callee });
-  }
-  return new Map(
-    [...groups.values()].flatMap((calls) =>
-      calls.map((call): [string, string] => [callKeyOf(call), `one of ${String(calls.length)}`]),
-    ),
-  );
-};
+export const oneOfLabelsOf = ({ review }: ReaderPageData): ReadonlyMap<string, string> =>
+  new Map(review.oneOfLabels.map((oneOf): [string, string] => [callKeyOf(oneOf), oneOf.label]));
 
 const inFileOrder = (left: PageFunction, right: PageFunction): number =>
   byText(left.file, right.file) || left.firstLine - right.firstLine || byText(left.id, right.id);
@@ -187,9 +156,7 @@ export const sceneOf = (
   calls: readonly MarkedCall[],
   outside: ReadonlySet<FunctionId> = new Set(),
 ): Scene => {
-  const reviewed = new Set(data.review.functions.map(({ id }) => id));
-  const openEnds = openEndsByCallerOf(data, reviewed);
-  const oneOfLabels = oneOfLabelsOf(data, reviewed);
+  const oneOfLabels = oneOfLabelsOf(data);
   const ordered = [...functions].sort(inFileOrder);
   const files = [...new Set(ordered.map(({ file }) => file))];
 
@@ -202,7 +169,7 @@ export const sceneOf = (
       pageFunction: shown,
       outside: outside.has(shown.id),
     },
-    ...(openEnds.get(shown.id) ?? []).map(({ expression, line }, index): OpenEndBox => ({
+    ...openEndsOf(data, shown.id).map(({ expression, line }, index): OpenEndBox => ({
       kind: 'open-end',
       id: `open-end:${shown.id}:${String(index)}`,
       label: `${expression} :${String(line)}`,

@@ -2,11 +2,11 @@ import { choiceListOf } from '../choice-list.ts';
 import { pageFunctionsOf } from '../functions.ts';
 import type { PagePart } from '../reader-page.ts';
 import type { Choice } from '../view.ts';
-import { routeEntryPointsOf, routeView } from '../views/route.ts';
+import { routeView } from '../views/route.ts';
 
 const entryPoints: PagePart = (page) => {
   const functions = pageFunctionsOf(page.data);
-  const entries = routeEntryPointsOf(page.data);
+  const entries = page.data.review.entryPoints;
   const treeFrom = (id: string): Choice => ({ kind: 'tree', from: id });
 
   const section = document.createElement('section');

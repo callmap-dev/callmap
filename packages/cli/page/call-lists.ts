@@ -6,7 +6,7 @@ import type { ReaderPageData } from './data.ts';
 import { markedCallsOf, pageFunctionsOf } from './functions.ts';
 import type { PageFunction } from './functions.ts';
 import { eyebrowOf, spanOf } from './panel-elements.ts';
-import { byLine, callKeyOf, oneOfLabelsOf, openEndsByCallerOf } from './scene.ts';
+import { byLine, callKeyOf, oneOfLabelsOf, openEndsOf } from './scene.ts';
 
 const CALL_NOTES: Readonly<Record<CallMark, string | undefined>> = {
   added: 'added call',
@@ -57,10 +57,8 @@ const byName = (left: FunctionRow, right: FunctionRow): number =>
 
 export const callListsOf = (data: ReaderPageData): CallListsOf => {
   const functions = pageFunctionsOf(data);
-  const reviewed = new Set(data.review.functions.map(({ id }) => id));
   const calls = markedCallsOf(data);
-  const oneOfLabels = oneOfLabelsOf(data, reviewed);
-  const openEnds = openEndsByCallerOf(data, reviewed);
+  const oneOfLabels = oneOfLabelsOf(data);
 
   const rowOf = (call: MarkedCall, end: FunctionId): readonly FunctionRow[] => {
     const shown = functions.get(end);
@@ -80,7 +78,7 @@ export const callListsOf = (data: ReaderPageData): CallListsOf => {
       .filter(({ caller }) => caller === id)
       .flatMap((call) => rowOf(call, call.callee))
       .sort(byName);
-    const openEndRows = [...(openEnds.get(id) ?? [])].sort(byLine).map(({ expression, line }) => {
+    const openEndRows = [...openEndsOf(data, id)].sort(byLine).map(({ expression, line }) => {
       const item = document.createElement('li');
       const row = document.createElement('div');
       row.className = 'call-row';
