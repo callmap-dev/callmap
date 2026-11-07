@@ -1,9 +1,12 @@
 export {
   DATA_BLOCK_ID,
   dataBlockOf,
+  pageOfTemplate,
   pageWithReviewInput,
+  REVIEW_INPUT_MARKER,
   reviewInputOfDataBlock,
   reviewInputOfPage,
+  TEMPLATE_DATA_BLOCK,
 } from './data-block.ts';
 export { packedSourcesOf, unpackedSourcesOf } from './packed-sources.ts';
 export type { SourceTexts, Sources } from './packed-sources.ts';

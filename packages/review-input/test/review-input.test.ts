@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   dataBlockOf,
   packedSourcesOf,
+  pageOfTemplate,
   pageWithReviewInput,
   REVIEW_INPUT_FORMAT_VERSION,
+  REVIEW_INPUT_MARKER,
+  TEMPLATE_DATA_BLOCK,
   reviewInputOfPage,
   unpackedSourcesOf,
   UnknownFormatVersionError,
@@ -90,6 +93,44 @@ describe('the review input', () => {
   it('fails on a page that holds no data block', () => {
     expect(() => reviewInputOfPage('<!doctype html><body></body>')).toThrow(
       'the page holds no data block',
+    );
+  });
+});
+
+describe('the page template', () => {
+  const TEMPLATE = `<!doctype html>\n<body>\n<script type="application/json" id="reader-page-data">${REVIEW_INPUT_MARKER}</script>\n<script>\nrun()\n</script>\n</body>\n`;
+
+  it('marks the place for the review input inside the data block', () => {
+    expect(REVIEW_INPUT_MARKER).toBe('{{CALLMAP_REVIEW_INPUT}}');
+    expect(TEMPLATE_DATA_BLOCK).toBe(
+      '<script type="application/json" id="reader-page-data">{{CALLMAP_REVIEW_INPUT}}</script>',
+    );
+  });
+
+  it('gives the page with the escaped review input at the marker and no other change', async () => {
+    const input: ReviewInput = {
+      ...(await inputOf()),
+      editor: { name: 'vscode', repoRoot: '/a</script>b' },
+    };
+    const page = pageOfTemplate(TEMPLATE, input);
+    const [before = '', after = ''] = TEMPLATE.split(REVIEW_INPUT_MARKER);
+    expect(page.startsWith(`${before}{"formatVersion":1,`)).toBe(true);
+    expect(page.endsWith(`}${after}`)).toBe(true);
+    expect(page).toContain('"repoRoot":"/a\\u003c/script>b"');
+    expect(reviewInputOfPage(page)).toEqual(input);
+  });
+
+  it('fails on a template with no marker', async () => {
+    const input = await inputOf();
+    expect(() => pageOfTemplate('<!doctype html><body></body>', input)).toThrow(
+      'the page template holds the marker {{CALLMAP_REVIEW_INPUT}} 0 times, not once',
+    );
+  });
+
+  it('fails on a template with 2 markers', async () => {
+    const input = await inputOf();
+    expect(() => pageOfTemplate(`${TEMPLATE}${REVIEW_INPUT_MARKER}`, input)).toThrow(
+      'the page template holds the marker {{CALLMAP_REVIEW_INPUT}} 2 times, not once',
     );
   });
 });
