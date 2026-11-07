@@ -1,13 +1,13 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { countTextOf } from '../page/words.ts';
-import { featureBranchRepo } from './fixture-repo.ts';
-import { reviewHtmlOf, startCostsOf } from './reader-page.ts';
+import { startCostsOf } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 describe('the start of the page before its first drawing', () => {
   it('measures nothing, so the browser lays out the page once, for the first drawing', async () => {

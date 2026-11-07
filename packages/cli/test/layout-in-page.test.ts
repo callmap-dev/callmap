@@ -1,15 +1,15 @@
 import { reviewInputOfPage } from '@callmap/review-input';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo } from './fixture-repo.ts';
-import { boxesOf, loadReaderPage, openTab, reviewHtmlOf, settled } from './reader-page.ts';
+import { boxesOf, loadReaderPage, openTab, settled } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { LoadedPage } from './reader-page.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const graphOf = ({ window }: LoadedPage): HTMLElement => {
   const graph = window.document.getElementById('graph');

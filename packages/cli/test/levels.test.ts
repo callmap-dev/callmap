@@ -13,6 +13,7 @@ import {
   settled,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const ORDERS = 'src/orders';
 const MONEY = 'src/money';
@@ -25,9 +26,9 @@ const RATE = `${TAX}/rate.ts`;
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/levels');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

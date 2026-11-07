@@ -1,6 +1,5 @@
 import { within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, levelsRepo } from './fixture-repo.ts';
 import {
   boxesOf,
   chooseEntry,
@@ -11,8 +10,8 @@ import {
   loadReaderPage,
   openTab,
   pickFolder,
-  reviewHtmlOf,
 } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { DrawnLine, LoadedPage } from './reader-page.ts';
 
 const CART = 'src/cart.ts';
@@ -24,10 +23,10 @@ const TAXED = `${CART}#taxed`;
 let diffHtml = '';
 let levelsHtml = '';
 
-beforeAll(() => {
-  diffHtml = reviewHtmlOf(featureBranchRepo());
-  levelsHtml = reviewHtmlOf(levelsRepo());
-}, 240_000);
+beforeAll(async () => {
+  diffHtml = await readerPageOfFile('typescript/review');
+  levelsHtml = await readerPageOfFile('typescript/levels');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

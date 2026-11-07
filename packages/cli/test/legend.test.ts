@@ -1,14 +1,7 @@
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, levelsRepo } from './fixture-repo.ts';
-import {
-  boxElementOf,
-  linesOf,
-  loadReaderPage,
-  openTab,
-  pickFolder,
-  reviewHtmlOf,
-} from './reader-page.ts';
+import { boxElementOf, linesOf, loadReaderPage, openTab, pickFolder } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { GraphSize, LoadedPage } from './reader-page.ts';
 
 const CART = 'src/cart.ts';
@@ -22,10 +15,10 @@ const SMALL: GraphSize = { width: 300, height: 60 };
 let html = '';
 let levelsHtml = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-  levelsHtml = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+  levelsHtml = await readerPageOfFile('typescript/levels');
+});
 
 const legendOf = ({ window }: LoadedPage) =>
   within(within(window.document.body).getByRole('region', { name: 'Marks' }));

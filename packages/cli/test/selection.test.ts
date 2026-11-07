@@ -1,6 +1,5 @@
 import { fireEvent } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo } from './fixture-repo.ts';
 import {
   boxesOf,
   chooseEntry,
@@ -9,8 +8,8 @@ import {
   loadReaderPage,
   openTab,
   pickFolder,
-  reviewHtmlOf,
 } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { DrawnLine, LoadedPage } from './reader-page.ts';
 
 const CART = 'src/cart.ts';
@@ -20,9 +19,9 @@ const RECEIPT = `${CART}#receipt`;
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const nameOf = ({ from, to }: DrawnLine): string => `${from} -> ${to}`;
 

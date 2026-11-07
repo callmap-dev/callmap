@@ -1,14 +1,7 @@
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { levelsRepo } from './fixture-repo.ts';
-import {
-  boxElementOf,
-  clickBox,
-  loadReaderPage,
-  openTab,
-  reviewHtmlOf,
-  settled,
-} from './reader-page.ts';
+import { boxElementOf, clickBox, loadReaderPage, openTab, settled } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { LoadedPage } from './reader-page.ts';
 
 const ORDERS = 'src/orders';
@@ -19,9 +12,9 @@ const RATE = 'src/tax/rate.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/levels');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

@@ -1,19 +1,8 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo } from './fixture-repo.ts';
-import {
-  boxElementOf,
-  boxesOf,
-  linesOf,
-  loadReaderPage,
-  openTab,
-  runCallmap,
-  settled,
-} from './reader-page.ts';
+import { boxElementOf, boxesOf, linesOf, loadReaderPage, openTab, settled } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
-import { tempDir } from '../../../test/temp-dir.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const CART = 'src/cart.ts';
 const REPORT = 'src/report.ts';
@@ -24,12 +13,9 @@ const NOTIFY = 'src/notify.ts';
 
 let html = '';
 
-beforeAll(() => {
-  const out = join(tempDir('callmap-out-'), 'review.html');
-  const finished = runCallmap(['review', featureBranchRepo(), '--no-open', '--out', out]);
-  expect(finished.status, finished.stderr).toBe(0);
-  html = readFileSync(out, 'utf8');
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

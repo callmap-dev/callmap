@@ -15,6 +15,7 @@ import {
   runCallmap,
   sourcesOf,
 } from './reader-page.ts';
+import { readerPageOfFile, typescriptVersion } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const CART = 'src/cart.ts';
@@ -103,6 +104,14 @@ describe('callmap review on a feature branch', () => {
     expect(input.branch.map(({ language }) => language)).toEqual(['typescript']);
   });
 
+  it('names the TypeScript of the extractor as the checker of each graph document', () => {
+    const input = reviewInputOfPage(html);
+    expect([...input.base, ...input.branch].map(({ checker }) => checker)).toEqual([
+      { name: 'TypeScript', version: typescriptVersion() },
+      { name: 'TypeScript', version: typescriptVersion() },
+    ]);
+  });
+
   it('holds no plain file text in the data block', () => {
     const block = JSON.stringify(reviewInputOfPage(html));
     const lines = [ALERTS, CART, CHECKOUT, MONEY, NOTIFY, REPORT, RATE]
@@ -181,14 +190,20 @@ describe('the base sources of the review input', () => {
 });
 
 describe('the reader page', () => {
+  let pageHtml = '';
+
+  beforeAll(async () => {
+    pageHtml = await readerPageOfFile('typescript/review');
+  });
+
   it('inlines every script and style, so it makes no network request', () => {
-    expect(html).not.toMatch(/<script[^>]*\ssrc=/i);
-    expect(html).not.toMatch(/<link\b/i);
-    expect(html).not.toMatch(/@import|url\(\s*['"]?https?:/i);
+    expect(pageHtml).not.toMatch(/<script[^>]*\ssrc=/i);
+    expect(pageHtml).not.toMatch(/<link\b/i);
+    expect(pageHtml).not.toMatch(/@import|url\(\s*['"]?https?:/i);
   });
 
   it('draws each function the review shows as a box inside the frame of its file', async () => {
-    const page = await loadReaderPage(html);
+    const page = await loadReaderPage(pageHtml);
     const boxes = boxesOf(page).filter(({ kind }) => kind === 'function');
     expect(
       boxes
@@ -206,24 +221,24 @@ describe('the reader page', () => {
   });
 
   it('draws each call as an arrow from the caller to the callee, with its mark', async () => {
-    const arrows = callsOf(await loadReaderPage(html)).map(({ from, to, classes }) => ({
+    const arrows = callsOf(await loadReaderPage(pageHtml)).map(({ from, to, classes }) => ({
       caller: from,
       callee: to,
       mark: ['added', 'removed', 'kept'].find((mark) => classes.includes(mark)),
     }));
-    expect(arrows).toEqual(pageDataOf(html).review.calls);
+    expect(arrows).toEqual(pageDataOf(pageHtml).review.calls);
   });
 
   it('marks each box with its mark', async () => {
     const classesOf = new Map(
-      boxesOf(await loadReaderPage(html)).map(({ id, classes }) => [id, classes]),
+      boxesOf(await loadReaderPage(pageHtml)).map(({ id, classes }) => [id, classes]),
     );
     expect(classesOf.get(`${CART}#legacyTotal`)).toContain('removed');
     expect(classesOf.get(`${MONEY}#format`)).toContain('neighbour');
   });
 
   it('places every box the same way on every load, and the boxes of one file and one column in line order', async () => {
-    const placed = async () => boxesOf(await loadReaderPage(html));
+    const placed = async () => boxesOf(await loadReaderPage(pageHtml));
     const boxes = await placed();
     expect(await placed()).toEqual(boxes);
     const boxOf = (name: string) => boxes.find(({ id }) => id === `${CART}#${name}`);

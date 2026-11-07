@@ -11,14 +11,15 @@ import {
   storedItemsOf,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const CART = 'src/cart.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

@@ -3,15 +3,9 @@ import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { runReview } from '../src/review-command.ts';
 import { featureBranchRepo } from './fixture-repo.ts';
-import {
-  boxesOf,
-  clickBox,
-  loadReaderPageWithDiffLimit,
-  openTab,
-  reviewHtmlOf,
-  settled,
-} from './reader-page.ts';
+import { boxesOf, clickBox, loadReaderPageWithDiffLimit, openTab, settled } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const MONEY = 'src/money.ts';
@@ -20,10 +14,10 @@ const DIFF_CALLS = 11;
 let repo = '';
 let html = '';
 
-beforeAll(() => {
+beforeAll(async () => {
   repo = featureBranchRepo();
-  html = reviewHtmlOf(repo);
-}, 120_000);
+  html = await readerPageOfFile('typescript/review');
+});
 
 const notesOfReview = async (): Promise<readonly string[]> =>
   (

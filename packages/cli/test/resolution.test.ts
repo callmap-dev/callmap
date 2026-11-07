@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type { GraphDocument } from '@callmap/graph-document';
-import { pageWithReviewInput, reviewInputOfPage } from '@callmap/review-input';
 import { fireEvent, getByRole, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { commitFile, featureBranchRepo, git } from './fixture-repo.ts';
@@ -16,28 +14,20 @@ import {
   settled,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile, typescriptVersion } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const ALERTS = 'src/alerts.ts';
 const NOTIFY = 'src/notify.ts';
 const BROADCAST = 'src/broadcast.ts';
 
-const typescriptVersion = (): string => {
-  const extractor = import.meta.resolve('@callmap/extractor-typescript/cli');
-  const manifest = createRequire(extractor).resolve('typescript/package.json');
-  return (JSON.parse(readFileSync(manifest, 'utf8')) as { version: string }).version;
-};
-
 let html = '';
 let htmlWithBroadcast = '';
 
 const withBranchDocuments = (
-  page: string,
   change: (documents: readonly GraphDocument[]) => readonly GraphDocument[],
-): string => {
-  const input = reviewInputOfPage(page);
-  return pageWithReviewInput(page, { ...input, branch: change(input.branch) });
-};
+): Promise<string> =>
+  readerPageOfFile('typescript/review', (input) => ({ ...input, branch: change(input.branch) }));
 
 const goDocument: GraphDocument = {
   language: 'go',
@@ -88,8 +78,8 @@ const repoWithBroadcastOnBase = (): string => {
   return repo;
 };
 
-beforeAll(() => {
-  html = reviewPageOf(featureBranchRepo());
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
   htmlWithBroadcast = reviewPageOf(repoWithBroadcastOnBase());
 }, 120_000);
 
@@ -157,7 +147,7 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
 
   it('shows one rate next to its checker for each language, in the order of the page data', async () => {
     const page = await loadReaderPage(
-      withBranchDocuments(html, (documents) => [goDocument, ...documents]),
+      await withBranchDocuments((documents) => [goDocument, ...documents]),
     );
     const rate = within(
       getByRole(page.window.document.body, 'region', { name: 'Resolution rate' }),
@@ -216,7 +206,7 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
       sourceHash: name,
     }));
     const page = await loadReaderPage(
-      withBranchDocuments(html, (documents) =>
+      await withBranchDocuments((documents) =>
         documents.map((document) => ({
           ...document,
           files: [...document.files, ...callers.map(({ file }) => file)],
@@ -250,7 +240,7 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
     ['other', 'not resolved'],
   ] as const)('shows the open-end reason %s as "%s"', async (reason, words) => {
     const page = await loadReaderPage(
-      withBranchDocuments(html, (documents) =>
+      await withBranchDocuments((documents) =>
         documents.map((document) => ({
           ...document,
           openEnds: document.openEnds.map((openEnd) => ({ ...openEnd, reason })),

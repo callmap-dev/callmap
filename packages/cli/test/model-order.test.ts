@@ -9,18 +9,18 @@ import { diffView } from '../page/views/diff.ts';
 import { folderView } from '../page/views/folder.ts';
 import { routeView } from '../page/views/route.ts';
 import { wholeProjectView } from '../page/views/whole-project.ts';
-import { featureBranchRepo, levelsRepo } from './fixture-repo.ts';
-import { pageDataOf, reviewHtmlOf } from './reader-page.ts';
+import { pageDataOf } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const MODEL_ORDER = 'elk.layered.considerModelOrder.strategy';
 
 let levels: ReaderPageData;
 let review: ReaderPageData;
 
-beforeAll(() => {
-  levels = pageDataOf(reviewHtmlOf(levelsRepo()));
-  review = pageDataOf(reviewHtmlOf(featureBranchRepo()));
-}, 120_000);
+beforeAll(async () => {
+  levels = pageDataOf(await readerPageOfFile('typescript/levels'));
+  review = pageDataOf(await readerPageOfFile('typescript/review'));
+});
 
 const framesAndRootOf = (node: ElkNode): readonly ElkNode[] =>
   node.children === undefined

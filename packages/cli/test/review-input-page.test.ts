@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { reviewInputOfDataBlock } from '@callmap/review-input';
+import type { ReviewInput } from '@callmap/review-input';
 import { within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readerPageOf } from '../src/reader-page.ts';
@@ -65,7 +66,10 @@ describe('a reader page built from a review input file, with no git and no extra
 
 describe('a review input of a format version that the page does not know', () => {
   it('shows a message in place of the graph that names the format version and says which side to update', async () => {
-    const page = await loadReaderPage(html.replace('"formatVersion":1', '"formatVersion":2'));
+    const fromANewerDistribution = { ...reviewInputOfDataBlock(REVIEW_INPUT), formatVersion: 2 };
+    const page = await loadReaderPage(
+      await readerPageOf(fromANewerDistribution as unknown as ReviewInput),
+    );
     const message = bodyOf(page).getByRole('alert');
     expect(message.textContent).toContain('format version 2');
     expect(message.textContent).toContain('Update the reader page.');

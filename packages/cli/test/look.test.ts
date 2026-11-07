@@ -19,6 +19,7 @@ import {
   reviewHtmlOf,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const CART = 'src/cart.ts';
 const RECEIPT = `${CART}#receipt`;
@@ -62,8 +63,8 @@ let html = '';
 let manyHtml = '';
 let folderHtml = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
   manyHtml = reviewHtmlOf(repoWithManyCallsOnBase());
   folderHtml = reviewHtmlOf(featureBranchRepoWithUnchangedFiles());
 }, 240_000);

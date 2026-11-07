@@ -1,6 +1,5 @@
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, levelsRepo } from './fixture-repo.ts';
 import {
   COVER_HEIGHT,
   boxesOf,
@@ -10,9 +9,9 @@ import {
   loadReaderPage,
   openTab,
   resizeGraph,
-  reviewHtmlOf,
   settled,
 } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { GraphSize, LoadedPage, Point } from './reader-page.ts';
 import { boundsOf, meets } from './screen-rect.ts';
 import type { ScreenRect } from './screen-rect.ts';
@@ -34,10 +33,10 @@ const ROOMY: GraphSize = { width: 2000, height: 1000 };
 let html = '';
 let levelsHtml = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-  levelsHtml = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+  levelsHtml = await readerPageOfFile('typescript/levels');
+});
 
 interface Camera {
   readonly x: number;

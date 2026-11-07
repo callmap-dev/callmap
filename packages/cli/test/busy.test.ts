@@ -1,23 +1,16 @@
 import { within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { levelsRepo } from './fixture-repo.ts';
-import {
-  boxesOf,
-  loadReaderPage,
-  openTab,
-  pressBox,
-  reviewHtmlOf,
-  settled,
-} from './reader-page.ts';
+import { boxesOf, loadReaderPage, openTab, pressBox, settled } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { LoadedPage } from './reader-page.ts';
 
 const ORDERS = 'src/orders';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/levels');
+});
 
 const projectPage = async (): Promise<LoadedPage> => {
   const page = await loadReaderPage(html);
