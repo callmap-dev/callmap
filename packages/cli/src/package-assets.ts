@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import type { Assets } from './assets.ts';
 import { callmapCacheFolder } from './cache-folder.ts';
 import { packageManifestAt, typescriptVersionFor } from './package-manifest.ts';
+import { PAGE_TEMPLATE_FILE } from './page-template.ts';
 
 const TYPESCRIPT_EXTRACTOR = fileURLToPath(new URL('extract-typescript.js', import.meta.url));
 
@@ -22,8 +23,8 @@ const goExtractorVersion = (goVersion: string): string =>
 
 export const assets: Assets = {
   typescriptExtractor: TYPESCRIPT_EXTRACTOR,
-  pageScript: () => Promise.resolve(readFileSync(new URL('page.js', import.meta.url), 'utf8')),
-  pageStyle: () => readFileSync(new URL('page.css', import.meta.url), 'utf8'),
+  pageTemplate: () =>
+    Promise.resolve(readFileSync(new URL(PAGE_TEMPLATE_FILE, import.meta.url), 'utf8')),
   typescriptExtractorVersion: () => {
     const source = readFileSync(new URL('extractor-source.sha256', import.meta.url), 'utf8');
     return `${packageNameAndVersion()}\0typescript ${typescriptVersionFor(TYPESCRIPT_EXTRACTOR)}\0${source}`;

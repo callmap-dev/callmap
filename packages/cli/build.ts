@@ -20,7 +20,8 @@ import {
 } from './src/clone-assets.ts';
 import { sha256OfFiles } from './src/file-hash.ts';
 import { packageManifestAt } from './src/package-manifest.ts';
-import { pageBundle } from './src/page-build.ts';
+import { pageBundle, pageStyle } from './src/page-build.ts';
+import { PAGE_TEMPLATE_FILE, pageTemplateOf } from './src/page-template.ts';
 
 const PACKAGE = import.meta.dirname;
 const REPO_ROOT = join(PACKAGE, '..', '..');
@@ -107,8 +108,7 @@ const { output } = await build({
 chmodSync(join(DIST, 'cli.js'), 0o755);
 
 const page = await pageBundle();
-writeFileSync(join(DIST, 'page.js'), page.script);
-writeFileSync(join(DIST, 'page.css'), assets.pageStyle());
+writeFileSync(join(DIST, PAGE_TEMPLATE_FILE), pageTemplateOf(pageStyle(), page.script));
 writeFileSync(join(DIST, 'extractor-source.sha256'), sha256OfFiles(extractorSourceFiles()));
 cpSync(GO_PROGRAM, join(DIST, 'go'), {
   recursive: true,
