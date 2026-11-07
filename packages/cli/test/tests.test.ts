@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { GraphDocument } from '@callmap/graph-document';
 import { effectiveScope } from '@callmap/scope';
-import type { Extractor } from '../src/extractors.ts';
+import type { Extractor } from '../src/extractor.ts';
 import { runReview } from '../src/review-command.ts';
 import { DIFF_LIMIT } from '../page/views/diff.ts';
 import { git, goRepo } from './fixture-repo.ts';
