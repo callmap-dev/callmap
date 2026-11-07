@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -19,23 +20,24 @@ beforeAll(async () => {
   html = await readerPageOfFile('typescript/review');
 });
 
-const notesOfReview = async (): Promise<readonly string[]> =>
-  (
-    await runReview({
-      repo,
-      base: undefined,
-      scope: [],
-      tsconfig: undefined,
-      out: join(tempDir('callmap-out-'), 'review.html'),
-      open: false,
-      cache: false,
-      editor: 'vscode',
-      tests: false,
-    })
-  ).notes;
+const commandReview = () =>
+  runReview({
+    repo,
+    base: undefined,
+    scope: [],
+    tsconfig: undefined,
+    out: join(tempDir('callmap-out-'), 'review.html'),
+    open: false,
+    cache: false,
+    editor: 'vscode',
+    tests: false,
+  });
 
 const pageWithDiffLimit = (diffLimit: number): Promise<LoadedPage> =>
   loadReaderPageWithDiffLimit(html, diffLimit);
+
+const OVER_LIMIT =
+  'This review holds 11 functions and 11 calls. The Diff view draws up to 10 calls, so it draws none of them. Open the Whole project view to read the changes level by level.';
 
 const ONE_MORE_HOP_OVER_LIMIT =
   'This review holds 12 functions and 13 calls. The Diff view draws up to 11 calls, so it draws none of them.';
@@ -50,9 +52,13 @@ const diffLimitMessageOf = ({ window }: LoadedPage): HTMLElement | null =>
   within(window.document.body).queryByRole('status', { name: 'Over the Diff limit' });
 
 describe('a review over the Diff limit', () => {
-  it('prints no note to stderr, because the page says that the review is over the limit', async () => {
-    expect(await notesOfReview()).toEqual([]);
-  }, 120_000);
+  it('prints no note to stderr, because the page of the command says that the review is over the limit', async () => {
+    const { out, notes } = await commandReview();
+    const page = await loadReaderPageWithDiffLimit(readFileSync(out, 'utf8'), DIFF_CALLS - 1);
+    await openTab(page, 'Diff');
+    expect(diffLimitMessageOf(page)?.textContent).toContain(OVER_LIMIT);
+    expect(notes).toEqual([]);
+  });
 
   it('opens on the Whole project view, and the Diff tab says what it left out', async () => {
     const page = await pageWithDiffLimit(DIFF_CALLS - 1);
@@ -60,11 +66,9 @@ describe('a review over the Diff limit', () => {
     expect(diffLimitMessageOf(page)).toBeNull();
 
     await openTab(page, 'Diff');
-    expect(diffLimitMessageOf(page)?.textContent).toContain(
-      'This review holds 11 functions and 11 calls. The Diff view draws up to 10 calls, so it draws none of them. Open the Whole project view to read the changes level by level.',
-    );
+    expect(diffLimitMessageOf(page)?.textContent).toContain(OVER_LIMIT);
     expect(diffLayoutsOf(page)).toEqual([]);
-  }, 120_000);
+  });
 
   it('opens the Whole project view from the button in the message', async () => {
     const page = await pageWithDiffLimit(DIFF_CALLS - 1);
@@ -75,7 +79,7 @@ describe('a review over the Diff limit', () => {
     await settled(page);
     expect(selectedTabOf(page)).toBe('Whole project');
     expect(diffLimitMessageOf(page)).toBeNull();
-  }, 120_000);
+  });
 
   it('hides the message at once when the reader leaves the Diff tab for a view that lays out in the page', async () => {
     const page = await pageWithDiffLimit(DIFF_CALLS - 1);
@@ -83,16 +87,15 @@ describe('a review over the Diff limit', () => {
     fireEvent.click(within(page.window.document.body).getByRole('tab', { name: 'Route' }));
     expect(diffLimitMessageOf(page)).toBeNull();
     await settled(page);
-  }, 120_000);
+  });
 });
 
 describe('a review at exactly the Diff limit', () => {
-  it('lays out the Diff view as before, and prints nothing', async () => {
-    expect(await notesOfReview()).toEqual([]);
+  it('lays out the Diff view as before', async () => {
     const page = await pageWithDiffLimit(DIFF_CALLS);
     expect(selectedTabOf(page)).toBe('Diff');
     expect(boxesOf(page).filter(({ kind }) => kind === 'function')).toHaveLength(11);
-  }, 120_000);
+  });
 });
 
 describe('a next hop that takes the Diff view over the Diff limit', () => {

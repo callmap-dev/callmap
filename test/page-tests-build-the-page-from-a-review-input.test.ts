@@ -17,7 +17,14 @@ const PAGE_READERS = [
   'sourcesOf',
   'startCostsOf',
 ];
-const COMMAND_RUNNERS = ['runCallmap', 'reviewHtmlOf', 'reviewOf', 'reviewPage', 'reviewPageOf'];
+const COMMAND_RUNNERS = [
+  'runCallmap',
+  'runReview',
+  'reviewHtmlOf',
+  'reviewOf',
+  'reviewPage',
+  'reviewPageOf',
+];
 
 describe('the DOM tests of the reader page', () => {
   it('run the command only in the files that check the command, or that read a repo with no review input file', () => {
@@ -27,6 +34,7 @@ describe('the DOM tests of the reader page', () => {
       'packages/cli/test/base.test.ts',
       'packages/cli/test/checkout.test.ts',
       'packages/cli/test/code-panel.test.ts',
+      'packages/cli/test/diff-limit.test.ts',
       'packages/cli/test/drawing.test.ts',
       'packages/cli/test/folder.test.ts',
       'packages/cli/test/go-review.test.ts',

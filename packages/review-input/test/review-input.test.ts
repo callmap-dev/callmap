@@ -179,7 +179,7 @@ describe('the review input with its sources unpacked', () => {
 
 describe('a review input whose top-level shape is wrong', () => {
   const pageWith = async (key: string, value: unknown): Promise<string> =>
-    pageOf(dataBlockOf({ ...(await inputOf()), [key]: value } as ReviewInput));
+    pageOf(dataBlockOf({ ...(await inputOf()), [key]: value }));
 
   it.each([
     ['base', undefined, '"base" is not a list of graph documents'],

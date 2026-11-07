@@ -3,12 +3,13 @@ import type { SpawnSyncReturns } from 'node:child_process';
 import { chmodSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pageOfTemplate, reviewInputOfDataBlock } from '@callmap/review-input';
+import { pageOfTemplate } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { tempDir } from '../../../test/temp-dir.ts';
 import { featureBranchRepo, goRepo, rubyRepo } from '../test/fixture-repo.ts';
 import { readerPageOf } from '../src/reader-page.ts';
 import { pageDataOf } from '../test/reader-page.ts';
+import { reviewInputOfFile } from '../test/review-input-file.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -115,9 +116,7 @@ describe('the packed @callmap/cli', () => {
       ),
       'utf8',
     );
-    const input = reviewInputOfDataBlock(
-      readFileSync(new URL('../fixture-review-input/review-input.json', import.meta.url), 'utf8'),
-    );
+    const input = await reviewInputOfFile('typescript/review');
     expect(pageOfTemplate(template, input)).toBe(await readerPageOf(input));
   });
 

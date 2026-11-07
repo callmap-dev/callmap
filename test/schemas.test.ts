@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
 import type { ReviewInput } from '@callmap/review-input';
+import { reviewInputOfFile } from '../packages/cli/test/review-input-file.ts';
 import { graphDocumentProblemsOf, reviewInputProblemsOf } from './schemas.ts';
 
 const GRAPH_DOCUMENT: GraphDocument = {
@@ -93,54 +92,56 @@ describe('the JSON Schema of the graph document', () => {
   );
 });
 
-const REVIEW_INPUT = JSON.parse(
-  readFileSync(
-    join(import.meta.dirname, '../packages/cli/fixture-review-input/review-input.json'),
-    'utf8',
-  ),
-) as ReviewInput;
+let reviewInput: ReviewInput;
 
 const reviewInputWith = (key: string, value: unknown): unknown => ({
-  ...REVIEW_INPUT,
+  ...reviewInput,
   [key]: value,
 });
 
 describe('the JSON Schema of the review input', () => {
+  beforeAll(async () => {
+    reviewInput = await reviewInputOfFile('typescript/review');
+  });
+
   it('accepts the review input that a page builds from with no git and no extractor', () => {
-    expect(reviewInputProblemsOf(REVIEW_INPUT)).toEqual([]);
+    expect(reviewInputProblemsOf(reviewInput)).toEqual([]);
   });
 
   it('accepts a review input with no branch name, as on a detached HEAD', () => {
-    const { branch: _branch, ...checkout } = REVIEW_INPUT.checkout;
+    const { branch: _branch, ...checkout } = reviewInput.checkout;
     expect(reviewInputProblemsOf(reviewInputWith('checkout', checkout))).toEqual([]);
   });
 
   it.each([
-    ['no format version', reviewInputWith('formatVersion', undefined)],
-    ['format version 2', reviewInputWith('formatVersion', 2)],
-    ['a Diff limit', reviewInputWith('diffLimit', 40)],
-    ['a review', reviewInputWith('review', {})],
+    ['no format version', () => reviewInputWith('formatVersion', undefined)],
+    ['format version 2', () => reviewInputWith('formatVersion', 2)],
+    ['a Diff limit', () => reviewInputWith('diffLimit', 40)],
+    ['a review', () => reviewInputWith('review', {})],
     [
       'a base graph document with no checker',
-      reviewInputWith('base', [{ ...GRAPH_DOCUMENT, checker: undefined }]),
+      () => reviewInputWith('base', [{ ...GRAPH_DOCUMENT, checker: undefined }]),
     ],
-    ['a branch side that is not a list', reviewInputWith('branch', GRAPH_DOCUMENT)],
-    ['sources that are not packed', reviewInputWith('packedSources', { branch: {}, base: {} })],
-    ['sources that are not base64', reviewInputWith('packedSources', 'not base64!')],
+    ['a branch side that is not a list', () => reviewInputWith('branch', GRAPH_DOCUMENT)],
+    [
+      'sources that are not packed',
+      () => reviewInputWith('packedSources', { branch: {}, base: {} }),
+    ],
+    ['sources that are not base64', () => reviewInputWith('packedSources', 'not base64!')],
     [
       'no head commit',
-      reviewInputWith('checkout', { ...REVIEW_INPUT.checkout, headCommit: undefined }),
+      () => reviewInputWith('checkout', { ...reviewInput.checkout, headCommit: undefined }),
     ],
     [
       'no uncommitted mark',
-      reviewInputWith('checkout', { ...REVIEW_INPUT.checkout, uncommitted: undefined }),
+      () => reviewInputWith('checkout', { ...reviewInput.checkout, uncommitted: undefined }),
     ],
     [
       'an editor that Callmap does not know',
-      reviewInputWith('editor', { ...REVIEW_INPUT.editor, name: 'notepad' }),
+      () => reviewInputWith('editor', { ...reviewInput.editor, name: 'notepad' }),
     ],
-    ['no repo root', reviewInputWith('editor', { name: 'vscode' })],
-  ])('rejects a review input with %s', (_what, input) => {
-    expect(reviewInputProblemsOf(input)).not.toEqual([]);
+    ['no repo root', () => reviewInputWith('editor', { name: 'vscode' })],
+  ])('rejects a review input with %s', (_what, inputOf) => {
+    expect(reviewInputProblemsOf(inputOf())).not.toEqual([]);
   });
 });

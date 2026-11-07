@@ -23,7 +23,7 @@ const functionIdsOf = (page: LoadedPage): readonly string[] =>
     .map(({ id }) => id);
 
 describe('the layout of the Diff view and the Whole project view', () => {
-  it('is not in the review input that the command writes', () => {
+  it('is not in the review input that the page reads', () => {
     expect(Object.keys(reviewInputOfPage(html))).not.toContain('placements');
   });
 

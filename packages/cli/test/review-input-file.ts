@@ -31,7 +31,7 @@ const withCheckerVersion = (document: GraphDocument): GraphDocument => ({
   checker: { ...document.checker, version: typescriptVersion() },
 });
 
-const reviewInputOfFile = (file: ReviewInputFile): Promise<ReviewInput> => {
+export const reviewInputOfFile = (file: ReviewInputFile): Promise<ReviewInput> => {
   const input = expectedReviewInputOf(file);
   return packedReviewInputOf({
     ...input,
