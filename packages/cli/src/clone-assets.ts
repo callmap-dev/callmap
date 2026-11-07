@@ -6,7 +6,7 @@ import type { Assets } from './assets.ts';
 import { sha256OfFiles } from './file-hash.ts';
 import type { NamedFile } from './file-hash.ts';
 import { typescriptVersionFor } from './package-manifest.ts';
-import { pageScript, pageStyle } from './page-build.ts';
+import { pageTemplate } from './page-build.ts';
 
 const TYPESCRIPT_EXTRACTOR = fileURLToPath(
   import.meta.resolve('@callmap/extractor-typescript/cli'),
@@ -69,8 +69,7 @@ export const rubySourceFiles = (): readonly NamedFile[] => {
 
 export const assets: Assets = {
   typescriptExtractor: TYPESCRIPT_EXTRACTOR,
-  pageScript,
-  pageStyle,
+  pageTemplate,
   typescriptExtractorVersion: () =>
     sha256OfFiles(
       extractorSourceFiles(),

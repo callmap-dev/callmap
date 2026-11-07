@@ -1,7 +1,6 @@
 export interface Assets {
   readonly typescriptExtractor: string;
-  readonly pageScript: () => Promise<string>;
-  readonly pageStyle: () => string;
+  readonly pageTemplate: () => Promise<string>;
   readonly typescriptExtractorVersion: () => string;
   readonly goExtractor: string;
   readonly goExtractorVersion: (goVersion: string) => string;

@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { rolldown } from 'rolldown';
+import { pageTemplateOf } from './page-template.ts';
 
 const PAGE = fileURLToPath(new URL('../page/', import.meta.url));
 const PARTS = join(PAGE, 'parts');
@@ -57,9 +58,10 @@ export const pageBundle = async (): Promise<PageBundle> => {
   }
 };
 
-export const pageScript = async (): Promise<string> => (await pageBundle()).script;
-
 export const pageStyle = (): string =>
   [join(PAGE, 'page.css'), join(PAGE, 'drawing.css'), ...partsWith('.css')]
     .map((path) => readFileSync(path, 'utf8'))
     .join('\n');
+
+export const pageTemplate = async (): Promise<string> =>
+  pageTemplateOf(pageStyle(), (await pageBundle()).script);
