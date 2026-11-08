@@ -1,20 +1,15 @@
 /**
  * The test files that no walk reads unless the user asks for them with `--tests` (ADR-0029). The
- * globs name the file-name rules of each language, and the folders that hold tests by convention.
- * The Go extractor is a Go program with its own copy of this list, `testGlobs` in
+ * globs live in test-globs.json at the root of this package, keyed by language, so that every
+ * distribution reads the same data. Every walk leaves out the test files of every language, so the
+ * same scope gives the same graph document in every distribution. The Go extractor is a Go program with its own copy of this list, `testGlobs` in
  * packages/extractor-go/go/scope.go. A test fails when the 2 copies differ.
  */
 
+import testGlobsByLanguage from '../test-globs.json' with { type: 'json' };
+
 export const TEST_GLOBS: readonly string[] = [
-  '**/*_test.go',
-  '**/*.test.*',
-  '**/*.spec.*',
-  '**/*_spec.rb',
-  '**/*_test.rb',
-  '**/__tests__/**',
-  '**/test/**',
-  '**/tests/**',
-  '**/spec/**',
+  ...new Set(Object.values(testGlobsByLanguage).flat()),
 ];
 
 /**

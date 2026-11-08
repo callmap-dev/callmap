@@ -1,19 +1,21 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { reviewInputOfPage } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { featureBranchRepo, fixtureText, git } from './fixture-repo.ts';
 import {
   boxesOf,
   callsOf,
-  dataBlockOf,
   fakeOpener,
   frameAround,
   framesOf,
   loadReaderPage,
   pageDataOf,
+  reviewHtmlOf,
   runCallmap,
   sourcesOf,
 } from './reader-page.ts';
+import { readerPageOfFile, typescriptVersion } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const CART = 'src/cart.ts';
@@ -40,7 +42,7 @@ beforeAll(() => {
   expect(finished.status, finished.stderr).toBe(0);
   stdout = finished.stdout;
   html = readFileSync(out, 'utf8');
-}, 120_000);
+});
 
 describe('callmap review on a feature branch', () => {
   it('marks each added, removed and changed function, and each neighbour', () => {
@@ -82,13 +84,36 @@ describe('callmap review on a feature branch', () => {
     ]);
   });
 
-  it('holds the whole branch graph in the data block, so the page can open more of it', () => {
-    const { branchGraph } = pageDataOf(html);
-    expect(branchGraph.functions.map(({ id }) => id)).toContain(`${MONEY}#round`);
+  it('holds the whole branch graph in the review of the data block, so the page can open more of it', () => {
+    const { review } = pageDataOf(html);
+    expect(review.branch.functions.map(({ id }) => id)).toContain(`${MONEY}#round`);
+  });
+
+  it('holds only the review input in the data block, with no review, no call graph and no base places', () => {
+    const input = reviewInputOfPage(html);
+    expect(Object.keys(input).sort()).toEqual([
+      'base',
+      'branch',
+      'checkout',
+      'editor',
+      'formatVersion',
+      'packedSources',
+    ]);
+    expect(input.formatVersion).toBe(1);
+    expect(input.base.map(({ language }) => language)).toEqual(['typescript']);
+    expect(input.branch.map(({ language }) => language)).toEqual(['typescript']);
+  });
+
+  it('names the TypeScript of the extractor as the checker of each graph document', () => {
+    const input = reviewInputOfPage(html);
+    expect([...input.base, ...input.branch].map(({ checker }) => checker)).toEqual([
+      { name: 'TypeScript', version: typescriptVersion() },
+      { name: 'TypeScript', version: typescriptVersion() },
+    ]);
   });
 
   it('holds no plain file text in the data block', () => {
-    const block = dataBlockOf(html);
+    const block = JSON.stringify(reviewInputOfPage(html));
     const lines = [ALERTS, CART, CHECKOUT, MONEY, NOTIFY, REPORT, RATE]
       .flatMap((file) => [
         ...fixtureText('branch', file).split('\n'),
@@ -102,8 +127,8 @@ describe('callmap review on a feature branch', () => {
     }
   });
 
-  it('holds the branch text of every file that the review or the search shows, and the base text of every file with a removed or changed function', () => {
-    const sources = sourcesOf(html);
+  it('holds the branch text of every file in the branch graph documents, and the base text of every file that the branch changed', async () => {
+    const sources = await sourcesOf(html);
     expect(sources.branch).toEqual({
       [ALERTS]: fixtureText('branch', ALERTS),
       [CART]: fixtureText('branch', CART),
@@ -116,11 +141,12 @@ describe('callmap review on a feature branch', () => {
     expect(sources.base).toEqual({
       [ALERTS]: fixtureText('base', ALERTS),
       [CART]: fixtureText('base', CART),
+      [MONEY]: fixtureText('base', MONEY),
     });
   });
 
   it('holds the lines that each changed function had in the base, so the page can show its diff', () => {
-    expect(pageDataOf(html).basePlaces).toEqual({
+    expect(pageDataOf(html).review.basePlaces).toEqual({
       [`${ALERTS}#alert`]: { firstLine: 3, lastLine: 3 },
       [`${CART}#receipt`]: { firstLine: 10, lastLine: 13 },
     });
@@ -140,15 +166,44 @@ describe('callmap review on a feature branch', () => {
   });
 });
 
+describe('the base sources of the review input', () => {
+  const baseFilesOf = async (repo: string, ...flags: readonly string[]) =>
+    Object.keys((await sourcesOf(reviewHtmlOf(repo, ...flags))).base);
+
+  it('hold the old path of a renamed file and of a removed file, and no path that the base does not hold', async () => {
+    const renamed = featureBranchRepo();
+    git(renamed, 'mv', REPORT, 'src/summary.ts');
+    git(renamed, 'rm', '--quiet', RATE);
+    git(renamed, 'commit', '--quiet', '--message', 'rename and remove');
+    expect(await baseFilesOf(renamed)).toEqual([ALERTS, CART, MONEY, REPORT, RATE]);
+  });
+
+  it('hold only the changed files in scope', async () => {
+    expect(await baseFilesOf(featureBranchRepo(), '--scope', CART)).toEqual([CART]);
+  });
+
+  it('hold a changed file that is not committed yet', async () => {
+    const uncommitted = featureBranchRepo();
+    writeFileSync(join(uncommitted, CHECKOUT), `${fixtureText('branch', CHECKOUT)}\n`);
+    expect(await baseFilesOf(uncommitted)).toEqual([ALERTS, CART, CHECKOUT, MONEY]);
+  });
+});
+
 describe('the reader page', () => {
+  let pageHtml = '';
+
+  beforeAll(async () => {
+    pageHtml = await readerPageOfFile('typescript/review');
+  });
+
   it('inlines every script and style, so it makes no network request', () => {
-    expect(html).not.toMatch(/<script[^>]*\ssrc=/i);
-    expect(html).not.toMatch(/<link\b/i);
-    expect(html).not.toMatch(/@import|url\(\s*['"]?https?:/i);
+    expect(pageHtml).not.toMatch(/<script[^>]*\ssrc=/i);
+    expect(pageHtml).not.toMatch(/<link\b/i);
+    expect(pageHtml).not.toMatch(/@import|url\(\s*['"]?https?:/i);
   });
 
   it('draws each function the review shows as a box inside the frame of its file', async () => {
-    const page = await loadReaderPage(html);
+    const page = await loadReaderPage(pageHtml);
     const boxes = boxesOf(page).filter(({ kind }) => kind === 'function');
     expect(
       boxes
@@ -166,24 +221,24 @@ describe('the reader page', () => {
   });
 
   it('draws each call as an arrow from the caller to the callee, with its mark', async () => {
-    const arrows = callsOf(await loadReaderPage(html)).map(({ from, to, classes }) => ({
+    const arrows = callsOf(await loadReaderPage(pageHtml)).map(({ from, to, classes }) => ({
       caller: from,
       callee: to,
       mark: ['added', 'removed', 'kept'].find((mark) => classes.includes(mark)),
     }));
-    expect(arrows).toEqual(pageDataOf(html).review.calls);
+    expect(arrows).toEqual(pageDataOf(pageHtml).review.calls);
   });
 
   it('marks each box with its mark', async () => {
     const classesOf = new Map(
-      boxesOf(await loadReaderPage(html)).map(({ id, classes }) => [id, classes]),
+      boxesOf(await loadReaderPage(pageHtml)).map(({ id, classes }) => [id, classes]),
     );
     expect(classesOf.get(`${CART}#legacyTotal`)).toContain('removed');
     expect(classesOf.get(`${MONEY}#format`)).toContain('neighbour');
   });
 
   it('places every box the same way on every load, and the boxes of one file and one column in line order', async () => {
-    const placed = async () => boxesOf(await loadReaderPage(html));
+    const placed = async () => boxesOf(await loadReaderPage(pageHtml));
     const boxes = await placed();
     expect(await placed()).toEqual(boxes);
     const boxOf = (name: string) => boxes.find(({ id }) => id === `${CART}#${name}`);
@@ -203,7 +258,7 @@ describe('opening the page', () => {
     expect(finished.status, finished.stderr).toBe(0);
     await expect.poll(() => existsSync(opener.marker), { timeout: 5_000 }).toBe(true);
     expect(readFileSync(opener.marker, 'utf8')).toBe(target);
-  }, 120_000);
+  });
 
   it('opens no browser with --no-open, and still writes the page', async () => {
     const opener = fakeOpener();
@@ -213,5 +268,5 @@ describe('opening the page', () => {
     expect(existsSync(target)).toBe(true);
     await new Promise((settle) => setTimeout(settle, 500));
     expect(existsSync(opener.marker)).toBe(false);
-  }, 120_000);
+  });
 });

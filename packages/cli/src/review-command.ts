@@ -1,16 +1,15 @@
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import type { GraphDocument } from '@callmap/graph-document';
-import { reviewGraphsOf, reviewOf } from '@callmap/review';
+import { packedSourcesOf, REVIEW_INPUT_FORMAT_VERSION } from '@callmap/review-input';
+import type { Checkout } from '@callmap/review-input';
 import { effectiveScope, inScope, isSkippedDirectory } from '@callmap/scope';
-import { DIFF_LIMIT } from '../page/views/diff.ts';
-import type { Checkout } from '../page/data.ts';
 import type { ReviewInvocation } from './arguments.ts';
 import { throughBaseCache } from './base-cache.ts';
 import { openInBrowser } from './browser.ts';
+import type { Extractor } from './extractor.ts';
 import { extractorsFor } from './extractors.ts';
-import type { Extractor } from './extractors.ts';
 import {
   branchNameOf,
   commitOf,
@@ -25,7 +24,7 @@ import {
   workingTreeFilesOf,
 } from './git.ts';
 import { readerPageOf } from './reader-page.ts';
-import { basePlacesOf, sourcesOf } from './sources.ts';
+import { sourcesOf } from './sources.ts';
 
 export class UnreadableGraphError extends Error {
   override readonly name = 'UnreadableGraphError';
@@ -48,14 +47,6 @@ const readGraphDocumentOf = async (
       `${what} could not be read: ${reason.replaceAll(`${path}/`, '')}`,
     );
   }
-};
-
-const tsconfigOf = (root: string, tsconfig: string | undefined): string | undefined => {
-  if (tsconfig === undefined) return undefined;
-  const absolute = resolve(root, tsconfig);
-  const path = existsSync(absolute) ? realpathSync(absolute) : absolute;
-  const inRepo = relative(root, path);
-  return inRepo.startsWith('..') || isAbsolute(inRepo) ? path : inRepo;
 };
 
 const settled = <T>(result: PromiseSettledResult<T>): T => {
@@ -103,7 +94,6 @@ interface LanguageDocuments {
 }
 
 export interface ReviewSettings {
-  readonly diffLimit: number;
   readonly extractors?: readonly Extractor[];
 }
 
@@ -114,7 +104,7 @@ export interface FinishedReview {
 
 export const runReview = async (
   invocation: ReviewInvocation,
-  { diffLimit, extractors }: ReviewSettings = { diffLimit: DIFF_LIMIT },
+  { extractors }: ReviewSettings = {},
 ): Promise<FinishedReview> => {
   const root = repoRootOf(resolve(invocation.repo));
   const reviewBase = baseOf(root, invocation.base);
@@ -124,8 +114,12 @@ export const runReview = async (
     const readBranch = (): Promise<GraphDocument> =>
       readGraphDocumentOf('the branch', root, extractor, scope);
     const readBase = (): Promise<GraphDocument> =>
-      inWorktreeAt(root, base, (path) =>
-        readGraphDocumentOf(`the base ${shortCommitOf(root, base)}`, path, extractor, scope),
+      inWorktreeAt(
+        root,
+        base,
+        (path) =>
+          readGraphDocumentOf(`the base ${shortCommitOf(root, base)}`, path, extractor, scope),
+        extractor.prepareBase,
       );
     const readCachedBase = (): Promise<GraphDocument> =>
       invocation.cache
@@ -143,7 +137,7 @@ export const runReview = async (
   };
 
   const picked = extractorsInScope(
-    extractors ?? extractorsFor(tsconfigOf(root, invocation.tsconfig)),
+    extractors ?? extractorsFor(root, invocation),
     [...workingTreeFilesOf(root), ...filesAtCommit(root, base)],
     scope,
   );
@@ -152,19 +146,16 @@ export const runReview = async (
   for (const { extractor } of checked.filter(({ skipNote }) => skipNote === undefined)) {
     read.push(await documentsOf(extractor));
   }
-  const graphs = reviewGraphsOf({
+  const documents = {
     base: read.map(({ base }) => base),
     branch: read.map(({ branch }) => branch),
-  });
-  const review = reviewOf(graphs);
-  const { html, notes } = await readerPageOf({
-    review,
-    branchGraph: graphs.branch,
-    sources: sourcesOf(root, base, review, graphs.branch),
-    basePlaces: basePlacesOf(review, graphs.base),
-    editor: { name: invocation.editor, repoRoot: root },
+  };
+  const html = await readerPageOf({
+    formatVersion: REVIEW_INPUT_FORMAT_VERSION,
+    ...documents,
+    packedSources: await packedSourcesOf(sourcesOf(root, base, documents)),
     checkout: checkoutOf(root, reviewBase, scope),
-    diffLimit,
+    editor: { name: invocation.editor, repoRoot: root },
   });
 
   const out = resolve(invocation.out ?? defaultOutOf(root));
@@ -176,7 +167,6 @@ export const runReview = async (
     notes: [
       ...checked.flatMap(({ skipNote }) => skipNote ?? []),
       ...checked.flatMap(({ extractor }) => extractor.notes?.() ?? []),
-      ...notes,
     ],
   };
 };

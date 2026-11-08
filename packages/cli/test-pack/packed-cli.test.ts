@@ -3,10 +3,13 @@ import type { SpawnSyncReturns } from 'node:child_process';
 import { chmodSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pageOfTemplate } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { tempDir } from '../../../test/temp-dir.ts';
 import { featureBranchRepo, goRepo, rubyRepo } from '../test/fixture-repo.ts';
+import { readerPageOf } from '../src/reader-page.ts';
 import { pageDataOf } from '../test/reader-page.ts';
+import { reviewInputOfFile } from '../test/review-input-file.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -33,7 +36,7 @@ const packedCli = (): Tarball => {
 };
 
 const PACKAGE_FILE =
-  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|css|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS))|dist\/ruby\/[^/]+\.rb)$/;
+  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|html|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS))|dist\/ruby\/[^/]+\.rb)$/;
 
 let tarball: Tarball;
 
@@ -99,6 +102,22 @@ describe('the packed @callmap/cli', () => {
         'dist/THIRD-PARTY-NOTICES.txt',
       ]),
     );
+  });
+
+  it('holds the page template, and the page from it is byte-identical to the page from the clone', async () => {
+    const template = readFileSync(
+      join(
+        installedRepo(tarball.path),
+        'node_modules',
+        '@callmap',
+        'cli',
+        'dist',
+        'page-template.html',
+      ),
+      'utf8',
+    );
+    const input = await reviewInputOfFile('typescript/review');
+    expect(pageOfTemplate(template, input)).toBe(await readerPageOf(input));
   });
 
   it('holds the source of the Go extractor with its vendored modules', () => {

@@ -1,14 +1,7 @@
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo } from './fixture-repo.ts';
-import {
-  boxesOf,
-  clickBox,
-  loadReaderPage,
-  openTab,
-  reviewHtmlOf,
-  settled,
-} from './reader-page.ts';
+import { boxesOf, clickBox, loadReaderPage, openTab, settled } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { LoadedPage } from './reader-page.ts';
 
 const CART = 'src/cart.ts';
@@ -17,9 +10,9 @@ const BOTH_PANELS_CLOSED = 900;
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

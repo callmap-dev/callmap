@@ -91,7 +91,7 @@ By default, the review reads no test file. A test file is a path that one of the
 
 ## The reader page
 
-The page is one HTML file with no network access, so it opens from a file anywhere. ELK lays out the graph, and the page draws it as SVG. The command lays out the Diff view and the top level of the Whole project view, so they open with no wait. A Diff view over the Diff limit gets no layout. The page lays out the other views and the other levels when you open them. The page stores the file texts as one gzip block, and the browser unpacks it with `DecompressionStream` after the first view draws. Each call is a line that turns only at 90 degrees and never goes through a box. The callers stand on the left and the callees on the right. The page follows the light mode or the dark mode of the system.
+The page is one HTML file with no network access, so it opens from a file anywhere. ELK lays out the graph, and the page draws it as SVG. The page lays out each view and each level when you open it, in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. A Diff view over the Diff limit gets no layout. The page stores the file texts as one gzip block, and the browser unpacks it with `DecompressionStream` after the first view draws. Each call is a line that turns only at 90 degrees and never goes through a box. The callers stand on the left and the callees on the right. The page follows the light mode or the dark mode of the system.
 
 Each mark is a small chip with a glyph on a neutral box. The glyph is Δ for changed, + for added, − for removed, · for neighbour, ? for an open end. So a screen full of changes stays calm, and a mark does not depend on colour alone. A removed function also has a dashed border.
 
@@ -205,7 +205,7 @@ A click on a folder box opens the level of that folder, inside its folder frame.
 
 A click on a file box opens the file level. It shows the functions of the file in a file frame, and each call between them has its own line, as in the Diff view. A caller or a callee in another file ends at an outside box, by the same rule. The calls between one function and one outside box share one line with their count. The open ends, the one-of groups, the selection and the code panel work on the file level as in the other views. The level bar at the top of the graph holds the breadcrumb and the button "Up one level". It also counts the boxes and the lines of the level. The breadcrumb names each level from the top level down to the open one. A click on a name opens that level again. The search opens the file level of the function that it finds and selects its box.
 
-The command lays out the top level. The page lays out each other level the first time that you open it, and keeps that layout. The layout time of a level depends on its boxes and lines, not on the size of the repo. Each layout in the page records a `performance.measure` with the name `callmap layout:`, the view and the level, so the profiler of the browser shows it. ADR-0017 records the numbers on a large repo.
+The page lays out each level the first time that you open it, and keeps that layout. The layout time of a level depends on its boxes and lines, not on the size of the repo. Each layout in the page records a `performance.measure` with the name `callmap layout:`, the view and the level, so the profiler of the browser shows it. ADR-0017 records the numbers on a large repo.
 
 ## Ask Claude for a review
 
@@ -222,6 +222,7 @@ Then ask Claude for a Callmap review of the branch. The skill needs the `callmap
 - `docs/product.md` holds the product record.
 - `GLOSSARY.md` holds the vocabulary.
 - `docs/adr/` holds the architectural decisions. ADR-0012 tells how the product became a call graph reader. ADR-0014 tells why it is named callmap.
+- `docs/command-contract.md` holds the command contract that every distribution follows.
 - `docs/research/` holds the measurements and the research behind the decisions.
 
 ## Packages
@@ -232,6 +233,7 @@ The core packages read data and never read source code or a filesystem. See ADR-
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@callmap/graph-document` | The graph document an extractor emits: files, functions, calls with their one-of groups, open ends, a language and a scope                                                 |
 | `@callmap/review`         | The review of a branch: the changed functions, their neighbours, the added and removed calls, their open ends and one-of groups, and one resolution rate for each language |
+| `@callmap/review-input`   | The review input in the data block of the reader page: its type, its format version, the escape rule, the packed sources, and the read and the write of the data block |
 | `@callmap/scope`          | The scope globs, the test globs and the skipped directories that every walk of a repo shares                                                                                               |
 | `@callmap/editor-link`    | The editor link that opens a file at a line                                                                                                                                |
 
@@ -243,15 +245,15 @@ The extractors are the other side of the contract. Each one reads a repo and nam
 | `@callmap/extractor-go`         | Go, with functions and calls resolved by `go/types`                                         |
 | `@callmap/extractor-ruby`       | Ruby, with functions and calls resolved by the Callmap Ruby rules                           |
 
-The host runs the extractors and the core, and writes the reader page.
+The host runs the extractors and writes the review input into the reader page. The page computes the review.
 
 | Package        | What it owns                                                                              |
 | -------------- | ----------------------------------------------------------------------------------------- |
 | `@callmap/cli` | The `callmap` command: git, the extractor processes, and the reader page with ELK inlined |
 
-The page script lives in `packages/cli/page/`. `npm run build` bundles it with `elkjs` once, into `packages/cli/dist/page.js`, and the command inlines that file into each page. A run of the source in `packages/cli/src/` bundles the page script at each run, so a test always sees the current page. The command lays out the Diff view and the top level of the Whole project view in worker threads with the same layout module, `page/layout.ts`, and writes the places into the page data. `page/levels.ts` builds the boxes and the lines of each level. The page lays out the other views in the browser, and draws every view as SVG. A view is one module in `packages/cli/page/views/`: a pure function from the page data to frames, boxes and lines. A new part of the page is one module in `packages/cli/page/parts/` that default-exports a `PagePart`. The CLI loads each part in name order, with no change to another file.
+The page script lives in `packages/cli/page/`. `npm run build` bundles it with `elkjs` once, and writes the page template `packages/cli/dist/page-template.html`. The page template is the HTML shell of the reader page with the page style and the page script inlined. Its data block holds the marker `{{CALLMAP_REVIEW_INPUT}}`, and the command writes each page with `pageOfTemplate` of `@callmap/review-input`, which puts the escaped review input at the marker of the data block. A run of the source in `packages/cli/src/` builds the page template at each run, so a test always sees the current page. `page/levels.ts` builds the boxes and the lines of each level. The layout module, `page/layout.ts`, holds the ELK options, keeps the layout of each choice of the reader and marks the graph busy. It runs ELK in a Web Worker from the worker source that the build inlines as a fixed string, and in the page thread where the browser has no `Worker`, as in JSDOM. The page draws every view as SVG. A view is one module in `packages/cli/page/views/`: a pure function from the page data to frames, boxes and lines. A new part of the page is one module in `packages/cli/page/parts/` that default-exports a `PagePart`. The CLI loads each part in name order, with no change to another file.
 
-Only `@callmap/cli` goes to npm. `npm run build` writes it to `packages/cli/dist/`: the command, the layout worker, the TypeScript extractor, the launcher of the Go extractor, the Ruby extractor `extract-ruby.js`, and the page script and style. The build bundles the other `@callmap/*` packages and `elkjs` into these files. `typescript` stays a dependency of the package, at a pinned version. The build copies the Go source of the Go extractor, with its vendored modules, into `packages/cli/dist/go/`, and the command builds it on the first run. The build copies the Ripper script of the Ruby extractor to `packages/cli/dist/ruby/read.rb`. ADR-0021 and ADR-0026 record why.
+Only `@callmap/cli` goes to npm. `npm run build` writes it to `packages/cli/dist/`: the command, the TypeScript extractor, the launcher of the Go extractor, the Ruby extractor `extract-ruby.js`, and the page template `page-template.html` with the page script and style inlined. The build bundles the other `@callmap/*` packages and `elkjs` into these files. `typescript` stays a dependency of the package, at a pinned version. The build copies the Go source of the Go extractor, with its vendored modules, into `packages/cli/dist/go/`, and the command builds it on the first run. The build copies the Ripper script of the Ruby extractor to `packages/cli/dist/ruby/read.rb`. ADR-0021 and ADR-0026 record why.
 
 `test/core-is-language-blind-and-pure.test.ts` reads the imports of every package. It holds the core away from the filesystem and from any language name. It holds each extractor to the opposite. It holds the host to its own list, and keeps the page script off every Node built-in.
 
@@ -266,6 +268,42 @@ node packages/extractor-go/src/cli.ts <repo> [--scope <glob>]... [--tests]
 The Ruby extractor needs `ruby` on the `PATH`. It parses with Ripper, which every Ruby ships, so it needs no gem. The Go extractor needs `go` 1.26 or later on the `PATH`, because its vendored `golang.org/x/tools` v0.52.0 needs it. It loads the repo with `golang.org/x/tools/go/packages`, which its module vendors. It runs the go tool with `GOPROXY=off` and `GOTOOLCHAIN=local`, so it needs no network.
 
 An extractor must be tested against files on disk. The TypeScript and Ruby extractors commit a small fixture repo under `packages/<extractor>/fixture/`. The tests of the Go extractor write a throwaway repo for each case.
+
+## Release assets
+
+Each distribution shares a set of assets with this repo. A `v*` tag releases them. The release job attaches 2 files to the GitHub release of the tag:
+
+- `callmap-core-assets-<version>.tar.gz` is the archive of the assets. The version is the tag without the `v`. So the tag `v0.2.0` gives `callmap-core-assets-0.2.0.tar.gz`.
+- `callmap-core-assets-<version>.tar.gz.sha256` holds the SHA-256 checksum of the archive, in the format of `sha256sum`.
+
+The archive holds one folder, `callmap-core-assets-<version>/`, with these assets:
+
+- `page-template.html` is the page template. A distribution writes each reader page from it and the escaped review input.
+- `graph-document.schema.json` is the JSON Schema of the graph document.
+- `review-input.schema.json` is the JSON Schema of the review input.
+- `test-globs.json` holds the test globs of each language. A review leaves out these files without `--tests`.
+- `fixture-repos/` holds the fixture repos of the conformance suite. Each fixture repo holds its expected review input. `packages/conformance/README.md` tells how the suite reads them.
+
+A distribution pins one version of the assets in a file of its repo. It downloads the archive and the checksum file of that version, and checks the archive before it unpacks it:
+
+```sh
+version=0.2.0
+release=https://github.com/spasoye-json/callmap/releases/download/v$version
+curl -fLO "$release/callmap-core-assets-$version.tar.gz"
+curl -fLO "$release/callmap-core-assets-$version.tar.gz.sha256"
+sha256sum -c "callmap-core-assets-$version.tar.gz.sha256"
+tar -xzf "callmap-core-assets-$version.tar.gz"
+```
+
+The CI of the distribution then runs the conformance suite on the fixture repos of the pinned version. It gives the folder to the suite with `--fixtures callmap-core-assets-<version>/fixture-repos`.
+
+The release job builds the assets from the tagged commit with `npm run release-assets`. The script `scripts/release-assets.ts` packs the assets and runs the conformance suite on the packed fixture repos, with the `callmap` command of the same commit. If the suite fails, the script writes no archive, and the job stops before it publishes anything. For example, this writes the archive of `v0.2.0` to `release-assets/`:
+
+```sh
+npm run release-assets -- v0.2.0 release-assets node packages/cli/src/cli.ts
+```
+
+The script reads the page template from `packages/cli/dist/`, so run `npm run build` first.
 
 ## Checks
 

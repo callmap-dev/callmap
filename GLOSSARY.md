@@ -82,6 +82,18 @@ _Avoid_: graph JSON, payload, manifest
 What a distribution gives the reader page for one review: the graph documents of the base and the branch, the source of the files that the page shows, the facts from git and the editor that the editor links open. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
 _Avoid_: page data, payload, review data
 
+**Data block**:
+The one `script` element of the reader page that holds the review input as JSON. Each `<` in the JSON is written as `<`, so no source text can close the element. The page reads its review input from the data block only.
+_Avoid_: page data, data island, payload
+
+**Format version**:
+The number in the review input that names the version of its format. It starts at 1. The reader page refuses a review input of a format version that it does not know, and its message says which side to update: the reader page or the distribution.
+_Avoid_: schema version, API version
+
+**Packed sources**:
+The source texts of a review input as one text: the JSON of the branch sources and the base sources, packed with gzip and written in base64. Every language has gzip and base64 in its standard library.
+_Avoid_: compressed sources, source blob
+
 **Checker**:
 The tool of a language that proves the calls of a graph document, with its name and its full version, such as TypeScript 6.0.3. It is the tool that the extractor runs, not the tool that the repo under review installs. Ruby has no type checker, so its checker names Callmap's own Ruby rules and the Ruby that runs them. The page shows it next to the resolution rate of its language, one checker for each language on the page.
 _Avoid_: compiler, type checker version, toolchain
@@ -109,6 +121,10 @@ _Avoid_: spec file, test code
 **Reader page**:
 The one self-contained HTML file that the CLI writes. It holds the whole call graph in scope as data, so the reader can open more of it with no server.
 _Avoid_: report, dashboard, artifact
+
+**Page template**:
+The HTML shell of the reader page, with the page style and the page script inlined. Its data block holds the marker `{{CALLMAP_REVIEW_INPUT}}` in place of the JSON. A distribution writes each reader page from the page template: it puts the escaped review input at the marker of the data block and changes no other byte.
+_Avoid_: page shell, HTML template
 
 **Editor link**:
 The link on a function that opens its file and line in the reader's editor. A removed function has no editor link, because its file and line are gone from the working tree.
@@ -199,3 +215,17 @@ _Avoid_: step, depth
 **Neighbour**:
 A function one hop from a changed function that the branch did not change. Every view shows it greyed. In the Diff view, a click opens its own next hop. A function further from the change gets no mark. The hop counts in the base graph and in the branch graph, so the far end of a call that the branch removed is a neighbour too, and the page shows that call.
 _Avoid_: context function, related function
+
+### Release
+
+**Conformance suite**:
+The check that a distribution gives the right review input. It runs the review command of the distribution on each fixture repo of its language. It unpacks the sources, masks the values that change from one machine to the next, and compares the result with the expected review input as JSON values.
+_Avoid_: golden test, snapshot test
+
+**Fixture repo**:
+A small repo that a test reads from disk. A fixture repo of the conformance suite holds the files of the base, the files of the branch and the expected review input, for one language and one case. The suite makes a repo with git history from it, with one commit for each side.
+_Avoid_: sample repo, test repo
+
+**Release assets**:
+The files that a `v*` tag of this repo releases for the distributions: the page template, the JSON Schemas, the test globs and the fixture repos of the conformance suite. The release attaches them as one archive with a checksum file. Each distribution pins one version of them.
+_Avoid_: artifacts, bundle

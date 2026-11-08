@@ -2,13 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import {
-  COUNTDOWN,
-  countdownRepo,
-  featureBranchRepo,
-  featureBranchRepoWithUnchangedFiles,
-  levelsRepo,
-} from './fixture-repo.ts';
+import { COUNTDOWN, countdownRepo, featureBranchRepoWithUnchangedFiles } from './fixture-repo.ts';
 import {
   boxElementOf,
   boxesOf,
@@ -22,6 +16,7 @@ import {
   runCallmap,
 } from './reader-page.ts';
 import type { DrawnBox, DrawnLine, LoadedPage, Point } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const MONEY = 'src/money.ts';
@@ -39,12 +34,12 @@ const reviewPageOf = (repo: string): string => {
   return readFileSync(out, 'utf8');
 };
 
-beforeAll(() => {
-  html = reviewPageOf(featureBranchRepo());
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
   folderHtml = reviewPageOf(featureBranchRepoWithUnchangedFiles());
   cycleHtml = reviewPageOf(countdownRepo());
-  levelsHtml = reviewPageOf(levelsRepo());
-}, 120_000);
+  levelsHtml = await readerPageOfFile('typescript/levels');
+});
 
 const folderViewOf = async (folder: string): Promise<LoadedPage> => {
   const page = await loadReaderPage(folderHtml);
@@ -155,13 +150,13 @@ describe('the lines of the drawing', () => {
         );
       }
     }
-  }, 30_000);
+  });
 
   it('draws no segment of a line through a box that is not its caller or its callee', async () => {
     for (const [name, page] of await pagesWithLevelsToCheck()) {
       expect(crossingsOf(page), name).toEqual([]);
     }
-  }, 30_000);
+  });
 
   it('draws each caller left of its callee, except the call back of a cycle', async () => {
     for (const [name, page] of await pagesWithACycleToCheck()) {
@@ -176,7 +171,7 @@ describe('the lines of the drawing', () => {
         expect(caller.x + caller.width, `${name}: ${from} -> ${to}`).toBeLessThanOrEqual(callee.x);
       }
     }
-  }, 30_000);
+  });
 });
 
 const SHORTEST_PART_FOR_A_BADGE = 32;
@@ -240,7 +235,7 @@ describe('the count badges of the lines', () => {
       }
     }
     expect(checked).toBeGreaterThan(0);
-  }, 30_000);
+  });
 });
 
 const transformOf = ({ window }: LoadedPage): string =>

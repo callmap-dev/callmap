@@ -8,5 +8,9 @@ GLOSSARY.md
 README.md
 docs/
 
+# A fixture repo is held as the review command must find it, and the suite
+# writes each expected file with its keys in sorted order.
+packages/conformance/fixture-repos/
+
 # Agent worktrees are other checkouts of this repo, linted in their own right.
 .claude/

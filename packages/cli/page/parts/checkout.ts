@@ -1,4 +1,4 @@
-import type { Checkout } from '../data.ts';
+import type { Checkout } from '@callmap/review-input';
 import { spanOf } from '../panel-elements.ts';
 import type { PagePart } from '../reader-page.ts';
 

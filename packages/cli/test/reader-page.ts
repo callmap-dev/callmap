@@ -1,12 +1,16 @@
 import { spawnSync } from 'node:child_process';
-import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Script } from 'node:vm';
-import { gunzipSync } from 'node:zlib';
 import { fireEvent, within } from '@testing-library/dom';
 import { JSDOM } from 'jsdom';
-import type { ReaderPageData, Sources } from '../page/data.ts';
+import { reviewInputOfPage, unpackedSourcesOf } from '@callmap/review-input';
+import type { Sources } from '@callmap/review-input';
+import { readerPageDataOf } from '../page/data.ts';
+import type { ReaderPageData } from '../page/data.ts';
+import { DIFF_LIMIT, DIFF_LIMIT_HOOK } from '../page/views/diff.ts';
+import { graphDocumentProblemsOf, reviewInputProblemsOf } from '../../../test/schemas.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const CLI = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
@@ -27,13 +31,38 @@ export const fakeOpener = (): Opener => {
   return { bin, marker };
 };
 
+const requireNoProblems = (what: string, problems: readonly string[]): void => {
+  if (problems.length > 0)
+    throw new Error(`${what} does not match its JSON Schema: ${problems.join(', ')}`);
+};
+
+const cachedGraphDocumentsIn = (cacheHome: string): readonly string[] => {
+  const folder = join(cacheHome, 'callmap');
+  if (!existsSync(folder)) return [];
+  return readdirSync(folder, { recursive: true, encoding: 'utf8' })
+    .filter((entry) => entry.endsWith('.json'))
+    .map((entry) => join(folder, entry));
+};
+
+const requireOutputsMatchSchemas = (page: string, cacheHome: string): void => {
+  for (const entry of cachedGraphDocumentsIn(cacheHome))
+    requireNoProblems(
+      `the cached graph document ${entry}`,
+      graphDocumentProblemsOf(JSON.parse(readFileSync(entry, 'utf8'))),
+    );
+  requireNoProblems(
+    `the review input of ${page}`,
+    reviewInputProblemsOf(reviewInputOfPage(readFileSync(page, 'utf8'))),
+  );
+};
+
 export const runCallmap = (
   args: readonly string[],
   opener?: Opener,
   cacheHome: string = tempDir('callmap-cache-'),
   env: NodeJS.ProcessEnv = {},
-) =>
-  spawnSync(process.execPath, [CLI, ...args], {
+) => {
+  const finished = spawnSync(process.execPath, [CLI, ...args], {
     encoding: 'utf8',
     env: {
       ...process.env,
@@ -44,6 +73,10 @@ export const runCallmap = (
       ...env,
     },
   });
+  if (args[0] === 'review' && finished.status === 0)
+    requireOutputsMatchSchemas(finished.stdout.trim(), cacheHome);
+  return finished;
+};
 
 export const reviewHtmlOf = (repo: string, ...flags: readonly string[]): string => {
   const out = join(tempDir('callmap-out-'), 'review.html');
@@ -52,28 +85,11 @@ export const reviewHtmlOf = (repo: string, ...flags: readonly string[]): string 
   return readFileSync(out, 'utf8');
 };
 
-export const dataBlockOf = (html: string): string => {
-  const block = /<script type="application\/json" id="reader-page-data">([^<]*)<\/script>/.exec(
-    html,
-  );
-  if (block?.[1] === undefined) throw new Error('the page holds no data block');
-  return block[1];
-};
-
 export const pageDataOf = (html: string): ReaderPageData =>
-  JSON.parse(dataBlockOf(html)) as ReaderPageData;
+  readerPageDataOf(reviewInputOfPage(html), DIFF_LIMIT);
 
-export const sourcesOf = (html: string): Sources =>
-  JSON.parse(
-    gunzipSync(Buffer.from(pageDataOf(html).packedSources, 'base64')).toString('utf8'),
-  ) as Sources;
-
-export const withPageData = (html: string, data: ReaderPageData): string =>
-  html.replace(
-    /(<script type="application\/json" id="reader-page-data">)[^<]*(<\/script>)/,
-    (_, open: string, close: string) =>
-      `${open}${JSON.stringify(data).replaceAll('<', '\\u003c')}${close}`,
-  );
+export const sourcesOf = (html: string): Promise<Sources> =>
+  unpackedSourcesOf(reviewInputOfPage(html).packedSources);
 
 export type Point = readonly [number, number];
 
@@ -296,8 +312,9 @@ const runPageScriptAtStub = (window: JSDOM['window'], script: Script): void => {
   });
 };
 
-export const loadReaderPage = async (
+const loadedPageOf = async (
   html: string,
+  beforeScripts: (window: JSDOM['window']) => void,
   stored?: StoredItems,
   textsHeldUntil?: Promise<void>,
   graphSize?: GraphSize,
@@ -311,6 +328,7 @@ export const loadReaderPage = async (
     ...browserApis,
     beforeParse: (window) => {
       browserApis.beforeParse(window);
+      beforeScripts(window);
       if (split.script !== undefined) runPageScriptAtStub(window, split.script);
     },
   });
@@ -318,6 +336,23 @@ export const loadReaderPage = async (
   await settled(page);
   return page;
 };
+
+export const loadReaderPage = (
+  html: string,
+  stored?: StoredItems,
+  textsHeldUntil?: Promise<void>,
+  graphSize?: GraphSize,
+): Promise<LoadedPage> => loadedPageOf(html, () => undefined, stored, textsHeldUntil, graphSize);
+
+export const loadReaderPageWithDiffLimit = (html: string, diffLimit: number): Promise<LoadedPage> =>
+  loadedPageOf(html, (window) => {
+    Object.assign(window, { [DIFF_LIMIT_HOOK]: diffLimit });
+  });
+
+export const loadReaderPageWith = (
+  html: string,
+  beforeScripts: (window: JSDOM['window']) => void,
+): Promise<LoadedPage> => loadedPageOf(html, beforeScripts);
 
 const numberOf = (element: Element | null, name: string): number =>
   Number(element?.getAttribute(name) ?? Number.NaN);

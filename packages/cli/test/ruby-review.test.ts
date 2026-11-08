@@ -3,8 +3,8 @@ import { writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { getByRole, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { rubyExtractor } from '../src/extractors.ts';
-import type { Extractor } from '../src/extractors.ts';
+import { rubyExtractor } from '../src/ruby-extractor.ts';
+import type { Extractor } from '../src/extractor.ts';
 import { runReview } from '../src/review-command.ts';
 import { commitFile, rubyRepo } from './fixture-repo.ts';
 import { cacheEntriesOf, reviewOf } from './cached-review.ts';
@@ -38,7 +38,7 @@ beforeAll(() => {
   repo = rubyRepo();
   cacheHome = tempDir('callmap-cache-');
   ({ html, stderr } = reviewOf(repo, cacheHome));
-}, 120_000);
+});
 
 describe('callmap review of a branch with Ruby and TypeScript', () => {
   it('marks the Ruby methods that the branch added, changed and removed, next to the TypeScript ones', () => {
@@ -102,7 +102,7 @@ describe('callmap review of a branch with Ruby and TypeScript', () => {
     expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
     expect(reviewOf(repo, cacheHome).html).toBe(html);
     expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
-  }, 60_000);
+  });
 });
 
 describe('callmap review of a Ruby constant that does not resolve', () => {
@@ -118,7 +118,7 @@ describe('callmap review of a Ruby constant that does not resolve', () => {
     expect(
       region.getByRole('button', { name: 'Ledger.total line 3 · code not found' }),
     ).toBeDefined();
-  }, 60_000);
+  });
 });
 
 describe('the base cache of a Ruby review', () => {
@@ -129,7 +129,7 @@ describe('the base cache of a Ruby review', () => {
     commitFile(root, 'Gemfile.lock', 'GEM\n  specs:\n    rake (13.3.0)\n');
     reviewOf(root, cache);
     expect(cacheEntriesOf(cache)).toHaveLength(2);
-  }, 60_000);
+  });
 
   it('reads the base again with a new ruby', () => {
     const root = rubyRepo();
@@ -137,7 +137,7 @@ describe('the base cache of a Ruby review', () => {
     reviewOf(root, cache);
     reviewOf(root, cache, pathWithAnotherRuby());
     expect(cacheEntriesOf(cache)).toHaveLength(3);
-  }, 60_000);
+  });
 });
 
 describe('callmap review with no ruby on the PATH', () => {
@@ -149,7 +149,7 @@ describe('callmap review with no ruby on the PATH', () => {
     const { review } = pageDataOf(skipped.html);
     expect(review.functions.map(({ id }) => id).every((id) => id.startsWith('web/'))).toBe(true);
     expect(review.resolutionRates.map(({ language }) => language)).toEqual(['typescript']);
-  }, 60_000);
+  });
 });
 
 describe('callmap review of a Ruby file that Ripper cannot parse', () => {
@@ -161,7 +161,7 @@ describe('callmap review of a Ruby file that Ripper cannot parse', () => {
       'callmap read no functions in app/models/broken.rb, because Ripper could not parse it.\n',
     );
     expect(pageDataOf(html).review.functions.map(({ id }) => id)).toContain(`${ORDER}#Order#total`);
-  }, 60_000);
+  });
 });
 
 describe('the reads of the Ruby extractor', () => {
@@ -191,8 +191,8 @@ describe('the reads of the Ruby extractor', () => {
         editor: 'vscode',
         tests: false,
       },
-      { diffLimit: 2000, extractors: [watched] },
+      { extractors: [watched] },
     );
     expect(steps).toEqual(['start branch', 'end branch', 'start base', 'end base']);
-  }, 60_000);
+  });
 });

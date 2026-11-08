@@ -13,6 +13,7 @@ import {
   settled,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const ORDERS = 'src/orders';
 const MONEY = 'src/money';
@@ -25,9 +26,9 @@ const RATE = `${TAX}/rate.ts`;
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(levelsRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/levels');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 
@@ -320,24 +321,27 @@ describe('the marks of a level', () => {
   });
 });
 
+const levelLayoutsOf = (page: LoadedPage): readonly string[] =>
+  page.layouts.filter((name) => name.startsWith('callmap layout: Whole project'));
+
 describe('the layout of a level', () => {
-  it('draws the top level from the page data with no layout in the page', async () => {
+  it('lays out the top level in the page once', async () => {
     const page = await projectPage();
     expect(boxesOf(page).length).toBeGreaterThan(0);
-    expect(page.layouts).toEqual([]);
+    expect(levelLayoutsOf(page)).toEqual(['callmap layout: Whole project level:src']);
   });
 
   it('lays out another level once, and not again on a second visit', async () => {
     const page = await ordersPage();
-    expect(page.layouts).toHaveLength(1);
+    expect(levelLayoutsOf(page)).toHaveLength(2);
     await clickBox(page, API);
     const firstVisit = boxesOf(page);
-    expect(page.layouts).toHaveLength(2);
+    expect(levelLayoutsOf(page)).toHaveLength(3);
     fireEvent.click(breadcrumbOf(page).getByRole('button', { name: 'src/' }));
     await settled(page);
     await clickBox(page, ORDERS);
     await clickBox(page, API);
-    expect(page.layouts).toHaveLength(2);
+    expect(levelLayoutsOf(page)).toHaveLength(3);
     expect(boxesOf(page)).toEqual(firstVisit);
   });
 });
@@ -346,7 +350,7 @@ describe('the page of a review with levels', () => {
   it('is byte-identical for two runs on the same commits', () => {
     const repo = levelsRepo();
     expect(reviewHtmlOf(repo)).toBe(reviewHtmlOf(repo));
-  }, 60_000);
+  });
 });
 
 describe('the search in the Whole project view', () => {

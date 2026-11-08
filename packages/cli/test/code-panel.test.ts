@@ -11,14 +11,15 @@ import {
   storedItemsOf,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const CART = 'src/cart.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 
@@ -111,7 +112,7 @@ describe('the diff in the code panel', () => {
     const added = codePanelOf(page).getAllByRole('insertion');
     expect(textsOf(added)).toEqual(['  console.log(total);']);
     expect(added[0]?.closest('.cm-line')?.classList.contains('added-only')).toBe(true);
-  }, 60_000);
+  });
 
   it('tints the line number of each removed and each added line, as GitHub does', async () => {
     expect(numberMarksOf(await readFunction(`${CART}#receipt`))).toEqual([

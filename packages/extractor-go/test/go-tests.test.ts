@@ -19,5 +19,5 @@ describe('the Go tests of the extractor', () => {
     });
     expect(finished.error).toBeUndefined();
     expect(finished.status, `${finished.stdout}${finished.stderr}`).toBe(0);
-  }, 120_000);
+  });
 });

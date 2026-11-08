@@ -14,6 +14,7 @@ import {
   settled,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const CART = 'src/cart.ts';
@@ -30,10 +31,10 @@ const reviewPage = (...flags: readonly string[]): string => {
   return readFileSync(out, 'utf8');
 };
 
-beforeAll(() => {
+beforeAll(async () => {
   repo = featureBranchRepo();
-  html = reviewPage();
-}, 120_000);
+  html = await readerPageOfFile('typescript/review');
+});
 
 const codePanelOf = ({ window }: LoadedPage) =>
   within(within(window.document.body).getByRole('region', { name: 'Code' }));
@@ -117,9 +118,9 @@ describe('the editor link', () => {
 
   it('opens the file of a function at its first line in VS Code by default', async () => {
     const root = git(repo, 'rev-parse', '--show-toplevel');
-    expect(await linkOf(await loadReaderPage(html), `${CART}#receipt`, 'Open in VS Code')).toBe(
-      `vscode://file${root}/${CART}:8`,
-    );
+    expect(
+      await linkOf(await loadReaderPage(reviewPage()), `${CART}#receipt`, 'Open in VS Code'),
+    ).toBe(`vscode://file${root}/${CART}:8`);
   });
 
   it('opens the file of a function at its first line in a JetBrains editor, which counts from 0', async () => {
@@ -128,7 +129,7 @@ describe('the editor link', () => {
     expect(await linkOf(page, `${CART}#receipt`, 'Open in JetBrains')).toBe(
       `jetbrains://idea/navigate/reference?project=${basename(root)}&path=${CART}:7`,
     );
-  }, 120_000);
+  });
 
   it('gives a removed function no editor link, because the branch no longer holds it', async () => {
     const page = await loadReaderPage(html);

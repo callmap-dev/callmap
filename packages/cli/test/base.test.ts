@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { describe, expect, it } from 'vitest';
 import { inWorktreeAt } from '../src/git.ts';
+import { goExtractor } from '../src/go-extractor.ts';
+import { typescriptExtractor } from '../src/typescript-extractor.ts';
 import { commitFile, featureBranchRepo, git } from './fixture-repo.ts';
 import {
   boxesOf,
@@ -41,7 +43,7 @@ describe('the base of a review', () => {
       `${readFileSync(join(repo, MONEY), 'utf8')}\nexport const half = (amount: number): number => amount / 2;\n`,
     );
     expect(marksOfReview(repo, '--base', 'HEAD~1')).toEqual({ [`${MONEY}#half`]: 'added' });
-  }, 60_000);
+  });
 
   it('takes the merge base with the head of the remote before main', () => {
     const repo = featureBranchRepo();
@@ -49,7 +51,7 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with the head of another remote when origin names no head', () => {
     const repo = featureBranchRepo();
@@ -58,7 +60,7 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/upstream/HEAD', 'refs/remotes/upstream/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the head of origin before the head of another remote', () => {
     const repo = featureBranchRepo();
@@ -70,17 +72,17 @@ describe('the base of a review', () => {
     git(repo, 'symbolic-ref', 'refs/remotes/another/HEAD', 'refs/remotes/another/trunk');
     git(repo, 'branch', '--force', 'main', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with main when the remote names no head', () => {
     const repo = featureBranchRepo();
     git(repo, 'branch', 'master', 'feature');
     expect(marksOfReview(repo)).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 
   it('takes the merge base with master when there is no main', () => {
     expect(marksOfReview(featureBranchRepo('master'))).toMatchObject(BRANCH_CHANGES);
-  }, 60_000);
+  });
 });
 
 describe('the base checkout of a review', () => {
@@ -110,22 +112,64 @@ describe('the base checkout of a review', () => {
     ]);
     expect(review.openEnds).toEqual([]);
     expect(git(repo, 'status', '--porcelain', '--ignored')).toBe('!! node_modules/');
-  }, 60_000);
+  });
 
-  it('holds the go.work and go.work.sum of the repo root that git ignores or does not track, and no other ignored file', async () => {
+  it('holds the go.work and go.work.sum of the repo root, for the Go extractor, that git ignores or does not track, and no other ignored file', async () => {
     const repo = featureBranchRepo();
     commitFile(repo, '.gitignore', 'go.work\n.env\n');
     writeFileSync(join(repo, 'go.work'), 'go 1.22\n\nuse .\n');
     writeFileSync(join(repo, 'go.work.sum'), '');
     writeFileSync(join(repo, '.env'), 'TOKEN=1\n');
-    const seen = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
-      Promise.resolve({
-        goWork: readFileSync(join(path, 'go.work'), 'utf8'),
-        goWorkSum: existsSync(join(path, 'go.work.sum')),
-        env: existsSync(join(path, '.env')),
-      }),
+    const seen = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({
+          goWork: readFileSync(join(path, 'go.work'), 'utf8'),
+          goWorkSum: existsSync(join(path, 'go.work.sum')),
+          env: existsSync(join(path, '.env')),
+        }),
+      goExtractor().prepareBase,
     );
     expect(seen).toEqual({ goWork: 'go 1.22\n\nuse .\n', goWorkSum: true, env: false });
+  });
+
+  it('holds no go.work and no node_modules folder of the repo root when no extractor prepares it', async () => {
+    const repo = featureBranchRepo();
+    commitFile(repo, '.gitignore', 'go.work\nnode_modules/\n');
+    writeFileSync(join(repo, 'go.work'), 'go 1.22\n\nuse .\n');
+    mkdirSync(join(repo, 'node_modules/shapes'), { recursive: true });
+    const seen = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
+      Promise.resolve({
+        goWork: existsSync(join(path, 'go.work')),
+        packages: existsSync(join(path, 'node_modules')),
+      }),
+    );
+    expect(seen).toEqual({ goWork: false, packages: false });
+  });
+
+  it('links each node_modules folder of the working tree for the TypeScript extractor, and removes the links after the read', async () => {
+    const repo = featureBranchRepo();
+    commitFile(repo, '.gitignore', 'node_modules/\n');
+    for (const folder of ['node_modules/shapes', 'src/node_modules/sizes']) {
+      mkdirSync(join(repo, folder), { recursive: true });
+      writeFileSync(join(repo, folder, 'package.json'), '{}\n');
+    }
+    const seen = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({
+          shapes: existsSync(join(path, 'node_modules/shapes')),
+          sizes: existsSync(join(path, 'src/node_modules/sizes')),
+        }),
+      typescriptExtractor(repo, undefined).prepareBase,
+    );
+    expect(seen).toEqual({ shapes: true, sizes: true });
+    expect(existsSync(join(repo, 'node_modules/shapes'))).toBe(true);
+    expect(git(repo, 'status', '--porcelain', '--ignored')).toBe(
+      '!! node_modules/\n!! src/node_modules/',
+    );
   });
 
   it('resolves a tracked link into bazel-bin through the Bazel output links of the repo root, and no other ignored link', async () => {
@@ -163,8 +207,12 @@ describe('the base checkout of a review', () => {
       join(repo, 'go.work'),
       `go 1.22\n\nuse ${repo}/billing\n\nuse (\n\t"${repo}/money"\n\t./cart\n\t${elsewhere}\n)\n`,
     );
-    const { goWork, base } = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
-      Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+    const { goWork, base } = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+      goExtractor().prepareBase,
     );
     expect(goWork).toBe(
       `go 1.22\n\nuse ${base}/billing\n\nuse (\n\t"${base}/money"\n\t./cart\n\t${elsewhere}\n)\n`,
@@ -191,8 +239,12 @@ describe('the base checkout of a review', () => {
         '',
       ].join('\n'),
     );
-    const { goWork, base } = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
-      Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+    const { goWork, base } = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+      goExtractor().prepareBase,
     );
     expect(goWork).toBe(
       [
@@ -235,8 +287,12 @@ describe('the base checkout of a review', () => {
         '',
       ].join('\n'),
     );
-    const { goWork, base } = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
-      Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+    const { goWork, base } = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+      goExtractor().prepareBase,
     );
     expect(goWork).toBe(
       [
@@ -278,8 +334,12 @@ describe('the base checkout of a review', () => {
         '',
       ].join('\n'),
     );
-    const { goWork, base } = await inWorktreeAt(repo, git(repo, 'rev-parse', 'HEAD'), (path) =>
-      Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+    const { goWork, base } = await inWorktreeAt(
+      repo,
+      git(repo, 'rev-parse', 'HEAD'),
+      (path) =>
+        Promise.resolve({ goWork: readFileSync(join(path, 'go.work'), 'utf8'), base: path }),
+      goExtractor().prepareBase,
     );
     expect(goWork).toBe(
       [
@@ -330,5 +390,5 @@ describe('a branch that changed no function', () => {
     await openTab(page, 'Diff');
     expect(body.getByRole('status', { name: 'No changed functions' })).toBeDefined();
     expect(window.document.getElementById('graph')?.hidden).toBe(true);
-  }, 60_000);
+  });
 });

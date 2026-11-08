@@ -1,14 +1,7 @@
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo } from './fixture-repo.ts';
-import {
-  boxesOf,
-  clickBox,
-  loadReaderPage,
-  reviewHtmlOf,
-  settled,
-  storedItemsOf,
-} from './reader-page.ts';
+import { boxesOf, clickBox, loadReaderPage, settled, storedItemsOf } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 import type { GraphSize, LoadedPage, Point } from './reader-page.ts';
 
 const CART = 'src/cart.ts';
@@ -19,9 +12,9 @@ const ROOMY: GraphSize = { width: 2000, height: 1000 };
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 

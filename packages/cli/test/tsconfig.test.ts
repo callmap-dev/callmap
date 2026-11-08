@@ -49,7 +49,7 @@ describe('the TypeScript config of a review', () => {
       { caller: `${RECEIPT}#receipt`, callee: `${TOTAL}#total`, mark: 'added' },
     ]);
     expect(review.openEnds).toEqual([]);
-  }, 60_000);
+  });
 
   it('reads the config that an absolute --tsconfig names, on the branch and on the base', () => {
     const { review } = pageOfReview('--tsconfig', join(repo, 'app/tsconfig.json'));
@@ -57,5 +57,5 @@ describe('the TypeScript config of a review', () => {
       { caller: `${RECEIPT}#legacy`, callee: `${TOTAL}#total`, mark: 'removed' },
       { caller: `${RECEIPT}#receipt`, callee: `${TOTAL}#total`, mark: 'added' },
     ]);
-  }, 60_000);
+  });
 });

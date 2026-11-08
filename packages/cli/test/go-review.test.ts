@@ -3,8 +3,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { getByRole, within } from '@testing-library/dom';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { goExtractor } from '../src/extractors.ts';
-import type { Extractor } from '../src/extractors.ts';
+import { goExtractor } from '../src/go-extractor.ts';
+import type { Extractor } from '../src/extractor.ts';
 import { runReview } from '../src/review-command.ts';
 import { commitFile, featureBranchRepo, goRepo } from './fixture-repo.ts';
 import { cacheEntriesOf, reviewOf } from './cached-review.ts';
@@ -29,7 +29,7 @@ beforeAll(() => {
   repo = goRepo();
   cacheHome = tempDir('callmap-cache-');
   ({ html, stderr } = reviewOf(repo, cacheHome));
-}, 120_000);
+});
 
 describe('callmap review of a branch with Go and TypeScript', () => {
   it('marks the Go functions that the branch added, changed and removed, next to the TypeScript ones', () => {
@@ -104,7 +104,7 @@ describe('callmap review of a branch with Go and TypeScript', () => {
     expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
     expect(reviewOf(repo, cacheHome).html).toBe(html);
     expect(cacheEntriesOf(cacheHome)).toHaveLength(2);
-  }, 60_000);
+  });
 });
 
 describe('callmap review of a Go call into code that does not load', () => {
@@ -127,7 +127,7 @@ describe('callmap review of a Go call into code that does not load', () => {
     const page = await loadReaderPage(reviewOf(root, tempDir('callmap-cache-')).html);
     const region = within(getByRole(page.window.document.body, 'region', { name: 'Open ends' }));
     expect(region.getByRole('button', { name: 'gen.Log line 6 · code not found' })).toBeDefined();
-  }, 60_000);
+  });
 });
 
 const GO_MOD_THAT_NEEDS_AN_UPDATE = [
@@ -160,7 +160,7 @@ describe('callmap review of a Go module that the go tool refuses', () => {
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatch(skippedModuleLineOf('tools'));
     expect(pageDataOf(html).review.functions.map(({ id }) => id)).toContain(`${CHECKOUT}#Total`);
-  }, 60_000);
+  });
 
   it('prints the line once when the base and the branch both skip the module, and one line for each module', () => {
     const root = goRepo();
@@ -177,7 +177,7 @@ describe('callmap review of a Go module that the go tool refuses', () => {
     expect(lines).toHaveLength(2);
     expect(lines[0]).toMatch(skippedModuleLineOf('lint'));
     expect(lines[1]).toMatch(skippedModuleLineOf('tools'));
-  }, 60_000);
+  });
 });
 
 describe('callmap review with no go on the PATH', () => {
@@ -187,7 +187,7 @@ describe('callmap review with no go on the PATH', () => {
     const { review } = pageDataOf(skipped.html);
     expect(review.functions.map(({ id }) => id).every((id) => id.startsWith('web/'))).toBe(true);
     expect(review.resolutionRates.map(({ language }) => language)).toEqual(['typescript']);
-  }, 60_000);
+  });
 });
 
 describe('callmap review of a repo whose Go files the Go extractor never reads', () => {
@@ -202,7 +202,7 @@ describe('callmap review of a repo whose Go files the Go extractor never reads',
       'typescript',
     ]);
     expect(reviewOf(repo, tempDir('callmap-cache-'), pathWithout('go')).stderr).toBe('');
-  }, 60_000);
+  });
 });
 
 describe('the go of a review', () => {
@@ -270,8 +270,8 @@ describe('the reads of the Go extractor', () => {
         editor: 'vscode',
         tests: false,
       },
-      { diffLimit: 2000, extractors: [watched] },
+      { extractors: [watched] },
     );
     expect(steps).toEqual(['start branch', 'end branch', 'start base', 'end base']);
-  }, 60_000);
+  });
 });

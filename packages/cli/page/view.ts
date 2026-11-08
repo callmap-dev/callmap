@@ -20,7 +20,6 @@ export const choiceKeyOf = (choice: Choice): string => {
 
 export interface View {
   readonly name: string;
-  readonly laidOutByCommand?: boolean;
   readonly callLimitOf?: (data: ReaderPageData) => number;
   readonly countOf?: (data: ReaderPageData) => { readonly count: number; readonly words: string };
   readonly firstChoice?: (data: ReaderPageData) => Choice;

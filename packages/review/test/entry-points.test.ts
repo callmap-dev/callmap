@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Call, GraphDocument, GraphFunction } from '@callmap/graph-document';
-import { callTreeOf, entryPointsOf } from '../src/index.ts';
+import { callTreeOf, entryPointsOf, reviewOf } from '../src/index.ts';
 
 const fn = (id: string): GraphFunction => {
   const [file = '', name = ''] = id.split('#');
@@ -63,6 +63,47 @@ describe('the entry points of a graph document', () => {
     const document = graph([A, B, C, D], [call(D, A), call(A, B), call(B, A), call(B, C)]);
     expect(idsOf(document, new Set([C]))).toEqual([D]);
     expect(entryPointsOf(document, new Set([C]))[0]?.reachesChange).toBe(true);
+  });
+});
+
+describe('the entry points of a review', () => {
+  it('lists the entry points of the branch graph, first those that reach a function the branch changed, not a neighbour', () => {
+    const base = graph([A, B, C, D], [call(A, B), call(D, C), call(C, B)]);
+    const branch = {
+      ...graph([A, B, C, D], [call(A, B), call(D, C), call(C, B)]),
+      functions: graph([A, B, C, D]).functions.map((graphFunction) =>
+        graphFunction.id === C ? { ...graphFunction, sourceHash: 'new' } : graphFunction,
+      ),
+    };
+    expect(reviewOf({ base: [base], branch: [branch] }).entryPoints).toEqual([
+      { id: D, reachesChange: true },
+      { id: A, reachesChange: false },
+    ]);
+  });
+});
+
+describe('the route of each function of a review', () => {
+  it('names the first entry point of the review whose call tree holds the function', () => {
+    const base = graph([A, B, C, D], [call(A, B), call(D, C), call(C, B)]);
+    const branch = {
+      ...base,
+      functions: base.functions.map((graphFunction) =>
+        graphFunction.id === C ? { ...graphFunction, sourceHash: 'new' } : graphFunction,
+      ),
+    };
+    expect(reviewOf({ base: [base], branch: [branch] }).routeEntryByFunction).toEqual({
+      [D]: D,
+      [C]: D,
+      [B]: D,
+      [A]: A,
+    });
+  });
+
+  it('names no entry point for a function that no entry point reaches', () => {
+    const document = graph([A, B, C], [call(A, B), call(B, A)]);
+    expect(reviewOf({ base: [document], branch: [document] }).routeEntryByFunction).toEqual({
+      [C]: C,
+    });
   });
 });
 

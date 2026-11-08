@@ -3,15 +3,13 @@ import {
   existsSync,
   lstatSync,
   mkdtempSync,
-  readFileSync,
   realpathSync,
   rmSync,
   symlinkSync,
   unlinkSync,
-  writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export class GitError extends Error {
   override readonly name = 'GitError';
@@ -123,6 +121,9 @@ export const uncommittedFilesOf = (root: string): readonly string[] =>
     ),
   ).map((entry) => entry.slice(STATUS_CODE_LENGTH));
 
+export const changedFilesOf = (root: string, commit: string): readonly string[] =>
+  pathsOf(gitOutput(root, 'diff', '--name-only', '--no-renames', '-z', commit));
+
 export const filesAtCommit = (root: string, commit: string): readonly string[] =>
   pathsOf(gitOutput(root, 'ls-tree', '-r', '--name-only', '-z', commit));
 
@@ -134,8 +135,6 @@ const untrackedEntriesOf = (root: string): readonly string[] =>
     .split('\0')
     .map((entry) => entry.replace(/\/$/, ''));
 
-const isPackageFolder = (entry: string): boolean => basename(entry) === 'node_modules';
-
 /**
  * A Bazel repo can track a link into bazel-bin for each generated file, so the base reads the
  * generated files through the Bazel output links of the branch.
@@ -143,94 +142,41 @@ const isPackageFolder = (entry: string): boolean => basename(entry) === 'node_mo
 const isBazelOutputLink = (root: string, entry: string): boolean =>
   /^bazel-[^/]+$/.test(entry) && lstatSync(join(root, entry)).isSymbolicLink();
 
-const linkUntrackedEntries = (root: string, worktree: string): readonly string[] =>
-  untrackedEntriesOf(root)
-    .filter((entry) => isPackageFolder(entry) || isBazelOutputLink(root, entry))
-    .flatMap((entry) => {
-      const link = join(worktree, entry);
-      if (!existsSync(dirname(link)) || existsSync(link)) return [];
-      symlinkSync(join(root, entry), link, 'junction');
-      return [link];
-    });
+export interface BaseWorktree {
+  readonly checkout: string;
+  readonly path: string;
+  readonly untrackedEntries: readonly string[];
+  readonly link: (entry: string) => void;
+}
 
-/**
- * A go.work that git does not track decides how the go tool loads the modules of the branch, so the
- * base loads them the same way.
- */
-const GO_WORKSPACE_FILES = ['go.work', 'go.work.sum'];
+export type BasePreparation = (worktree: BaseWorktree) => void;
 
-const pathInWorktree = (path: string, roots: readonly string[], worktree: string): string => {
-  const root = roots.find((each) => path === each || path.startsWith(`${each}/`));
-  return root === undefined ? path : `${worktree}${path.slice(root.length)}`;
-};
-
-const DIRECTIVE = /^(\s*(use|replace)\b)(.*)$/;
-const GO_WORK_PATH = /(["`])(.*?)\1|([^\s"`()]+)/;
-
-const goWorkOfWorktree = (goWork: string, root: string, worktree: string): string => {
-  const roots = [root, realpathSync(root)];
-  const rewriteFirstPath = (text: string): string =>
-    text.replace(GO_WORK_PATH, (path, quote?: string, quoted?: string, bare?: string) =>
-      quote === undefined || quoted === undefined
-        ? pathInWorktree(bare ?? path, roots, worktree)
-        : `${quote}${pathInWorktree(quoted, roots, worktree)}${quote}`,
-    );
-  const rewriteTarget = (text: string): string => {
-    const arrow = text.indexOf('=>');
-    return arrow === -1
-      ? text
-      : `${text.slice(0, arrow + 2)}${rewriteFirstPath(text.slice(arrow + 2))}`;
-  };
-  const rewriteEntry = (directive: string, text: string): string =>
-    directive === 'use' ? rewriteFirstPath(text) : rewriteTarget(text);
-  let block: string | undefined;
-  return goWork
-    .split('\n')
-    .map((line) => {
-      if (block !== undefined) {
-        if (line.trim().startsWith(')')) {
-          block = undefined;
-          return line;
-        }
-        return rewriteEntry(block, line);
-      }
-      const [, before, directive, rest] = DIRECTIVE.exec(line) ?? [];
-      if (before === undefined || directive === undefined || rest === undefined) return line;
-      if (/^\s*\(\s*(\/\/.*)?$/.test(rest)) {
-        block = directive;
-        return line;
-      }
-      return `${before}${rewriteEntry(directive, rest)}`;
-    })
-    .join('\n');
-};
-
-const copyGoWorkspaceFiles = (root: string, worktree: string): void => {
-  for (const file of GO_WORKSPACE_FILES) {
-    const tracked = git(root, 'ls-files', '--', file) !== '';
-    if (!tracked && existsSync(join(root, file)) && !existsSync(join(worktree, file))) {
-      const text = readFileSync(join(root, file), 'utf8');
-      const copy = file === 'go.work' ? goWorkOfWorktree(text, root, worktree) : text;
-      writeFileSync(join(worktree, file), copy);
-    }
-  }
-};
+const noPreparation: BasePreparation = () => undefined;
 
 export const inWorktreeAt = async <T>(
   root: string,
   commit: string,
   read: (path: string) => Promise<T>,
+  prepare: BasePreparation = noPreparation,
 ): Promise<T> => {
   const parent = mkdtempSync(join(tmpdir(), 'callmap-base-'));
   const path = join(parent, 'base');
   git(root, 'worktree', 'add', '--detach', '--quiet', path, commit);
   const links: string[] = [];
+  const link = (entry: string): void => {
+    const linked = join(path, entry);
+    if (!existsSync(dirname(linked)) || existsSync(linked)) return;
+    symlinkSync(join(root, entry), linked, 'junction');
+    links.push(linked);
+  };
   try {
-    links.push(...linkUntrackedEntries(root, path));
-    copyGoWorkspaceFiles(root, path);
+    const untrackedEntries = untrackedEntriesOf(root);
+    for (const entry of untrackedEntries.filter((each) => isBazelOutputLink(root, each)))
+      link(entry);
+    prepare({ checkout: root, path, untrackedEntries, link });
     return await read(path);
   } finally {
-    for (const link of links) unlinkSync(link);
+    for (const linked of links) unlinkSync(linked);
     git(root, 'worktree', 'remove', '--force', path);
     rmSync(parent, { recursive: true, force: true });
   }

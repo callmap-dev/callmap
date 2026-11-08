@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effectiveScope, inScope } from '../src/index.ts';
+import testGlobs from '../test-globs.json' with { type: 'json' };
 
 describe('inScope', () => {
   it('takes every file when no glob narrows the repo', () => {
@@ -105,6 +106,23 @@ describe('effectiveScope', () => {
       '!**/tests/**',
       '!**/spec/**',
     ]);
+  });
+
+  it('keys the test globs of the data file by the language tag of a graph document', () => {
+    expect(testGlobs).toEqual({
+      go: ['**/*_test.go'],
+      typescript: ['**/*.test.*', '**/*.spec.*'],
+      ruby: ['**/*_spec.rb', '**/*_test.rb'],
+      'every language': ['**/__tests__/**', '**/test/**', '**/tests/**', '**/spec/**'],
+    });
+  });
+
+  it('adds the test globs of every language in the data file, in its order', () => {
+    expect(effectiveScope([], false)).toEqual(
+      Object.values(testGlobs)
+        .flat()
+        .map((glob) => `!${glob}`),
+    );
   });
 
   it('keeps the scope of the user as it is when the tests are asked for', () => {

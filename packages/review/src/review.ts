@@ -1,13 +1,23 @@
-import type { FunctionId, GraphFunction } from '@callmap/graph-document';
+import type { FunctionId, GraphDocument, GraphFunction } from '@callmap/graph-document';
+import { basePlacesOf } from './base-places.ts';
+import type { BasePlaces } from './base-places.ts';
+import { callGraphOf } from './call-graph.ts';
+import { callLinesOf } from './call-lines.ts';
+import type { CallLines } from './call-lines.ts';
 import { markedCallsOf } from './calls.ts';
 import type { MarkedCall } from './calls.ts';
 import { changesOf, functionsById } from './changes.ts';
+import { entryPointsOf, routeEntryByFunctionOf } from './entry-points.ts';
+import type { EntryPoint, RouteEntryByFunction } from './entry-points.ts';
 import type { ChangeMark } from './changes.ts';
 import { hopsOf, oneHopFrom } from './hops.ts';
 import { byText } from './order.ts';
+import { resolutionRatesOf } from './rate.ts';
+import type { LanguageRate } from './rate.ts';
 import { resolutionOf } from './resolution.ts';
-import type { Resolution } from './resolution.ts';
-import type { ReviewGraphs } from './review-graphs.ts';
+import type { CallGraphs, Resolution } from './resolution.ts';
+import { allCallsOf, allFunctionsOf } from './whole-graph.ts';
+import type { ReviewFunction } from './whole-graph.ts';
 
 export type FunctionMark = ChangeMark | 'neighbour';
 
@@ -15,13 +25,26 @@ export interface MarkedFunction extends GraphFunction {
   readonly mark: FunctionMark;
 }
 
-export interface Review extends Resolution {
-  readonly functions: readonly MarkedFunction[];
-  readonly calls: readonly MarkedCall[];
+export interface ReviewDocuments {
+  readonly base: readonly GraphDocument[];
+  readonly branch: readonly GraphDocument[];
 }
 
-export const reviewOf = (graphs: ReviewGraphs): Review => {
-  const { base, branch } = graphs;
+export interface Review extends CallGraphs, Resolution {
+  readonly functions: readonly MarkedFunction[];
+  readonly calls: readonly MarkedCall[];
+  readonly resolutionRates: readonly LanguageRate[];
+  readonly basePlaces: BasePlaces;
+  readonly allFunctions: readonly ReviewFunction[];
+  readonly allCalls: readonly MarkedCall[];
+  readonly callLines: CallLines;
+  readonly entryPoints: readonly EntryPoint[];
+  readonly routeEntryByFunction: RouteEntryByFunction;
+}
+
+export const reviewOf = (documents: ReviewDocuments): Review => {
+  const base = callGraphOf(documents.base);
+  const branch = callGraphOf(documents.branch);
   const baseFunctions = functionsById(base);
   const branchFunctions = functionsById(branch);
   const changes = changesOf(baseFunctions, branchFunctions);
@@ -46,9 +69,20 @@ export const reviewOf = (graphs: ReviewGraphs): Review => {
     (left, right) => byText(left.caller, right.caller) || byText(left.callee, right.callee),
   );
 
+  const entryPoints = entryPointsOf(branch, new Set(changes.keys()));
+
   return {
+    base,
+    branch,
     functions,
     calls,
-    ...resolutionOf(graphs, marks),
+    ...resolutionOf({ base, branch }, marks),
+    resolutionRates: resolutionRatesOf(documents.branch),
+    basePlaces: basePlacesOf(base, changes),
+    allFunctions: allFunctionsOf(branch, functions),
+    allCalls: allCallsOf(branch, calls),
+    callLines: callLinesOf(branch),
+    entryPoints,
+    routeEntryByFunction: routeEntryByFunctionOf(branch, entryPoints),
   };
 };

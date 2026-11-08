@@ -14,11 +14,12 @@ const NONE: ReadonlySet<FunctionId> = new Set();
 const reachedFrom = (
   starts: Iterable<FunctionId>,
   next: ReadonlyMap<FunctionId, ReadonlySet<FunctionId>>,
+  known: Pick<ReadonlySet<FunctionId>, 'has'> = NONE,
 ): ReadonlySet<FunctionId> => {
   const reached = new Set<FunctionId>();
   const waiting = [...starts];
   for (let id = waiting.shift(); id !== undefined; id = waiting.shift()) {
-    if (reached.has(id)) continue;
+    if (reached.has(id) || known.has(id)) continue;
     reached.add(id);
     waiting.push(...(next.get(id) ?? NONE));
   }
@@ -46,3 +47,17 @@ export const entryPointsOf = (
 export const callTreeOf = (graph: CallGraph, entry: FunctionId): readonly FunctionId[] => [
   ...reachedFrom([entry], hopsOf(graph.calls).callees),
 ];
+
+export type RouteEntryByFunction = Readonly<Record<FunctionId, FunctionId>>;
+
+/** A function that an earlier entry point reaches stops the walk, because that walk already reached each of its callees. */
+export const routeEntryByFunctionOf = (
+  graph: CallGraph,
+  entryPoints: readonly EntryPoint[],
+): RouteEntryByFunction => {
+  const { callees } = hopsOf(graph.calls);
+  const entryOf = new Map<FunctionId, FunctionId>();
+  for (const { id: entry } of entryPoints)
+    for (const id of reachedFrom([entry], callees, entryOf)) entryOf.set(id, entry);
+  return Object.fromEntries(entryOf);
+};

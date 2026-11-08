@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/callmaphq/callmap-core/releases/latest/download/review-input.schema.json",
+  "title": "Review input",
+  "description": "What a distribution gives the reader page for one review. The page computes the review from it.",
+  "type": "object",
+  "required": ["formatVersion", "base", "branch", "packedSources", "checkout", "editor"],
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "base": {
+      "description": "The graph documents of the base.",
+      "type": "array",
+      "items": { "$ref": "graph-document.schema.json" }
+    },
+    "branch": {
+      "description": "The graph documents of the branch.",
+      "type": "array",
+      "items": { "$ref": "graph-document.schema.json" }
+    },
+    "packedSources": {
+      "description": "The JSON of the branch sources and the base sources, as gzip in base64.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]*={0,2}$"
+    },
+    "checkout": { "$ref": "#/definitions/checkout" },
+    "editor": { "$ref": "#/definitions/editor" }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "text": {
+      "description": "A string with at least one character that is not white space.",
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "commit": {
+      "description": "A commit hash, in full or in short.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{4,64}$"
+    },
+    "checkout": {
+      "description": "The facts from git. A detached HEAD gives no branch name.",
+      "type": "object",
+      "required": ["baseName", "baseCommit", "headCommit", "uncommitted"],
+      "properties": {
+        "branch": { "$ref": "#/definitions/text" },
+        "baseName": { "$ref": "#/definitions/text" },
+        "baseCommit": { "$ref": "#/definitions/commit" },
+        "headCommit": { "$ref": "#/definitions/commit" },
+        "uncommitted": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "editor": {
+      "description": "The editor that the editor links open, and the repo root that they start from.",
+      "type": "object",
+      "required": ["name", "repoRoot"],
+      "properties": {
+        "name": { "enum": ["vscode", "jetbrains"] },
+        "repoRoot": { "$ref": "#/definitions/text" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

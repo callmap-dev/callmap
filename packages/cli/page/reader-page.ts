@@ -1,7 +1,8 @@
 import type { FunctionId } from '@callmap/graph-document';
 import type { FunctionMark } from '@callmap/review';
+import type { Sources } from '@callmap/review-input';
 import type { Camera } from './camera.ts';
-import type { ReaderPageData, Sources } from './data.ts';
+import type { ReaderPageData } from './data.ts';
 import type { SelectedPath } from './highlight.ts';
 import type { Laid } from './layout.ts';
 import type { FunctionBox, SceneLine } from './scene.ts';

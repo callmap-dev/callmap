@@ -1,0 +1,252 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "app/models/order.rb#Order#subtotal",
+          "caller": "app/models/order.rb#Order#total",
+          "line": 7
+        },
+        {
+          "callee": "app/models/order.rb#Order#total",
+          "caller": "app/models/order.rb#Order#legacy_total",
+          "line": 15
+        },
+        {
+          "callee": "app/models/order.rb#Order.open_orders",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "Callmap Ruby rules",
+        "version": "<checker version>"
+      },
+      "files": [
+        "app/models/order.rb",
+        "app/services/checkout.rb"
+      ],
+      "functions": [
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 2,
+          "id": "app/models/order.rb#Order.open_orders",
+          "lastLine": 4,
+          "name": "Order.open_orders",
+          "sourceHash": "49e6456e8ecff4477230dcc3134481182e2a5b34025bcaf29624bf5ae30a6e22"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 6,
+          "id": "app/models/order.rb#Order#total",
+          "lastLine": 8,
+          "name": "Order#total",
+          "sourceHash": "0c161599fd2df9693f290acf5080668bf9a084eb869385b8858a254f4a0a513d"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 10,
+          "id": "app/models/order.rb#Order#subtotal",
+          "lastLine": 12,
+          "name": "Order#subtotal",
+          "sourceHash": "a0322fb39b18572c0af2b4161291d051fa1724b7f8845cde43e465ebdcd627ea"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 14,
+          "id": "app/models/order.rb#Order#legacy_total",
+          "lastLine": 16,
+          "name": "Order#legacy_total",
+          "sourceHash": "5fdd916b769189138fd51d00d806d1d9f08cd0487b8d296636b26e6df9994ed3"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 2,
+          "id": "app/services/checkout.rb#Checkout#run",
+          "lastLine": 4,
+          "name": "Checkout#run",
+          "sourceHash": "cd91794a0b89e617dec776712468fe20aae5e905a25f3ca7ac9fd7a3691898f7"
+        }
+      ],
+      "language": "ruby",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "app/models/order.rb#Order#total",
+          "caller": "app/models/concerns/billable.rb#Billable#invoice",
+          "group": "app/models/concerns/billable.rb:3:5",
+          "line": 3
+        },
+        {
+          "callee": "app/models/refund.rb#Refund#total",
+          "caller": "app/models/concerns/billable.rb#Billable#invoice",
+          "group": "app/models/concerns/billable.rb:3:5",
+          "line": 3
+        },
+        {
+          "callee": "app/models/order.rb#Order#subtotal",
+          "caller": "app/models/order.rb#Order#total",
+          "line": 9
+        },
+        {
+          "callee": "app/models/order.rb#Order#tax",
+          "caller": "app/models/order.rb#Order#total",
+          "line": 9
+        },
+        {
+          "callee": "app/models/order.rb#Order.open_orders",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 3
+        },
+        {
+          "callee": "app/services/checkout.rb#Checkout#run",
+          "caller": "app/services/checkout.rb#Checkout#receipt",
+          "line": 7
+        }
+      ],
+      "checker": {
+        "name": "Callmap Ruby rules",
+        "version": "<checker version>"
+      },
+      "files": [
+        "app/models/concerns/billable.rb",
+        "app/models/order.rb",
+        "app/models/refund.rb",
+        "app/services/checkout.rb"
+      ],
+      "functions": [
+        {
+          "file": "app/models/concerns/billable.rb",
+          "firstLine": 2,
+          "id": "app/models/concerns/billable.rb#Billable#invoice",
+          "lastLine": 4,
+          "name": "Billable#invoice",
+          "sourceHash": "516e7adda9d8cb5afcf78e3107a539d635f9516233410709bba80c7fe51b4dc6"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 4,
+          "id": "app/models/order.rb#Order.open_orders",
+          "lastLine": 6,
+          "name": "Order.open_orders",
+          "sourceHash": "49e6456e8ecff4477230dcc3134481182e2a5b34025bcaf29624bf5ae30a6e22"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 8,
+          "id": "app/models/order.rb#Order#total",
+          "lastLine": 10,
+          "name": "Order#total",
+          "sourceHash": "af78669d3c6a96a931d8f86ee558853d8a28e0edef13b790dac54ea55c97fd3c"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 12,
+          "id": "app/models/order.rb#Order#subtotal",
+          "lastLine": 14,
+          "name": "Order#subtotal",
+          "sourceHash": "a0322fb39b18572c0af2b4161291d051fa1724b7f8845cde43e465ebdcd627ea"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 16,
+          "id": "app/models/order.rb#Order#tax",
+          "lastLine": 18,
+          "name": "Order#tax",
+          "sourceHash": "8996244ee553728e869d708153872aa8add2b1a6e8b5b439a7f8ea325e1d41ff"
+        },
+        {
+          "file": "app/models/refund.rb",
+          "firstLine": 4,
+          "id": "app/models/refund.rb#Refund#total",
+          "lastLine": 6,
+          "name": "Refund#total",
+          "sourceHash": "de4ece1bf6a31c5aef60a203dd9a097e1e67c284e9611074fda77a2912f494f8"
+        },
+        {
+          "file": "app/models/refund.rb",
+          "firstLine": 8,
+          "id": "app/models/refund.rb#Refund#note",
+          "lastLine": 10,
+          "name": "Refund#note",
+          "sourceHash": "4594be421c0ff97ac440a7ff7c63839555ad8158cbd7651bfa77252bec62b613"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 2,
+          "id": "app/services/checkout.rb#Checkout#run",
+          "lastLine": 4,
+          "name": "Checkout#run",
+          "sourceHash": "cd91794a0b89e617dec776712468fe20aae5e905a25f3ca7ac9fd7a3691898f7"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 6,
+          "id": "app/services/checkout.rb#Checkout#receipt",
+          "lastLine": 8,
+          "name": "Checkout#receipt",
+          "sourceHash": "d4a4b01098b32db6d7bd2232034ae33d127d00d267782eeade3c0d1083100367"
+        }
+      ],
+      "language": "ruby",
+      "openEnds": [
+        {
+          "caller": "app/models/refund.rb#Refund#total",
+          "expression": "Ledger.total",
+          "line": 5,
+          "reason": "missing-module"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "app/models/order.rb": "class Order\n  def self.open_orders\n    all_orders\n  end\n\n  def total\n    subtotal\n  end\n\n  def subtotal\n    1\n  end\n\n  def legacy_total\n    total\n  end\nend\n",
+      "app/services/checkout.rb": "class Checkout\n  def run\n    Order.open_orders\n  end\nend\n"
+    },
+    "branch": {
+      "app/models/concerns/billable.rb": "module Billable\n  def invoice\n    total\n  end\nend\n",
+      "app/models/order.rb": "class Order\n  include Billable\n\n  def self.open_orders\n    all_orders\n  end\n\n  def total\n    subtotal + tax\n  end\n\n  def subtotal\n    1\n  end\n\n  def tax\n    0\n  end\nend\n",
+      "app/models/refund.rb": "class Refund\n  include Billable\n\n  def total\n    Ledger.total\n  end\n\n  def note\n    format(\"%d\", 1).strip\n  end\nend\n\nmodule Books\n  class Ledger\n  end\nend\n",
+      "app/services/checkout.rb": "class Checkout\n  def run\n    Order.open_orders\n  end\n\n  def receipt\n    run\n  end\nend\n"
+    }
+  }
+}

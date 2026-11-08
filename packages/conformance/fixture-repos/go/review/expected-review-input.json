@@ -1,0 +1,249 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "money/money.go#Format",
+          "caller": "checkout/checkout.go#Total",
+          "line": 10
+        },
+        {
+          "callee": "checkout/checkout.go#Total",
+          "caller": "checkout/checkout.go#LegacyTotal",
+          "line": 14
+        },
+        {
+          "callee": "money/money.go#whole",
+          "caller": "money/money.go#Format",
+          "line": 6
+        }
+      ],
+      "checker": {
+        "name": "Go",
+        "version": "<checker version>"
+      },
+      "files": [
+        "checkout/checkout.go",
+        "money/money.go"
+      ],
+      "functions": [
+        {
+          "file": "checkout/checkout.go",
+          "firstLine": 5,
+          "id": "checkout/checkout.go#Total",
+          "lastLine": 11,
+          "name": "Total",
+          "sourceHash": "4c4ed61ad95e78cabba7918305ca6f55c11c82b105ddde1183cf39960fad92b3"
+        },
+        {
+          "file": "checkout/checkout.go",
+          "firstLine": 13,
+          "id": "checkout/checkout.go#LegacyTotal",
+          "lastLine": 15,
+          "name": "LegacyTotal",
+          "sourceHash": "3029a6dcfe8bacc5e66a6f9b52ff754ef12faac784fac3c2eff2f45430fd8c50"
+        },
+        {
+          "file": "money/money.go",
+          "firstLine": 5,
+          "id": "money/money.go#Format",
+          "lastLine": 7,
+          "name": "Format",
+          "sourceHash": "fba60582c5387671d9bf3a9372d10a4dffb4b612de82112f17ba98edf5c33453"
+        },
+        {
+          "file": "money/money.go",
+          "firstLine": 9,
+          "id": "money/money.go#whole",
+          "lastLine": 11,
+          "name": "whole",
+          "sourceHash": "bfc2610488ebce8af9bb22454d98fb9e6af1dcbb082de35ed4d36ab7a277e0ac"
+        }
+      ],
+      "language": "go",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "money/money.go#Format",
+          "caller": "checkout/checkout.go#Total",
+          "line": 10
+        },
+        {
+          "callee": "money/money.go#Round",
+          "caller": "checkout/checkout.go#Total",
+          "line": 10
+        },
+        {
+          "callee": "checkout/checkout.go#Total",
+          "caller": "checkout/checkout.go#Receipt",
+          "line": 14
+        },
+        {
+          "callee": "checkout/pay.go#Card.Pay",
+          "caller": "checkout/pay.go#Charge",
+          "group": "checkout/pay.go:20:15",
+          "line": 20
+        },
+        {
+          "callee": "checkout/pay.go#Wallet.Pay",
+          "caller": "checkout/pay.go#Charge",
+          "group": "checkout/pay.go:20:15",
+          "line": 20
+        },
+        {
+          "callee": "money/money.go#whole",
+          "caller": "money/money.go#Format",
+          "line": 6
+        },
+        {
+          "callee": "money/money.go#whole",
+          "caller": "money/money.go#Round",
+          "line": 10
+        }
+      ],
+      "checker": {
+        "name": "Go",
+        "version": "<checker version>"
+      },
+      "files": [
+        "checkout/audit.go",
+        "checkout/checkout.go",
+        "checkout/pay.go",
+        "money/money.go"
+      ],
+      "functions": [
+        {
+          "file": "checkout/audit.go",
+          "firstLine": 5,
+          "id": "checkout/audit.go#Audit",
+          "lastLine": 7,
+          "name": "Audit",
+          "sourceHash": "de28500a1277a64b5aba9a208465f8cee8bf1907b4f947ab35bb4fae68cb1e98"
+        },
+        {
+          "file": "checkout/checkout.go",
+          "firstLine": 5,
+          "id": "checkout/checkout.go#Total",
+          "lastLine": 11,
+          "name": "Total",
+          "sourceHash": "9bb01cf4d5156e5971392ad084b8c2879d2e9f4573a4f599025e07b14e41e80a"
+        },
+        {
+          "file": "checkout/checkout.go",
+          "firstLine": 13,
+          "id": "checkout/checkout.go#Receipt",
+          "lastLine": 15,
+          "name": "Receipt",
+          "sourceHash": "1271c9d6fdb3a048619a33bfc3528bf6740f530afa0071292d592a0208623b52"
+        },
+        {
+          "file": "checkout/pay.go",
+          "firstLine": 9,
+          "id": "checkout/pay.go#Card.Pay",
+          "lastLine": 11,
+          "name": "Card.Pay",
+          "sourceHash": "3d024f62cc2f3f6e533819548354135936179c298f6187641dab6a5bd3ab4d10"
+        },
+        {
+          "file": "checkout/pay.go",
+          "firstLine": 15,
+          "id": "checkout/pay.go#Wallet.Pay",
+          "lastLine": 17,
+          "name": "Wallet.Pay",
+          "sourceHash": "5a8d1f5b104d0b02ba29254d33085f44a6e5edbffa8613ed8e1c5f9ca6b8d6cd"
+        },
+        {
+          "file": "checkout/pay.go",
+          "firstLine": 19,
+          "id": "checkout/pay.go#Charge",
+          "lastLine": 21,
+          "name": "Charge",
+          "sourceHash": "e30c0e321d83b41509e590f70fc10d7e76fb44b23592582aaf0c56ed5285327c"
+        },
+        {
+          "file": "money/money.go",
+          "firstLine": 5,
+          "id": "money/money.go#Format",
+          "lastLine": 7,
+          "name": "Format",
+          "sourceHash": "6d05afb0592cd6c800a9636f082775b2a84fa2543b4d0d0a7586b9bbdab9c3c0"
+        },
+        {
+          "file": "money/money.go",
+          "firstLine": 9,
+          "id": "money/money.go#Round",
+          "lastLine": 11,
+          "name": "Round",
+          "sourceHash": "01f620e30146d6c5e6e680530154cd183a87ece3186cb082213b7f947908631e"
+        },
+        {
+          "file": "money/money.go",
+          "firstLine": 13,
+          "id": "money/money.go#whole",
+          "lastLine": 15,
+          "name": "whole",
+          "sourceHash": "bfc2610488ebce8af9bb22454d98fb9e6af1dcbb082de35ed4d36ab7a277e0ac"
+        }
+      ],
+      "language": "go",
+      "openEnds": [
+        {
+          "caller": "checkout/audit.go#Audit",
+          "expression": "gen.Log",
+          "line": 6,
+          "reason": "missing-module"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "checkout/checkout.go": "package checkout\n\nimport \"example.com/shop/money\"\n\nfunc Total(prices []int) string {\n\tsum := 0\n\tfor _, price := range prices {\n\t\tsum += price\n\t}\n\treturn money.Format(sum)\n}\n\nfunc LegacyTotal(prices []int) string {\n\treturn Total(prices)\n}\n",
+      "money/money.go": "package money\n\nimport \"fmt\"\n\nfunc Format(cents int) string {\n\treturn fmt.Sprintf(\"%d EUR\", whole(cents))\n}\n\nfunc whole(cents int) int {\n\treturn cents / 100\n}\n"
+    },
+    "branch": {
+      "checkout/audit.go": "package checkout\n\nimport \"example.com/shop/gen\"\n\nfunc Audit(cents int) {\n\tgen.Log(cents)\n}\n",
+      "checkout/checkout.go": "package checkout\n\nimport \"example.com/shop/money\"\n\nfunc Total(prices []int) string {\n\tsum := 0\n\tfor _, price := range prices {\n\t\tsum += price\n\t}\n\treturn money.Format(money.Round(sum))\n}\n\nfunc Receipt(prices []int) string {\n\treturn \"Total: \" + Total(prices)\n}\n",
+      "checkout/pay.go": "package checkout\n\ntype Payer interface {\n\tPay(cents int) error\n}\n\ntype Card struct{}\n\nfunc (c Card) Pay(cents int) error {\n\treturn nil\n}\n\ntype Wallet struct{}\n\nfunc (w *Wallet) Pay(cents int) error {\n\treturn nil\n}\n\nfunc Charge(payer Payer) error {\n\treturn payer.Pay(100)\n}\n",
+      "money/money.go": "package money\n\nimport \"fmt\"\n\nfunc Format(cents int) string {\n\treturn fmt.Sprintf(\"%d.%02d EUR\", whole(cents), cents%100)\n}\n\nfunc Round(cents int) int {\n\treturn whole(cents+50) * 100\n}\n\nfunc whole(cents int) int {\n\treturn cents / 100\n}\n"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import {
   settled,
 } from './reader-page.ts';
 import type { LoadedPage } from './reader-page.ts';
+import { readerPageOfFile } from './review-input-file.ts';
 
 const ALERTS = 'src/alerts.ts';
 const CART = 'src/cart.ts';
@@ -24,9 +25,9 @@ const NOTIFY = 'src/notify.ts';
 
 let html = '';
 
-beforeAll(() => {
-  html = reviewHtmlOf(featureBranchRepo());
-}, 120_000);
+beforeAll(async () => {
+  html = await readerPageOfFile('typescript/review');
+});
 
 const bodyOf = ({ window }: LoadedPage) => within(window.document.body);
 
@@ -168,7 +169,7 @@ describe('the call tree of an entry point with a cycle', () => {
 
   beforeAll(() => {
     cycleHtml = reviewHtmlOf(countdownRepo());
-  }, 120_000);
+  });
 
   it('ends, shows each function once, and draws the call back as one line', async () => {
     const page = await routePage(cycleHtml);
@@ -238,7 +239,7 @@ const pong = (left: number): number => ping(left);
 `,
     );
     echoHtml = reviewHtmlOf(repo);
-  }, 120_000);
+  });
 
   it('draws the call tree of the function itself, and marks no entry point', async () => {
     const page = await routePage(echoHtml);

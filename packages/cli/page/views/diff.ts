@@ -1,13 +1,15 @@
-import { isChangeMark, markedCallsOf, pageFunctionsOf } from '../functions.ts';
+import { isChangeMark, pageFunctionsOf } from '../functions.ts';
 import { sceneOf } from '../scene.ts';
 import type { View } from '../view.ts';
 import { countWordsOf } from '../words.ts';
 
 export const DIFF_LIMIT = 2_000;
 
+/** A test sets a smaller Diff limit on the window under this name, as decision 3 of ADR-0038 records. */
+export const DIFF_LIMIT_HOOK = 'callmapDiffLimit';
+
 export const diffView: View = {
   name: 'Diff',
-  laidOutByCommand: true,
   callLimitOf: ({ diffLimit }) => diffLimit,
   countOf: ({ review }) => {
     const count = review.functions.filter(({ mark }) => isChangeMark(mark)).length;
@@ -20,7 +22,7 @@ export const diffView: View = {
       ...sceneOf(
         data,
         [...shown].flatMap((id) => functions.get(id) ?? []),
-        markedCallsOf(data).filter(({ caller, callee }) => shown.has(caller) && shown.has(callee)),
+        data.review.allCalls.filter(({ caller, callee }) => shown.has(caller) && shown.has(callee)),
       ),
       modelOrder: 'NONE',
     };
