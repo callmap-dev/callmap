@@ -83,11 +83,12 @@ const withWorkerOf = (run: WorkerRun) => (window: JSDOM['window']) => {
       return url;
     },
   });
-  class PageWorker {
+  class PageWorker extends window.EventTarget {
     onmessage: ((message: { readonly data: unknown }) => void) | undefined;
     readonly #self: Promise<WorkerSelf>;
 
     constructor(url: string) {
+      super();
       run.urls.push(url);
       this.#self = (blobs.get(url)?.text() ?? Promise.reject(new Error(`no blob at ${url}`))).then(
         (source) => {
@@ -139,6 +140,55 @@ describe('the layout where the browser has a Worker', () => {
       'callmap layout: Diff',
       'callmap layout: Whole project level:src',
     ]);
+    expect(boxesOf(page).length).toBeGreaterThan(0);
+  });
+});
+
+const withBlobUrls = (window: JSDOM['window']): void => {
+  Object.assign(window.URL, { createObjectURL: (): string => 'blob:callmap/0' });
+};
+
+const withRefusedWorker = (window: JSDOM['window']): void => {
+  withBlobUrls(window);
+  function RefusedWorker(): never {
+    throw new window.DOMException('worker-src refuses blob:', 'SecurityError');
+  }
+  Object.assign(window, { Worker: RefusedWorker });
+};
+
+const withFailedWorker = (window: JSDOM['window']): void => {
+  withBlobUrls(window);
+  class FailedWorker extends window.EventTarget {
+    onmessage: unknown;
+
+    constructor() {
+      super();
+      setTimeout(() => this.dispatchEvent(new window.Event('error')), 0);
+    }
+
+    postMessage() {
+      return undefined;
+    }
+
+    terminate() {
+      return undefined;
+    }
+  }
+  Object.assign(window, { Worker: FailedWorker });
+};
+
+describe('the layout where the browser does not start the worker', () => {
+  it.each([
+    ['refuses to construct the worker', withRefusedWorker],
+    ['fires an error on the worker', withFailedWorker],
+  ])('runs in the page when the browser %s', async (_, withWorker) => {
+    const page = await loadReaderPageWith(html, withWorker);
+    await openTab(page, 'Whole project');
+    expect(page.layouts).toEqual([
+      'callmap layout: Diff',
+      'callmap layout: Whole project level:src',
+    ]);
+    expect(graphOf(page).getAttribute('aria-busy')).toBe('false');
     expect(boxesOf(page).length).toBeGreaterThan(0);
   });
 });

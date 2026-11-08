@@ -232,18 +232,52 @@ const pointsOf = (edge: ElkExtendedEdge | undefined): readonly Point[] =>
 
 const NOWHERE: Place = [0, 0, 0, 0];
 
-const elkOf = (): ELK =>
-  typeof Worker === 'undefined'
-    ? new ElkInPage()
-    : new ElkInWorker({
-        workerUrl: URL.createObjectURL(new Blob([ELK_WORKER_SOURCE], { type: 'text/javascript' })),
-      });
+type Layout = (graph: ElkNode) => Promise<ElkNode>;
 
-let elk: ELK | undefined;
+const layoutInPage = (): Layout => {
+  const elk: ELK = new ElkInPage();
+  return (graph) => elk.layout(graph);
+};
+
+const workerOf = (): Worker | undefined => {
+  if (typeof Worker === 'undefined') return undefined;
+  try {
+    return new Worker(
+      URL.createObjectURL(new Blob([ELK_WORKER_SOURCE], { type: 'text/javascript' })),
+    );
+  } catch {
+    return undefined;
+  }
+};
+
+// A strict worker-src makes the browser refuse the Blob URL worker, and elk-api.js then never settles.
+const layoutInWorkerOrInPage = (): Layout => {
+  const worker = workerOf();
+  if (worker === undefined) return layoutInPage();
+  const failed = new Promise<never>((_, reject) => {
+    worker.addEventListener('error', reject, { once: true });
+  });
+  failed.catch(() => undefined);
+  const elk: ELK = new ElkInWorker({ workerFactory: () => worker });
+  let inPage: Layout | undefined;
+  return async (graph) => {
+    if (inPage !== undefined) return inPage(graph);
+    try {
+      return await Promise.race([elk.layout(graph), failed]);
+    } catch (error) {
+      if (!(error instanceof Event)) throw error;
+      worker.terminate();
+      inPage = layoutInPage();
+      return inPage(graph);
+    }
+  };
+};
+
+let layout: Layout | undefined;
 
 export const placementOf = async (scene: Scene): Promise<Placement> => {
-  elk ??= elkOf();
-  const laid = await elk.layout(elkGraphOf(scene));
+  layout ??= layoutInWorkerOrInPage();
+  const laid = await layout(elkGraphOf(scene));
   const placed = placedOf(laid);
   const placeFor = ({ id }: { readonly id: string }): Place => placed.get(id) ?? NOWHERE;
   const edges = new Map((laid.edges ?? []).map((edge) => [edge.id, edge]));
