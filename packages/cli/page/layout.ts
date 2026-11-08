@@ -267,7 +267,7 @@ const layoutInWorkerOrInPage = (): Layout => {
     } catch (error) {
       if (!(error instanceof Event)) throw error;
       worker.terminate();
-      inPage = layoutInPage();
+      inPage ??= layoutInPage();
       return inPage(graph);
     }
   };
