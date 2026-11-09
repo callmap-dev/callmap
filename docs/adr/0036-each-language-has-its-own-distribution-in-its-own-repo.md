@@ -1,5 +1,7 @@
 # Each language has its own distribution in its own repo
 
+> Changed in part by ADR-0038. Decision 7: the conformance suite compares the review input by its structure after it unpacks the sources and masks the machine facts, not by its bytes.
+
 Callmap ships one distribution for each language: `callmap-ts` on npm, `callmap-go` as a Go module and `callmap-rb` as a gem. Each distribution reads only the files of its own language, so its user needs no tool of another language. Each distribution lives in its own repo of the GitHub org `callmaphq`. The current repo becomes `callmaphq/callmap-core` and holds what the distributions share. The owner made these decisions in a grilling on 2026-11-07.
 
 This supersedes decision 1 of ADR-0025 and its reason "One page for a mixed branch". It supersedes ADR-0026, because `callmap-ts` carries only the TypeScript extractor. It changes ADR-0021: `@callmap/cli` is no longer the one package on npm.

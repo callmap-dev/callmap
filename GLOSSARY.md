@@ -79,7 +79,7 @@ What one extractor emits for one repo: its files, its functions, its calls, its 
 _Avoid_: graph JSON, payload, manifest
 
 **Review input**:
-What a distribution gives the reader page for one review: the graph documents of the base and the branch, the source of the files that the page shows, the facts from git and the editor that the editor links open. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
+What a distribution gives the reader page for one review: the graph documents of the base and the branch, the branch source of each file in the branch graph documents, the base source of each file that the branch changed in scope, the facts from git and the editor that the editor links open. The facts from git are the branch, the base, the commit range and the uncommitted mark. The page computes the review from it, so every distribution gives the same review for the same review input.
 _Avoid_: page data, payload, review data
 
 **Data block**:
@@ -108,11 +108,11 @@ _Avoid_: filter, include path, root
 
 **Load unit**:
 The Ruby code that loads together, so that its constants share one set of names: one Rails app, the folder of one `.gemspec`, or else the rest of the repo. A constant ties only to a class or a module of its own load unit. A class takes its methods from every body of that class in its load unit.
+_Avoid_: app, package, project
 
 **Alias**:
 A Ruby constant that a `class` body, a `module` body or the top level sets to a constant path, such as `Plan = Services::Plan`. The path resolves in the nesting of the assignment, and the rules follow a chain of aliases. A call on the alias ties as a call on its target does.
 _Avoid_: another name, synonym
-_Avoid_: app, package, project
 
 **Test file**:
 A file that a test glob of `@callmap/scope` matches. A test glob is a file-name rule, such as `*_test.go`, or a folder, such as `test/`. No walk reads a test file unless `--tests` asks for it.
