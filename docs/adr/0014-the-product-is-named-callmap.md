@@ -5,5 +5,5 @@ The product reads the call graph of a repo and shows it on one page (ADR-0012). 
 ## Consequences
 
 - The command is `callmap`, the packages are `@callmap/*`, and the skill is `skills/callmap-review`.
-- The GitHub repo becomes `spasoye-json/callmap`.
+- The GitHub repo becomes `spasoye-json/callmap`. Later it moves to the org `callmaphq` as `callmaphq/callmap-core`, because ADR-0036 gives the core its own repo.
 - ADR-0001 to ADR-0012, the dated notes in `docs/research/` and the git history keep the name archmap. They record what was true at the time.
