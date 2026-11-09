@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/callmaphq/callmap-core.git"
+    "url": "git+https://github.com/callmap-dev/callmap.git"
   },
   "type": "module",
   "bin": {

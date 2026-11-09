@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/callmaphq/callmap-core/releases/latest/download/graph-document.schema.json",
+  "$id": "https://github.com/callmap-dev/callmap/releases/latest/download/graph-document.schema.json",
   "title": "Graph document",
   "description": "What an extractor gives for one language: the files in scope, their functions, the calls between the functions and the open ends.",
   "type": "object",

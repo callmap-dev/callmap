@@ -17,7 +17,7 @@ A distribution pins one version of the assets in a file of its repo. It download
 
 ```sh
 version=0.2.0
-release=https://github.com/callmaphq/callmap-core/releases/download/v$version
+release=https://github.com/callmap-dev/callmap/releases/download/v$version
 curl -fLO "$release/callmap-core-assets-$version.tar.gz"
 curl -fLO "$release/callmap-core-assets-$version.tar.gz.sha256"
 sha256sum -c "callmap-core-assets-$version.tar.gz.sha256"

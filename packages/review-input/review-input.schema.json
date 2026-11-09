@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/callmaphq/callmap-core/releases/latest/download/review-input.schema.json",
+  "$id": "https://github.com/callmap-dev/callmap/releases/latest/download/review-input.schema.json",
   "title": "Review input",
   "description": "What a distribution gives the reader page for one review. The page computes the review from it.",
   "type": "object",

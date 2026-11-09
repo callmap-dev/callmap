@@ -77,7 +77,7 @@ With `npx`, write `npx @callmap/cli` in place of `callmap`. [The review command]
 This repo is also a Claude Code plugin marketplace. Its plugin `callmap` holds a skill that runs `callmap review` and opens the page. Install the plugin once in Claude Code:
 
 ```sh
-/plugin install callmap --marketplace callmaphq/callmap-core
+/plugin install callmap --marketplace callmap-dev/callmap
 ```
 
 Then ask Claude for a Callmap review of the branch. The skill needs the `callmap` command from the install step.

@@ -4,7 +4,7 @@
   "author": {
     "name": "Andrej Kovacic"
   },
-  "homepage": "https://github.com/callmaphq/callmap-core",
-  "repository": "https://github.com/callmaphq/callmap-core",
+  "homepage": "https://github.com/callmap-dev/callmap",
+  "repository": "https://github.com/callmap-dev/callmap",
   "license": "MIT"
 }
