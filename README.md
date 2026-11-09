@@ -1,14 +1,23 @@
 # Callmap
 
-Callmap is a call graph reader for an engineer who still reads code. It reads a branch of a TypeScript, Go or Ruby repo, with no AI. It proves each call with the type checker of the language, or with its own rules for Ruby. It writes one HTML page for the code review. The page shows each function that the branch added, removed or changed, inside the frame of its file. Around each one it shows its callers and its callees, and it marks each call that the branch added or removed. Tabs show the same graph as the whole project, as one folder, or as one route. The same commits always give the same page and the same layout.
+Callmap is a call graph reader for an engineer who still reads code.
 
-## Install
+It reads a branch of a TypeScript, Go or Ruby repo and writes one HTML page for the code review. The page shows each function that the branch added, removed or changed, with its callers and its callees. Callmap uses no AI. The type checker of the language proves each call, so the same commits always give the same page.
 
-Callmap needs Node 22.18 or later. Run it in the repo of the branch, with no install:
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/diff-view-dark.png">
+  <img alt="The Diff view of the review fixture, with the changed function receipt selected and its diff in the code panel." src="docs/screenshots/diff-view-light.png">
+</picture>
+
+## Try it
+
+Check out the branch, then run the review in its repo:
 
 ```sh
 npx @callmap/cli review
 ```
+
+The page opens in the browser. Callmap needs Node 22.18 or later. Go files also need `go` 1.26 or later, and Ruby files need `ruby`. Without them, the review skips those files and says so.
 
 To keep the `callmap` command, install the package once:
 
@@ -16,24 +25,27 @@ To keep the `callmap` command, install the package once:
 npm install --global @callmap/cli
 ```
 
-The examples below use `callmap`. With `npx`, write `npx @callmap/cli` in its place.
+## What the page shows
 
-A review of a repo with Go files needs `go` 1.26 or later on the `PATH`. The package carries the source of the Go extractor. The first review with a Go file in scope builds it with that `go`. The build writes the binary to `$XDG_CACHE_HOME/callmap/go-extractor/`, or to `~/.cache/callmap/go-extractor/`, and later reviews use it again. A new version of `@callmap/cli` or a new `go` builds it again. The source holds a copy of `golang.org/x/tools`, so the build needs no network. If `go` is not on the `PATH`, or is older than 1.26, the review skips the Go files. It prints one line that says so.
+- **Diff:** the changed functions and one hop of callers and callees around each. This view opens first.
+- **Whole project:** the folder tree one level at a time, with the count of the calls between 2 folders.
+- **Folder:** the functions of one folder and the calls between them.
+- **Route:** the whole call tree of one entry point.
+- **Code:** a click on a function shows its code, as a diff when the branch changed it.
 
-### From a clone
+The page is one file with no network access, so you can attach it to a pull request. [The reader page](docs/reader-page.md) describes the views, the zoom and the keys.
 
-To try a change to Callmap on another repo, install the `callmap` command from a clone of this repo:
+## What Callmap proves
 
-```sh
-npm install
-npm link -w @callmap/cli
-```
+| Language                  | Checker                                      | Calls resolved | Measured on                           |
+| ------------------------- | -------------------------------------------- | -------------- | ------------------------------------- |
+| TypeScript and JavaScript | The TypeScript type checker                  | 96.7%          | The backend of a private app          |
+| Go                        | `go/types`                                   | 97.6%          | `go-gitea/gitea` without its tests    |
+| Ruby                      | [The Callmap Ruby rules](docs/ruby-rules.md) | 47.6%          | `mastodon/mastodon` without its tests |
 
-`npm install` builds the command into `packages/cli/dist/`, and the link points at that build. The command in a clone builds the Go extractor into a temporary folder at each run. So run `npm run build` after each `git pull` or change. `npm unlink -g @callmap/cli` removes the command. The tests run the source in `packages/cli/src/`, so they need no build.
+Callmap never guesses a call. A call that the checker cannot prove is an open end, and the page marks it at its call site. The page also shows the resolution rate of your branch for each language. [The research folder](docs/research/) holds the measurements.
 
-## Review a branch
-
-Check out the branch, then run the review in its repo:
+## Options
 
 ```sh
 callmap review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>] [--out <file>] [--no-open] [--no-cache] [--editor vscode|jetbrains] [--tests]
@@ -52,164 +64,17 @@ callmap review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>
 | `--editor <name>`   | The editor that the editor link on each function opens: `vscode` or `jetbrains`.        | `vscode`                                         |
 | `--tests`           | Reads the test files too.                                                               | The test files stay out                          |
 
-The review reads each language that has a file in scope. It reads TypeScript and JavaScript with the TypeScript type checker, Go with `go/types`, and Ruby with the Callmap Ruby rules. A Go file enters the review only when the go tool builds it. So a file that imports `C` enters only when cgo is on. The go tool turns cgo off with no C compiler on the `PATH`, or with `CGO_ENABLED=0`. A call never crosses from one language to another. The review reads the base and the branch of TypeScript at the same time. It reads the base and the branch of Go one after the other, and the same for Ruby. One read of a large Go repo can take several GB of memory.
-
-A review of a repo with Ruby files needs `ruby` on the `PATH`. The Ruby extractor parses each file with Ripper, which every Ruby ships, so it needs no gem. If `ruby` is not on the `PATH`, the review skips the Ruby files. It prints one line that says so. If Ripper cannot parse a Ruby file, the review reads no functions in that file and prints one line for it.
-
-Ruby has no type checker, so the Callmap Ruby rules tie each Ruby call. A function is a `def`. An instance method is named like `Order#total`. A `def self.total`, or a `def` inside `class << self`, is named `Order.total`. A `def Order.total` is named `Order.total` in any body, and `Order` resolves in the nesting of the `def`. The rules are:
-
-- **Load units:** a Rails app, the folder of a `.gemspec`, or else the rest of the repo is one load unit. A class takes the methods of every body of its full name in the unit. When 2 bodies define the same method, a `def` in a file in the scope wins over a `def` in a file out of the scope. A constant resolves inside its own unit only. In a Rails app, Zeitwerk naming adds the constants of its files.
-- **No receiver or `self`:** the call ties to the first method of that name in the class chain: the prepends, the class, the includes, then the superclass. A singleton call also reads the prepends of `class << self` before the class, then the extends and the `ClassMethods` of a concern. `super` starts after the class of the caller. `super` in a module gives a one-of group over the `def` that the chain of each includer finds next. If the chain reaches a library class or a Rails macro first, it is a library call. The chain of a reopened core class, such as `String`, ends in its library class.
-- **A constant receiver:** `Order.find` ties to the singleton method `Order.find`. `Order.new` ties to `Order.new`, else to `Order#initialize`, else it is a library call. In a singleton method of the class `Order`, `new` with no receiver or on `self` ties as `Order.new` does. A constant that a class body, a module body or the top level sets to a constant path, such as `Plan = Services::Plan`, is an alias of that constant. The path resolves in the nesting of the assignment, and a chain of aliases is followed. If the path does not resolve, the alias resolves as it does with no assignment.
-- **One-of groups:** a call to an abstract method, a `def` that only raises `NotImplementedError`, gives a one-of group over the overrides of the subclasses. A call on `self` in a module with no `def` of its name gives a one-of group over each class that includes the module. The same is true when the chain of the module reaches a library module first and a class includes the module.
-- **`send` with a literal name:** `send`, `public_send` and `try` tie like a direct call.
-- **A literal receiver:** `"x"`, `[]` and `{}` are values of their core class. So `"x".slugify` ties to a `String#slugify` of the repo.
-- **The type flow:** `Order.new` gives a value of `Order`, and so does `new` in a singleton method of `Order`. A local variable has a known class when each write in the `def` sets the same class. An instance variable `@x` has a known class when 1 method alone writes it, among the methods that an object of the class can run, and each write of that method sets the same class. These methods come from the class chain and from the chain of each class that has the class in its chain, such as a subclass or a class that includes the module. A macro in these chains that makes the method `x=`, such as `attr_writer`, `attr_accessor`, `has_one`, `belongs_to`, `has_many` or `delegate`, makes `@x` unknown. A finder of a model, such as `find` or `create`, gives a value of the model.
-- **Open ends:** a computed name of `send` gives "dynamic key". `yield`, `block.call` and `method(:x).call` give "function value". A constant that does not resolve gives "code not found" when a `class` or `module` body of its load unit, or a Zeitwerk name, has a segment named as the first segment of the constant. Else it is a library call, so `Rails.logger` and `Time.current` are library calls. For a constant that an alias names, the rule reads the target of the alias. A typo in a new first segment, such as `Paymnets::Gateway`, is a library call too. A one-of group with no member in scope gives "no implementation in scope". A call on `self` that finds no `def` gives "not resolved". A call on any other value gives "untyped value". The last 4 reasons need a `def` of the repo with the name of the call. Else the call is a library call.
-
-A call to a method outside the scope is a library call too. The page shows no library call.
-
-The default branch is the head of `origin`, then the head of any other remote, then `main`, then `master`. The review reads the base commit in a temporary git worktree and removes it at the end, so the checkout and the uncommitted files never move. The worktree links to the `node_modules` folders of the checkout, so the library types resolve on the base too. Git may not track the `go.work` and the `go.work.sum` at the repo root. Then the worktree gets a copy of them, so the Go modules load on the base as on the branch. An absolute `use` path or `replace` target into the checkout points at the same folder in the worktree. The command prints the path of the page when it ends.
-
-The command caches the graph of the base, so a second review of the same base reads only the branch. The cache is in `$XDG_CACHE_HOME/callmap/`, or in `~/.cache/callmap/` when the variable is not set. The cache holds one entry for each language of the review. An entry belongs to one language, one base commit and one set of scope globs. Without `--tests`, the set holds the test globs. So a review with `--tests` never uses an entry of a review without it. It also belongs to the dependency files of that language in the checkout. It belongs to one version of the extractor of that language too. An entry of TypeScript also belongs to one tsconfig. A change of any of them reads the base of that language again. The entries of the other languages stay. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum` in the checkout, in any folder. The workspace file `go.work` at the repo root is a dependency file of Go too. Ruby has no dependency file. The version of the TypeScript extractor holds the version of `@callmap/cli` and the version of its `typescript`. It also holds a hash of the extractor source that the build saw. So a new release starts with an empty cache. The version of the Go extractor holds the version of `@callmap/cli` and the output of `go version`. It also holds a hash of the Go source with its vendored modules, without its `_test.go` files. The version of the Ruby extractor holds the version of `@callmap/cli` and the output of `ruby --version`. It also holds a hash of the Ruby extractor source with its Ripper script. A run of the source in a clone uses the version of `typescript`, the output of `go version` or the output of `ruby --version`, and a hash of the extractor source. The cache never holds the graph of the branch. It keeps the 20 newest entries for each repo. A cache file that cannot be read gives a fresh read of the base. You can delete the folder at any time.
-
-A scope glob matches a whole path from the repo root. `*` matches inside one folder, `**` matches across folders, and `?` matches one character. A glob that starts with `!` leaves files out. Quote each glob, so that the shell does not expand it.
-
 A backend in a subfolder of a monorepo, with its generated files left out:
 
 ```sh
 callmap review --tsconfig server/tsconfig.json --scope 'server/src/**' --scope '!**/*.generated.ts'
 ```
 
-A Go repo with its tests:
-
-```sh
-callmap review --tests
-```
-
-By default, the review reads no test file. A test file is a path that one of these globs matches: `**/*_test.go`, `**/*.test.*`, `**/*.spec.*`, `**/*_spec.rb`, `**/*_test.rb`, `**/__tests__/**`, `**/test/**`, `**/tests/**` and `**/spec/**`. The command adds each of them to the scope as a `!` glob. So a `--scope` glob does not put a test file back. `--tests` reads the test files. A test that mocks its calls adds open ends, so it lowers the resolution rate. A folder named `test` that holds real code stays out too, and `--tests` brings it back. ADR-0029 records why.
-
-## The reader page
-
-The page is one HTML file with no network access, so it opens from a file anywhere. ELK lays out the graph, and the page draws it as SVG. The page lays out each view and each level when you open it, in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. A Diff view over the Diff limit gets no layout. The page stores the file texts as one gzip block, and the browser unpacks it with `DecompressionStream` after the first view draws. Each call is a line that turns only at 90 degrees and never goes through a box. The callers stand on the left and the callees on the right. The page follows the light mode or the dark mode of the system.
-
-Each mark is a small chip with a glyph on a neutral box. The glyph is Δ for changed, + for added, − for removed, · for neighbour, ? for an open end. So a screen full of changes stays calm, and a mark does not depend on colour alone. A removed function also has a dashed border.
-
-A click on a function selects it. The selected function is the only filled box, with a blue border. Its calls in and out get 2 px blue lines and blue count badges. An added or a removed call keeps its colour. The boxes at their other ends do not fade, and the rest fades. A click on the empty graph or the Escape key clears the selection.
-
-The pointer over any box shows the same highlight for that box until the pointer leaves it. The box under the pointer gets a blue border and no fill. This also works on a box that opens a level. The pointer does not open the code panel or the level.
-
-The click also opens the code panel. The panel shows the code of the function in a read-only editor. The editor has syntax highlighting and the line numbers of the file. For a changed function, it shows a unified diff as Git does. Each removed line is red, above the added lines in green, and the exact changed characters are bold. An added function is all green, and a removed function is all red.
-
-Below the code, the lists "Called by" and "Calls" name the callers and the callees, with their marks. A click on a row selects that function.
-
-The top bar holds the tabs of the views. The Diff tab shows the count of changed functions. The code panel is on the right of the graph. The left panel holds the search, the resolution rate and the legend of the marks. It also holds the lists of a view and the open ends.
-
-Each panel collapses and opens with its own button, and a drag on its inner edge changes its width. The graph keeps the selected function in view when a panel opens or closes. The search finds any function in scope by name. Each function carries an editor link that opens its file at its first line.
-
-The legend counts each mark and each kind of call. A click on a mark in the legend hides the functions with that mark and their calls. On a level of the Whole project view, it hides the count of that mark on each box, and it hides a box when every change in it has a hidden mark. A second click shows them again. For example, hide the changed, removed and neighbour marks to see only the added code. The arrow keys and the edge hints skip the hidden functions.
-
-The open ends are grouped by file, with the file that holds the most open ends first. A click on a file opens or closes its list. The panel shows 5 files, and a button shows the rest.
-
-### Zoom and keys
-
-A dense level does not shrink until its text cannot be read. The page opens each view and each level at the zoom of this rule:
-
-```
-fit = the zoom where the whole level fits the graph
-open zoom = fit, up to 125%,  when fit is 92% or more
-open zoom = 100%,             when fit is less than 92%
-```
-
-92% is the reading floor: the zoom where the box names are 11 px on the screen. A box name is 12 px at 100%. A support text can be smaller at the reading floor, such as the "N fn" count, the label of an open end and the glyph of a chip. So a level that fits at the reading floor or above opens whole. A larger level opens at 100% on one part of it. That part is the selected box, else the box with the most changes, else the first box on the left. The page puts that box one third from the left edge of the graph. ADR-0018 records the rule and its check on a real review.
-
-The zoom band of the zoom decides what text the graph draws:
-
-| Zoom             | Band | What the graph draws                                                                 |
-| ---------------- | ---- | ------------------------------------------------------------------------------------ |
-| Less than 60%    | Map  | The boxes and the chips, at their screen size while they fit. A tooltip names a box. |
-| 60% to under 92% | Scan | The names at 11 px on the screen, one count on a level box, badges on the path       |
-| 92% or more      | Read | All the text                                                                         |
-
-The lines, the count badges and the "one of" labels keep their screen size at every zoom. A frame label keeps its screen size while it fits the header of its frame. At a lower zoom, it shrinks with the frame. A frame label that does not fit cuts the start of its path, so the file name stays.
-
-The zoom controls sit at the bottom right of the graph. They are "Zoom out", "Zoom in", "Fit" and the zoom in percent. The label says "Overview" below 92%. Fit shows the whole level, up to 150%. Drag the graph to pan it, and use the mouse wheel to zoom, from 5% to 150%.
-
-When a level is larger than the graph, an overview map shows at the bottom right. The map shows all the boxes of the level and a frame around the part on the screen. A click or a drag on the map moves the graph to that place. An edge hint on each side of the graph counts the boxes past that edge, such as "171 more". A click on a hint moves to the nearest of them. A hint moves along its edge to the place nearest the middle where it covers no box, the overview map or the zoom controls. If its edge has no such place, the hint stays at the middle. The hints do not count the boxes of a hidden mark.
-
-The keys work when the focus is in the graph. A click on the graph gives it the focus.
-
-| Key         | What it does                                                        |
-| ----------- | ------------------------------------------------------------------- |
-| F           | Fits the whole level                                                |
-| 0           | Sets the zoom to 100%                                               |
-| Left arrow  | Selects a caller of the selected function                           |
-| Right arrow | Selects a callee of the selected function                           |
-| Enter       | Selects the box that has the focus, or opens its level              |
-| Escape      | Clears the selection                                                |
-| /           | Puts the focus in the search, when the focus is not in a text field |
-
-An arrow selects the caller or the callee with the smallest vertical distance to the selected box. If 2 have the same distance, the arrow takes the one furthest to the left. An arrow skips the functions of a hidden mark. So the arrows alone do not reach every caller or callee. The lists of the code panel reach all of them.
-
-A busy line with "Laying out" shows only when a layout takes more than 150 ms. A branch that changes no function shows "No changed functions" in place of the Diff view. A button there opens the Whole project view.
-
-The Diff view draws up to 2,000 lines, the Diff limit. Each line is one call. A review over the Diff limit opens on the Whole project view. The command prints the count of functions and calls to stderr. The Diff tab then says what it left out, in place of a drawing. A next hop or a search that takes the Diff view over the limit gets the same message. The Whole project view reads the same changes level by level.
-
-### The views
-
-The tabs above the graph choose the view. Each view keeps the marks for added, removed, changed and neighbour. Only a function one hop from a changed function gets the neighbour mark. Other functions get no mark.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/diff-view-dark.png">
-  <img alt="The Diff view of the review fixture, with the changed function receipt selected and its diff in the code panel." src="docs/screenshots/diff-view-light.png">
-</picture>
-
-- **Diff:** the changed functions and one hop around each, inside file frames. This view opens first, unless the review is over the Diff limit. A click on a function that the branch did not change opens its own callers and callees. In the other views, a click on a function only shows its code.
-- **Whole project:** one level of the folder tree at a time, with a line between 2 boxes for the calls between them. The next part tells how the levels work.
-- **Folder:** a folder tree beside the graph. A click on a folder draws its functions, the calls between them, and the functions one hop outside the folder. The view draws these outside functions greyed, and it draws only the calls that touch a function of the folder.
-- **Route:** a list of entry points beside the graph. An entry point is a function in scope that no other function in scope calls. The entry points that reach a changed function come first. A click on an entry point draws its whole call tree. Each function shows once, so a cycle ends. A search opens the first entry point in the list that reaches the function. If no entry point reaches it, the view draws the call tree of the function itself.
-
-The page shows one resolution rate for each language of the branch graph in scope. The rate is the share of the calls into the repo's own code that the checker of the language proved. Each rate stands next to its checker, such as "TypeScript 6.0.3 · 90.0%". The list of open ends below it holds the open ends of the functions in this review only. The graph marks each open end at its call site, as a dashed line that ends in a ring with ?. It does this also on a function that a next hop or a search adds. It draws the one-of calls of one call site as dotted lines from one dot, one to each implementation. A call through an interface is an example. The lines carry the label "one of N". A call into a library is not in the graph and does not change the rate.
-
-### The levels of the Whole project view
-
-```
-top level                          after a click on src/orders
-┌──────────┐  12  ┌──────────┐     ┌─ src/orders ─────────────────┐
-│src/orders│─────▶│src/money │     │ ┌────────┐  4  ┌──────────┐ │  9  ┌─────────┐
-└──────────┘      └──────────┘     │ │ api/   │───▶│ service/ │─┼───▶│src/money│
-     │ 3              ▲ 7          │ └────────┘    └──────────┘ │     └─────────┘
-     ▼                │            └──────────────────────────────┘
-┌──────────┐──────────┘
-│src/notify│
-└──────────┘
-```
-
-A level is one folder of the scope or one file. The view opens at the top level: the deepest folder that holds every file in scope. Each child folder and each file of a folder level is a box. A chain of folders with one child each shows as one box, such as `src/orders/api`. A folder with only one file shows as the box of that file, such as `src/tax/rate.ts`. So a level never holds a single box.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/whole-project-top-level-dark.png">
-  <img alt="The top level src/ of the Whole project view of the levels fixture." src="docs/screenshots/whole-project-top-level-light.png">
-</picture>
-
-A line between 2 boxes stands for every call from the code in one box to the code in the other box, with their count. It points from the caller box to the callee box, so 2 boxes that call each other get 2 lines. A call inside one box makes no line at that level. The lines come only from the calls that the checker proved, so an import of a type or a constant makes no line. A line shows its count only for 2 calls or more, and "999+" above 999. The count sits at the middle of the longest straight part of the line. If no part is 32 px long, the count sits next to the caller. A click on a line opens a list of its calls next to the pointer. The added and removed calls come first, then the calls of a changed caller. The list shows 5 calls and a button for the rest. A click on a call shows the code of the caller.
-
-A box shows its folder or file icon and the count of its functions, such as "12 fn". Below its name, a chip with a count stands for each mark inside it. The marks are the changed, added and removed functions, and the open ends of its functions. A box with none of them says "No changes". The tooltip of a box gives the counts in words, for example "3 changed, 1 added". A line shows the added or removed mark when it holds an added or a removed call.
-
-A click on a folder box opens the level of that folder, inside its folder frame. A call between the open folder and code outside it ends at an outside box. The outside box is the first folder on the path of that code that does not hold the open folder. With `src/orders` open, a call to `src/money/format.ts` ends at the box `src/money`, and a call to `lib/a.ts` ends at `lib`. An outside box collapses by the same rules as the boxes of a level, so a call to `src/shipping/carriers/post.ts` ends at `src/shipping/carriers` when `src/shipping` holds only `carriers`. A click on an outside box opens the level of that outside code.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/whole-project-src-orders-dark.png">
-  <img alt="The level src/orders of the Whole project view of the levels fixture, inside its folder frame, with its outside boxes." src="docs/screenshots/whole-project-src-orders-light.png">
-</picture>
-
-A click on a file box opens the file level. It shows the functions of the file in a file frame, and each call between them has its own line, as in the Diff view. A caller or a callee in another file ends at an outside box, by the same rule. The calls between one function and one outside box share one line with their count. The open ends, the one-of groups, the selection and the code panel work on the file level as in the other views. The level bar at the top of the graph holds the breadcrumb and the button "Up one level". It also counts the boxes and the lines of the level. The breadcrumb names each level from the top level down to the open one. A click on a name opens that level again. The search opens the file level of the function that it finds and selects its box.
-
-The page lays out each level the first time that you open it, and keeps that layout. The layout time of a level depends on its boxes and lines, not on the size of the repo. Each layout in the page records a `performance.measure` with the name `callmap layout:`, the view and the level, so the profiler of the browser shows it. ADR-0017 records the numbers on a large repo.
+With `npx`, write `npx @callmap/cli` in place of `callmap`. [The review command](docs/review-command.md) describes the base, the cache, the scope globs and the test files.
 
 ## Ask Claude for a review
 
-`skills/callmap-review` is a Claude Code skill that runs `callmap review` and opens the page. This repo is also a Claude Code plugin marketplace, and its plugin `callmap` holds the skill. Install the plugin once in Claude Code, and the skill works in every repo:
+This repo is also a Claude Code plugin marketplace. Its plugin `callmap` holds a skill that runs `callmap review` and opens the page. Install the plugin once in Claude Code:
 
 ```sh
 /plugin install callmap --marketplace callmaphq/callmap-core
@@ -217,114 +82,22 @@ The page lays out each level the first time that you open it, and keeps that lay
 
 Then ask Claude for a Callmap review of the branch. The skill needs the `callmap` command from the install step.
 
-## Records
+## More
 
-- `docs/product.md` holds the product record.
-- `GLOSSARY.md` holds the vocabulary.
-- `docs/adr/` holds the architectural decisions. ADR-0012 tells how the product became a call graph reader. ADR-0014 tells why it is named callmap.
-- `docs/command-contract.md` holds the command contract that every distribution follows.
-- `docs/research/` holds the measurements and the research behind the decisions.
+To use Callmap:
 
-## Packages
+- [The reader page](docs/reader-page.md) describes the views, the levels, the zoom and the keys.
+- [The review command](docs/review-command.md) describes the languages, the base, the cache and the scope.
+- [The Callmap Ruby rules](docs/ruby-rules.md) tell how Callmap ties a Ruby call with no type checker.
 
-The core packages read data and never read source code or a filesystem. See ADR-0009.
+To change Callmap:
 
-| Package                   | What it owns                                                                                                                                                               |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@callmap/graph-document` | The graph document an extractor emits: files, functions, calls with their one-of groups, open ends, a language and a scope                                                 |
-| `@callmap/review`         | The review of a branch: the changed functions, their neighbours, the added and removed calls, their open ends and one-of groups, and one resolution rate for each language |
-| `@callmap/review-input`   | The review input in the data block of the reader page: its type, its format version, the escape rule, the packed sources, and the read and the write of the data block |
-| `@callmap/scope`          | The scope globs, the test globs and the skipped directories that every walk of a repo shares                                                                                               |
-| `@callmap/editor-link`    | The editor link that opens a file at a line                                                                                                                                |
+- [CONTRIBUTING.md](CONTRIBUTING.md) tells how to set up a clone, and [the checks](docs/checks.md) tell how to check a change.
+- [The packages](docs/packages.md) describe the core, the extractors and the build.
+- [The release assets](docs/release-assets.md) describe the files that each distribution shares with this repo.
+- [The command contract](docs/command-contract.md) holds the rules that every distribution follows.
+- [The product record](docs/product.md), [the glossary](GLOSSARY.md) and [the decisions](docs/adr/) hold the reasons.
 
-The extractors are the other side of the contract. Each one reads a repo and names its language.
+## License
 
-| Package                         | What it owns                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------------- |
-| `@callmap/extractor-typescript` | TypeScript and JavaScript, with functions and calls resolved by the TypeScript type checker |
-| `@callmap/extractor-go`         | Go, with functions and calls resolved by `go/types`                                         |
-| `@callmap/extractor-ruby`       | Ruby, with functions and calls resolved by the Callmap Ruby rules                           |
-
-The host runs the extractors and writes the review input into the reader page. The page computes the review.
-
-| Package        | What it owns                                                                              |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `@callmap/cli` | The `callmap` command: git, the extractor processes, and the reader page with ELK inlined |
-
-The page script lives in `packages/cli/page/`. `npm run build` bundles it with `elkjs` once, and writes the page template `packages/cli/dist/page-template.html`. The page template is the HTML shell of the reader page with the page style and the page script inlined. Its data block holds the marker `{{CALLMAP_REVIEW_INPUT}}`, and the command writes each page with `pageOfTemplate` of `@callmap/review-input`, which puts the escaped review input at the marker of the data block. A run of the source in `packages/cli/src/` builds the page template at each run, so a test always sees the current page. `page/levels.ts` builds the boxes and the lines of each level. The layout module, `page/layout.ts`, holds the ELK options, keeps the layout of each choice of the reader and marks the graph busy. It runs ELK in a Web Worker from the worker source that the build inlines as a fixed string, and in the page thread where the browser has no `Worker`, as in JSDOM. The page draws every view as SVG. A view is one module in `packages/cli/page/views/`: a pure function from the page data to frames, boxes and lines. A new part of the page is one module in `packages/cli/page/parts/` that default-exports a `PagePart`. The CLI loads each part in name order, with no change to another file.
-
-Only `@callmap/cli` goes to npm. `npm run build` writes it to `packages/cli/dist/`: the command, the TypeScript extractor, the launcher of the Go extractor, the Ruby extractor `extract-ruby.js`, and the page template `page-template.html` with the page script and style inlined. The build bundles the other `@callmap/*` packages and `elkjs` into these files. `typescript` stays a dependency of the package, at a pinned version. The build copies the Go source of the Go extractor, with its vendored modules, into `packages/cli/dist/go/`, and the command builds it on the first run. The build copies the Ripper script of the Ruby extractor to `packages/cli/dist/ruby/read.rb`. ADR-0021 and ADR-0026 record why.
-
-`test/core-is-language-blind-and-pure.test.ts` reads the imports of every package. It holds the core away from the filesystem and from any language name. It holds each extractor to the opposite. It holds the host to its own list, and keeps the page script off every Node built-in.
-
-Each extractor runs as its own process and writes its document to its standard output. Like `callmap review`, it reads no test file without `--tests`:
-
-```sh
-node packages/extractor-typescript/src/cli.ts <repo> [--scope <glob>]... [--tsconfig <path>] [--tests]
-node packages/extractor-ruby/src/cli.ts <repo> [--scope <glob>]... [--tests]
-node packages/extractor-go/src/cli.ts <repo> [--scope <glob>]... [--tests]
-```
-
-The Ruby extractor needs `ruby` on the `PATH`. It parses with Ripper, which every Ruby ships, so it needs no gem. The Go extractor needs `go` 1.26 or later on the `PATH`, because its vendored `golang.org/x/tools` v0.52.0 needs it. It loads the repo with `golang.org/x/tools/go/packages`, which its module vendors. It runs the go tool with `GOPROXY=off` and `GOTOOLCHAIN=local`, so it needs no network.
-
-An extractor must be tested against files on disk. The TypeScript and Ruby extractors commit a small fixture repo under `packages/<extractor>/fixture/`. The tests of the Go extractor write a throwaway repo for each case.
-
-## Release assets
-
-Each distribution shares a set of assets with this repo. A `v*` tag releases them. The release job attaches 2 files to the GitHub release of the tag:
-
-- `callmap-core-assets-<version>.tar.gz` is the archive of the assets. The version is the tag without the `v`. So the tag `v0.2.0` gives `callmap-core-assets-0.2.0.tar.gz`.
-- `callmap-core-assets-<version>.tar.gz.sha256` holds the SHA-256 checksum of the archive, in the format of `sha256sum`.
-
-The archive holds one folder, `callmap-core-assets-<version>/`, with these assets:
-
-- `page-template.html` is the page template. A distribution writes each reader page from it and the escaped review input.
-- `graph-document.schema.json` is the JSON Schema of the graph document.
-- `review-input.schema.json` is the JSON Schema of the review input.
-- `test-globs.json` holds the test globs of each language. A review leaves out these files without `--tests`.
-- `fixture-repos/` holds the fixture repos of the conformance suite. Each fixture repo holds its expected review input. `packages/conformance/README.md` tells how the suite reads them.
-
-A distribution pins one version of the assets in a file of its repo. It downloads the archive and the checksum file of that version, and checks the archive before it unpacks it:
-
-```sh
-version=0.2.0
-release=https://github.com/callmaphq/callmap-core/releases/download/v$version
-curl -fLO "$release/callmap-core-assets-$version.tar.gz"
-curl -fLO "$release/callmap-core-assets-$version.tar.gz.sha256"
-sha256sum -c "callmap-core-assets-$version.tar.gz.sha256"
-tar -xzf "callmap-core-assets-$version.tar.gz"
-```
-
-The CI of the distribution then runs the conformance suite on the fixture repos of the pinned version. It gives the folder to the suite with `--fixtures callmap-core-assets-<version>/fixture-repos`.
-
-The release job builds the assets from the tagged commit with `npm run release-assets`. The script `scripts/release-assets.ts` packs the assets and runs the conformance suite on the packed fixture repos, with the `callmap` command of the same commit. If the suite fails, the script writes no archive, and the job stops before it publishes anything. For example, this writes the archive of `v0.2.0` to `release-assets/`:
-
-```sh
-npm run release-assets -- v0.2.0 release-assets node packages/cli/src/cli.ts
-```
-
-The script reads the page template from `packages/cli/dist/`, so run `npm run build` first.
-
-## Checks
-
-```sh
-npm install
-npm run lint   # formatting, types, and eslint
-npm test       # the whole suite
-npm run test:browser
-npm run test:pack
-```
-
-`npm run test:pack` packs `@callmap/cli` with `npm pack` and installs the tarball in a fixture repo with TypeScript, in one with Go and TypeScript, and in one with Ruby and TypeScript. Then it runs `callmap review` from that install and reads the page. It builds the Go extractor from the tarball with `GOPROXY=off` and an empty module cache. It also checks that a second review uses the binary again. It reads the Ruby files with the Ripper script in the tarball. The tarball may hold the manifest, the README, the LICENSE and the built files in `dist/`. It may also hold the Go source in `dist/go/` and the Ripper script of the Ruby extractor in `dist/ruby/`. Any other file fails the check. The install fetches `typescript` from npm. The check needs `go` 1.26 or later and `ruby` on the `PATH`. Plain `npm test` does not run this check. The CI runs it on each pull request, and the release workflow runs it before it publishes.
-
-`npm run test:browser` builds reader pages from the fixture repos and opens them in headless Chromium. It reads the place of each label on the screen. It fails when a label runs past its box or its frame. It also fails when a box name runs over its "N fn" count. It also fails when a frame label or a "one of" label runs over a box. It checks the Diff, Folder and Whole project views. It checks each view in the Read, Scan and Map bands, in light mode and in dark mode. It also fails when an edge hint covers a box while the graph pans, when the zoom label has no room on either side or changes the width of the zoom controls, and when a chip of a level box in the Map band is smaller than at the reading floor or a box border is less than 1 px. In dark mode, it also fails when a box border in the Map band has a contrast below 3 to 1. Plain `npm test` does not run these checks.
-
-The command does not download a browser. It uses the first Chromium that it finds:
-
-1. The path in the `CALLMAP_CHROMIUM` environment variable.
-2. The Chromium that Playwright keeps in its cache.
-3. `chromium-browser` or `chromium` on the `PATH`.
-
-If it finds no Chromium, the command fails and tells you how to get one.
-
-The screenshots in this README come from the fixture repos of `packages/cli`. `npm run screenshots` makes them again in light mode and in dark mode, and writes them to `docs/screenshots/`. It finds Chromium in the same way.
+Callmap has the [MIT license](LICENSE).

@@ -132,12 +132,8 @@ describe('the release job of a v* tag', () => {
   });
 });
 
-describe('the README', () => {
-  const readme = readFileSync(join(REPO_ROOT, 'README.md'), 'utf8');
-  const releaseAssetsSection = readme.slice(
-    readme.indexOf('## Release assets'),
-    readme.indexOf('\n## ', readme.indexOf('## Release assets') + 1),
-  );
+describe('the record of the release assets', () => {
+  const releaseAssetsRecord = readFileSync(join(REPO_ROOT, 'docs', 'release-assets.md'), 'utf8');
 
   it.each([
     'callmap-core-assets-<version>.tar.gz',
@@ -149,7 +145,7 @@ describe('the README', () => {
     'fixture-repos/',
     'sha256sum -c',
     '--fixtures',
-  ])('names %s in the section on the release assets', (text) => {
-    expect(releaseAssetsSection).toContain(text);
+  ])('names %s', (text) => {
+    expect(releaseAssetsRecord).toContain(text);
   });
 });
