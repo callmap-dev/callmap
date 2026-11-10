@@ -1,4 +1,4 @@
-module callmap.local/extractor-go
+module github.com/callmap-dev/callmap/callmap-go
 
 go 1.26.0
 

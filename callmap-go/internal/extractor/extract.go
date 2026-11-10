@@ -1,10 +1,10 @@
-package main
+package extractor
 
 import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"os"
+	"io"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -33,27 +33,29 @@ func sourceTextOf(site callSite, node ast.Node) string {
 	return string(site.file.source[start.Offset:end.Offset])
 }
 
-func extract(repo string, scope []string) (document, error) {
+// Extract reads the Go files of the repo in the scope as it is given, and gives their graph
+// document. Each note for the reader goes to notes as one line that starts with the command name.
+func Extract(repo string, scope []string, command string, notes io.Writer) (Document, error) {
 	absolute, err := filepath.Abs(repo)
 	if err != nil {
-		return document{}, err
+		return Document{}, err
 	}
 	root, err := filepath.EvalSymlinks(absolute)
 	if err != nil {
-		return document{}, err
+		return Document{}, err
 	}
 	found, err := walk(root)
 	if err != nil {
-		return document{}, err
+		return Document{}, err
 	}
-	loaded, err := load(root, packagesInScope(found, scope), testsInScope(found, scope), os.Stderr)
+	loaded, err := load(root, packagesInScope(found, scope), testsInScope(found, scope), command, notes)
 	if err != nil {
-		return document{}, err
+		return Document{}, err
 	}
 	files := sourceFilesOf(root, scope, found, loaded)
 	declared, err := declarationsOf(files)
 	if err != nil {
-		return document{}, err
+		return Document{}, err
 	}
 
 	paths := make([]string, 0, len(files))
@@ -98,7 +100,7 @@ func extract(repo string, scope []string) (document, error) {
 		}
 	}
 
-	return document{
+	return Document{
 		Language:  "go",
 		Checker:   checker{Name: "Go", Version: strings.TrimPrefix(runtime.Version(), "go")},
 		Scope:     scope,

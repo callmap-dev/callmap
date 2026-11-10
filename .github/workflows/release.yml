@@ -1,12 +1,13 @@
 name: release
 
 # A plain v* tag releases @callmap/cli. A tag with the name of a distribution, such as
-# callmap-ts/v0.1.0, releases only that distribution, as ADR-0040 records.
+# callmap-ts/v0.1.0 or callmap-go/v0.1.0, releases only that distribution, as ADR-0040 records.
 on:
   push:
     tags:
       - 'v*'
       - 'callmap-ts/v*'
+      - 'callmap-go/v*'
 
 permissions:
   contents: write
@@ -29,8 +30,8 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: packages/extractor-go/go/go.mod
-          cache-dependency-path: packages/extractor-go/go/go.mod
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -86,3 +87,46 @@ jobs:
       # The trusted publisher of callmap-ts on npmjs.com names this repo and this workflow.
       # npm logs why the OIDC token exchange fails only at the verbose level.
       - run: npm publish --workspace callmap-ts --loglevel verbose
+
+  release-callmap-go:
+    name: release callmap-go
+    if: startsWith(github.ref_name, 'callmap-go/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
+
+      - run: npm ci
+
+      # go install builds from the files of the tag, so the committed copy of the page template must
+      # equal the page template that the tagged commit builds.
+      - run: npm run build --workspace @callmap/cli
+
+      - run: cmp packages/cli/dist/page-template.html callmap-go/page-template.html
+
+      - run: cmp packages/scope/test-globs.json callmap-go/internal/scope/test-globs.json
+
+      - run: go install .
+        working-directory: callmap-go
+        env:
+          GOPROXY: 'off'
+
+      - run: npm run conformance -- --language go "$(go env GOPATH)/bin/callmap-go"
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The tag releases the module. This request makes the Go module proxy fetch it, so that
+      # go install github.com/callmap-dev/callmap/callmap-go@latest finds it.
+      - run: curl --fail --silent --show-error "https://proxy.golang.org/github.com/callmap-dev/callmap/callmap-go/@v/${GITHUB_REF_NAME#callmap-go/}.info"

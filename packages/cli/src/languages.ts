@@ -16,7 +16,7 @@ const directoryOf = (path: string): string => path.split('/').slice(0, -1).join(
 
 const isGoMod = (path: string): boolean => path === 'go.mod' || path.endsWith('/go.mod');
 
-/** The directories that `skipped` in packages/extractor-go/go/walk.go names, so the two agree. */
+/** The directories that `SkipsFolder` in callmap-go/internal/extractor/walk.go names, so the two agree. */
 const goSkipsDirectory = (name: string): boolean =>
   name === 'vendor' ||
   name === 'testdata' ||

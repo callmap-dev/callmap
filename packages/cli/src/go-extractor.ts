@@ -41,7 +41,7 @@ const isTrimpath = (flag: string): boolean => {
   return name === '-trimpath' || name === 'trimpath';
 };
 
-/** The flags that `keptGoFlags` in packages/extractor-go/go/load.go keeps, so the two agree. */
+/** The flags that `KeptGoFlags` in callmap-go/internal/extractor/load.go keeps, so the two agree. */
 const keptGoFlags = (flags: string): string =>
   flags
     .split(/\s+/)

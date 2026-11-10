@@ -2,7 +2,7 @@
 
 This document gives the rules that every distribution of Callmap follows: `callmap-ts`, `callmap-go` and `callmap-rb`. ADR-0036 makes one distribution for each language. Each distribution writes its own thin CLI in its own language, so this document is the one rule set for the 3 CLIs. The conformance suite tests these rules.
 
-`callmap-ts` follows these rules. The `callmap` command of `@callmap/cli` follows them too, with 2 differences. It reads every language, and it takes `--tsconfig` for every repo. The messages below come from the code of `callmap` today. A distribution prints its own command name in place of `callmap`.
+`callmap-ts` and `callmap-go` follow these rules. The `callmap` command of `@callmap/cli` follows them too, with 2 differences. It reads every language, and it takes `--tsconfig` for every repo. The messages below come from the code of `callmap` today. A distribution prints its own command name in place of `callmap`.
 
 ## The command
 
@@ -140,6 +140,8 @@ A note tells the reader about a part of the review that the command left out or 
 - `callmap skipped the Go module <module>, because the go tool refused it: <reason>`
 - `callmap read no functions in <file>, because Ripper could not parse it.`
 
+`callmap-go` runs the Go extractor in its own process, with the go tool of the `PATH`. So it prints only the 2 notes of the go tool, with its own name: `callmap-go read each Go module on its own, ...` and `callmap-go skipped the Go module ...`.
+
 The command prints no note for a review over the Diff limit. The page lays out every view, as ADR-0037 records, so the level bar of the page tells the reader.
 
 ## The base cache
@@ -151,7 +153,7 @@ The base cache keeps the graph document of a base, so that a second review of th
 3. The dependency files of the language. The key holds a hash of their content. A dependency file that does not exist adds nothing.
 4. The version of the distribution.
 
-The glossary lists the dependency files of each language. If a flag or a setting of the language changes the graph document, the key also holds it. For example, the key of `callmap-ts` holds the `--tsconfig` path.
+The glossary lists the dependency files of each language. If a flag or a setting of the language changes the graph document, the key also holds it. For example, the key of `callmap-ts` holds the `--tsconfig` path. The key of `callmap-go` holds the go env settings `CGO_ENABLED`, `GOOS`, `GOARCH`, `GOEXPERIMENT` and `GOFLAGS`, because they choose the files of a build. The version of `callmap-go` is the SHA-256 of its executable, so each build of `callmap-go` keys its own entries.
 
 The cache home is `$XDG_CACHE_HOME` if it holds an absolute path, else `~/.cache`. Each distribution keeps its cache in its own folder in the cache home, named for its command. For example, `callmap-go` uses `~/.cache/callmap-go`. `callmap` uses `~/.cache/callmap` today.
 

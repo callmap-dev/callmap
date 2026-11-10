@@ -1,4 +1,4 @@
-package main
+package extractor
 
 type checker struct {
 	Name    string `json:"name"`
@@ -39,7 +39,8 @@ type openEnd struct {
 	Reason     openEndReason `json:"reason"`
 }
 
-type document struct {
+// Document is the graph document of the Go files, as packages/graph-document/graph-document.schema.json gives it.
+type Document struct {
 	Language  string     `json:"language"`
 	Checker   checker    `json:"checker"`
 	Scope     []string   `json:"scope"`
@@ -47,4 +48,12 @@ type document struct {
 	Functions []function `json:"functions"`
 	Calls     []call     `json:"calls"`
 	OpenEnds  []openEnd  `json:"openEnds"`
+}
+
+// Complete reports whether each field of the document holds a value, as a document that the
+// extractor wrote does.
+func (read Document) Complete() bool {
+	return read.Language == "go" && read.Checker.Name != "" && read.Checker.Version != "" &&
+		read.Scope != nil && read.Files != nil && read.Functions != nil && read.Calls != nil &&
+		read.OpenEnds != nil
 }

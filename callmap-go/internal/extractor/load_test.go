@@ -1,4 +1,4 @@
-package main
+package extractor
 
 import (
 	"os"
@@ -30,7 +30,7 @@ func loadedFrom(t *testing.T, repo string) ([]string, []string) {
 		t.Fatal(err)
 	}
 	stderr := &strings.Builder{}
-	loaded, err := load(repo, packagesInScope(found, []string{}), false, stderr)
+	loaded, err := load(repo, packagesInScope(found, []string{}), false, "callmap", stderr)
 	if err != nil {
 		t.Fatal(err)
 	}

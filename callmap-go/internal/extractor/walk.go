@@ -1,4 +1,4 @@
-package main
+package extractor
 
 import (
 	"errors"
@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-// Directories that hold no source of the repo that the extractor reads. The pattern ./... of the go
+// SkipsFolder names the folders that hold no source of the repo that the extractor reads. The pattern ./... of the go
 // tool skips testdata and a directory whose name starts with _, vendor holds other people's
 // modules, and a dot directory holds a tool's bookkeeping.
-func skipped(name string) bool {
+func SkipsFolder(name string) bool {
 	return name == "vendor" || name == "testdata" || name == "node_modules" ||
 		strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_")
 }
@@ -80,7 +80,7 @@ func walk(repo string) (tree, error) {
 			return nil
 		}
 		if entry.IsDir() {
-			if relative != "." && skipped(entry.Name()) {
+			if relative != "." && SkipsFolder(entry.Name()) {
 				return filepath.SkipDir
 			}
 			return nil

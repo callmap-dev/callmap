@@ -1,5 +1,5 @@
-// The Go extractor as a CLI: a separate process that reads a repo and writes its graph
-// document to standard output (ADR-0009). Nothing but the document goes to standard
+// The Go extractor as a CLI for the callmap command of @callmap/cli: a separate process that reads a
+// repo and writes its graph document to standard output (ADR-0009). Nothing but the document goes to standard
 // output, so the caller can pipe it straight into the core. A refusal goes to standard
 // error with a non-zero exit, so a repo it could not read is never mistaken for a repo with
 // nothing in it.
@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/callmap-dev/callmap/callmap-go/internal/extractor"
+	"github.com/callmap-dev/callmap/callmap-go/internal/scope"
 )
 
 const usage = "usage: callmap-extract-go <repo> [--scope <glob>]... [--tests]"
@@ -56,7 +59,7 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	doc, err := extract(read.repo, effectiveScope(read.scope, read.tests))
+	doc, err := extractor.Extract(read.repo, scope.Effective(read.scope, read.tests), "callmap", os.Stderr)
 	if err != nil {
 		return err
 	}

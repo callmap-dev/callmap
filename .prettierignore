@@ -14,3 +14,6 @@ packages/conformance/fixture-repos/
 
 # Agent worktrees are other checkouts of this repo, linted in their own right.
 .claude/
+
+# callmap-go embeds a copy of the page template, byte for byte as the build writes it.
+callmap-go/page-template.html

@@ -1,10 +1,10 @@
-import { copyFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, cpSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { assets } from './src/assets.ts';
 import {
   GO_PROGRAM,
   goSourceFiles,
-  isGoTestFile,
+  isGoExtractorSource,
   RUBY_SCRIPTS,
   rubySourceFiles,
 } from './src/clone-assets.ts';
@@ -44,7 +44,8 @@ const moduleIds = await buildTypescriptPackage({
 
 cpSync(GO_PROGRAM, join(DIST, 'go'), {
   recursive: true,
-  filter: (source) => !isGoTestFile(source),
+  filter: (source) =>
+    statSync(source).isDirectory() || isGoExtractorSource(relative(GO_PROGRAM, source)),
 });
 writeFileSync(join(DIST, 'go-extractor-source.sha256'), sha256OfFiles(goSourceFiles()));
 cpSync(RUBY_SCRIPTS, join(DIST, 'ruby'), { recursive: true });

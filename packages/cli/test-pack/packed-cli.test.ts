@@ -36,7 +36,7 @@ const packedCli = (): Tarball => {
 };
 
 const PACKAGE_FILE =
-  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|html|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS))|dist\/ruby\/[^/]+\.rb)$/;
+  /^(package\.json|README\.md|LICENSE|dist\/[^/]+\.(js|html|sha256|txt)|dist\/go\/(.+\.go|go\.(mod|sum)|internal\/scope\/test-globs\.json|vendor\/modules\.txt|vendor\/.+\/(LICENSE|PATENTS))|dist\/ruby\/[^/]+\.rb)$/;
 
 let tarball: Tarball;
 
@@ -127,7 +127,9 @@ describe('the packed @callmap/cli', () => {
         'dist/go-extractor-source.sha256',
         'dist/go/go.mod',
         'dist/go/go.sum',
-        'dist/go/main.go',
+        'dist/go/cmd/callmap-extract-go/main.go',
+        'dist/go/internal/extractor/extract.go',
+        'dist/go/internal/scope/test-globs.json',
         'dist/go/vendor/modules.txt',
         'dist/go/vendor/golang.org/x/tools/LICENSE',
         'dist/go/vendor/golang.org/x/tools/go/packages/packages.go',
@@ -147,6 +149,10 @@ describe('the packed @callmap/cli', () => {
 
   it('leaves out the Go tests of the extractor', () => {
     expect(tarball.files.filter((path) => path.endsWith('_test.go'))).toEqual([]);
+  });
+
+  it('leaves out the review command of callmap-go and its page template', () => {
+    expect(tarball.files.filter((path) => /^dist\/go\/[^/]+\.(go|html)$/.test(path))).toEqual([]);
   });
 
   it('carries the name, the version, the license and the license text of each bundled third-party package', () => {

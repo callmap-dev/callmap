@@ -1,4 +1,4 @@
-package main
+package extractor
 
 import (
 	"go/ast"
@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/packages"
+
+	scopes "github.com/callmap-dev/callmap/callmap-go/internal/scope"
 )
 
 type sourceFile struct {
@@ -73,7 +75,7 @@ func sourceFilesOf(repo string, scope []string, found tree, loaded []*packages.P
 			filename := pkg.Fset.File(syntax.FileStart).Name()
 			repoFilename := repoFilenameOf(pkg, syntax, filename)
 			path, inRepo := repoPathOf(repo, repoFilename)
-			if !inRepo || found.ignores(path) || !inScope(path, scope) || rankOf[path] >= rank {
+			if !inRepo || found.ignores(path) || !scopes.InScope(path, scope) || rankOf[path] >= rank {
 				continue
 			}
 			best[path] = sourceFile{path: path, filename: filename, repoFilename: repoFilename, syntax: syntax, pkg: pkg}

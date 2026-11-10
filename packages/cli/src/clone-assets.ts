@@ -31,9 +31,17 @@ export const extractorSourceFiles = (): readonly NamedFile[] => {
 
 const GO_EXTRACTOR = fileURLToPath(import.meta.resolve('@callmap/extractor-go/cli'));
 
-export const GO_PROGRAM = join(dirname(GO_EXTRACTOR), '..', 'go');
+export const GO_PROGRAM = join(dirname(GO_EXTRACTOR), '..', '..', '..', 'callmap-go');
 
-export const isGoTestFile = (path: string): boolean => path.endsWith('_test.go');
+const GO_EXTRACTOR_FOLDERS: readonly string[] = ['cmd/callmap-extract-go/', 'internal/', 'vendor/'];
+
+const GO_MODULE_FILES: readonly string[] = ['go.mod', 'go.sum'];
+
+/** The files of the callmap-go module that build the Go extractor, by their path in the module. */
+export const isGoExtractorSource = (path: string): boolean =>
+  !path.endsWith('_test.go') &&
+  (GO_MODULE_FILES.includes(path) ||
+    GO_EXTRACTOR_FOLDERS.some((folder) => path.startsWith(folder)));
 
 export const goSourceFiles = (): readonly NamedFile[] => [
   ...sourceFilesOf(dirname(GO_EXTRACTOR)).map((file) => ({
@@ -41,8 +49,9 @@ export const goSourceFiles = (): readonly NamedFile[] => [
     path: join(dirname(GO_EXTRACTOR), file),
   })),
   ...readdirSync(GO_PROGRAM, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile() && !isGoTestFile(entry.name))
+    .filter((entry) => entry.isFile())
     .map((entry) => join(entry.parentPath, entry.name))
+    .filter((path) => isGoExtractorSource(relative(GO_PROGRAM, path)))
     .sort()
     .map((path) => ({ name: `go/${relative(GO_PROGRAM, path)}`, path })),
 ];

@@ -1,4 +1,4 @@
-package main
+package extractor
 
 import (
 	"encoding/json"
@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/packages"
+
+	scopes "github.com/callmap-dev/callmap/callmap-go/internal/scope"
 )
 
 const loadMode = packages.NeedName |
@@ -26,11 +28,11 @@ const loadMode = packages.NeedName |
 	packages.NeedForTest |
 	packages.NeedModule
 
-// keptGoFlags drops every -mod flag, so the go tool falls back to its own default: readonly, or
+// KeptGoFlags drops every -mod flag, so the go tool falls back to its own default: readonly, or
 // vendor when vendor/modules.txt exists. A -mod=mod from the user would let it rewrite go.mod. It
 // drops -trimpath too, because the export data of a module that a replace loads from the repo
 // would then name its files without the path of the repo, and its calls would become library calls.
-func keptGoFlags(flags string) string {
+func KeptGoFlags(flags string) string {
 	kept := []string{}
 	for _, flag := range strings.Fields(flags) {
 		if strings.HasPrefix(flag, "-mod=") || strings.HasPrefix(flag, "--mod=") || isTrimpath(flag) {
@@ -68,7 +70,7 @@ func goEnv(environ []string, goFlags string, goWork string) []string {
 			env = append(env, entry)
 		}
 	}
-	return append(env, "GOFLAGS= "+keptGoFlags(goFlags), "GOTOOLCHAIN=local", "GOPROXY=off", "GOWORK="+goWork)
+	return append(env, "GOFLAGS= "+KeptGoFlags(goFlags), "GOTOOLCHAIN=local", "GOPROXY=off", "GOWORK="+goWork)
 }
 
 func moduleOf(path string, moduleDirs []string) (string, bool) {
@@ -89,7 +91,7 @@ func packagesInScope(found tree, scope []string) map[string][]string {
 	for _, path := range found.files {
 		root, held := moduleOf(path, found.moduleDirs)
 		dir := dirOf(path)
-		if held && !taken[dir] && inScope(path, scope) {
+		if held && !taken[dir] && scopes.InScope(path, scope) {
 			byModule[root] = append(byModule[root], dir)
 			taken[dir] = true
 		}
@@ -101,7 +103,7 @@ func packagesInScope(found tree, scope []string) map[string][]string {
 // when a test file is in scope.
 func testsInScope(found tree, scope []string) bool {
 	for _, path := range found.files {
-		if strings.HasSuffix(path, "_test.go") && inScope(path, scope) {
+		if strings.HasSuffix(path, "_test.go") && scopes.InScope(path, scope) {
 			return true
 		}
 	}
@@ -178,7 +180,7 @@ func workspaceModulesOf(repo string, goWork string, goFlags string) (map[string]
 // errors on it, and a module that the go tool refuses, such as one that needs a newer go, is left
 // out with one line on stderr, so neither stops the extractor. A go.work that the go tool refuses
 // leaves each module to load on its own, with one line on stderr.
-func load(repo string, inScope map[string][]string, tests bool, stderr io.Writer) ([]*packages.Package, error) {
+func load(repo string, inScope map[string][]string, tests bool, command string, stderr io.Writer) ([]*packages.Package, error) {
 	if len(inScope) == 0 {
 		return []*packages.Package{}, nil
 	}
@@ -192,7 +194,7 @@ func load(repo string, inScope map[string][]string, tests bool, stderr io.Writer
 	}
 	moduleRoots := slices.Sorted(maps.Keys(inScope))
 	if !inWorkspace {
-		return loadEachOnItsOwn(repo, goFlags, inScope, moduleRoots, tests, stderr), nil
+		return loadEachOnItsOwn(repo, goFlags, inScope, moduleRoots, tests, command, stderr), nil
 	}
 	loaded := []*packages.Package{}
 	alone := moduleRoots
@@ -216,19 +218,19 @@ func load(repo string, inScope map[string][]string, tests bool, stderr io.Writer
 		}
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "callmap read each Go module on its own, because the go tool refused the go.work: %s\n", oneLineOf(err))
+		fmt.Fprintf(stderr, "%s read each Go module on its own, because the go tool refused the go.work: %s\n", command, oneLineOf(err))
 	}
-	return append(loaded, loadEachOnItsOwn(repo, goFlags, inScope, alone, tests, stderr)...), nil
+	return append(loaded, loadEachOnItsOwn(repo, goFlags, inScope, alone, tests, command, stderr)...), nil
 }
 
-func loadEachOnItsOwn(repo string, goFlags string, inScope map[string][]string, moduleRoots []string, tests bool, stderr io.Writer) []*packages.Package {
+func loadEachOnItsOwn(repo string, goFlags string, inScope map[string][]string, moduleRoots []string, tests bool, command string, stderr io.Writer) []*packages.Package {
 	loaded := []*packages.Package{}
 	for _, root := range moduleRoots {
 		found, err := loadFrom(filepath.Join(repo, filepath.FromSlash(root)), goFlags, "off", patternsOf(root, inScope[root]), tests)
 		if err == nil {
 			loaded = append(loaded, found...)
 		} else {
-			fmt.Fprintf(stderr, "callmap skipped the Go module %s, because the go tool refused it: %s\n", moduleNameOf(root), oneLineOf(err))
+			fmt.Fprintf(stderr, "%s skipped the Go module %s, because the go tool refused it: %s\n", command, moduleNameOf(root), oneLineOf(err))
 		}
 	}
 	return loaded

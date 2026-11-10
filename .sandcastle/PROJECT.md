@@ -8,7 +8,9 @@ Callmap is an npm workspace with these packages in `packages/`:
 
 - `cli`: the `callmap` command and the reader page.
 - `review`, `graph-document`, `scope`, `editor-link`: the core packages.
-- `extractor-typescript`, `extractor-go`, `extractor-ruby`: the extractors. The Go extractor has Go source in `packages/extractor-go/go/`. The Ruby extractor runs a Ripper script.
+- `extractor-typescript`, `extractor-go`, `extractor-ruby`: the extractors. `extractor-go` builds and runs the Go extractor of `callmap-go/cmd/callmap-extract-go`. The Ruby extractor runs a Ripper script.
+
+`callmap-go/` is the Go module of the distribution `callmap-go`: its review command at the root of the module, the Go extractor in `internal/extractor/`, the vendored modules, and committed copies of the page template and of the test globs. Its tests in `callmap-go/test/` run in `npm test`.
 
 `callmap-ts/` is the npm workspace of the distribution `callmap-ts`: its thin CLI in `callmap-ts/src/`, its build and its tests. It reuses the review command of `packages/cli/src/` and bundles the TypeScript extractor. ADR-0040 records the folder.
 
