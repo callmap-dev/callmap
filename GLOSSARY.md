@@ -16,6 +16,10 @@ _Avoid_: node, symbol, routine
 An arrow from one function to a function it calls, proven by static rules: the type checker of the language, or Callmap's own rules for Ruby. The page draws a call with the colour token `--edge`. The Tokens artboard of the design gives that name, so the page keeps it. It is the only place where the page says "edge" for a call.
 _Avoid_: edge, link, dependency
 
+**Direct call**:
+A Ruby call on `self`, with no receiver, on `super` or on a constant. The class chain of the caller, or the class of the constant, ties it with no type flow. A call on a value is not a direct call.
+_Avoid_: simple call, static call
+
 **Call graph**:
 Every function in scope, every call between them, and every open end.
 _Avoid_: map, dependency graph, reference graph

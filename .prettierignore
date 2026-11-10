@@ -17,3 +17,6 @@ packages/conformance/fixture-repos/
 
 # callmap-go embeds a copy of the page template, byte for byte as the build writes it.
 callmap-go/page-template.html
+
+# The gem build of callmap-rb copies the page template, byte for byte as the build writes it.
+callmap-rb/page-template.html

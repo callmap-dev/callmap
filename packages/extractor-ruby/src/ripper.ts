@@ -1,5 +1,5 @@
 /**
- * What Ruby itself reads out of each file, by way of the Ripper script beside this package.
+ * What Ruby itself reads out of each file, by way of the Ripper script of callmap-rb.
  * Parsing Ruby is left to Ruby, so a syntax this side never heard of is still read the way the
  * language reads it.
  */
@@ -38,7 +38,7 @@ export interface MadeValue extends ConstantReference, SelfNew {
   readonly by: string | null;
 }
 
-/** The core classes of the literals, the values of `LITERAL_CLASSES` in ruby/read.rb. */
+/** The core classes of the literals, the values of `LITERAL_CLASSES` in the Ripper script. */
 export const LITERAL_CLASSES: ReadonlySet<string> = new Set([
   'String',
   'Array',
@@ -155,11 +155,13 @@ export interface RubyReport {
 }
 
 /**
- * A host that carries the script elsewhere, such as the npm package with the script in its dist
- * folder, names it in CALLMAP_RUBY_EXTRACTOR_SCRIPT.
+ * The script lives in the gem callmap-rb, which reads the files with it in its own process. A host
+ * that carries the script elsewhere, such as the npm package with the script in its dist folder,
+ * names it in CALLMAP_RUBY_EXTRACTOR_SCRIPT.
  */
 const SCRIPT =
-  process.env['CALLMAP_RUBY_EXTRACTOR_SCRIPT'] ?? join(import.meta.dirname, '../ruby/read.rb');
+  process.env['CALLMAP_RUBY_EXTRACTOR_SCRIPT'] ??
+  join(import.meta.dirname, '../../../callmap-rb/lib/callmap_rb/ripper/read.rb');
 
 /** A large app's report runs to tens of megabytes, far past the default pipe buffer. */
 const MAX_OUTPUT = 1024 * 1024 * 1024;

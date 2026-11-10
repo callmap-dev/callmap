@@ -58,7 +58,16 @@ export const goSourceFiles = (): readonly NamedFile[] => [
 
 const RUBY_EXTRACTOR = fileURLToPath(import.meta.resolve('@callmap/extractor-ruby/cli'));
 
-export const RUBY_SCRIPTS = join(dirname(RUBY_EXTRACTOR), '..', 'ruby');
+export const RUBY_SCRIPTS = join(
+  dirname(RUBY_EXTRACTOR),
+  '..',
+  '..',
+  '..',
+  'callmap-rb',
+  'lib',
+  'callmap_rb',
+  'ripper',
+);
 
 export const rubySourceFiles = (): readonly NamedFile[] => {
   const scope = dirname(createRequire(RUBY_EXTRACTOR).resolve('@callmap/scope'));

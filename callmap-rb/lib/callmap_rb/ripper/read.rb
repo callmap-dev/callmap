@@ -1,6 +1,7 @@
-# The Ruby half of the Ruby extractor. It reads each file with Ripper and reports its class and
+# The Ripper script of the Ruby extractor. It reads each file with Ripper and reports its class and
 # module bodies, its methods and the call sites inside them. Which function a call ties to is a
-# question the TypeScript half answers. Ripper ships with every Ruby, so the extractor needs no gem.
+# question the rules answer: the TypeScript half of @callmap/extractor-ruby, or the rules of
+# callmap-rb, which loads this file. Ripper ships with every Ruby, so the extractor needs no gem.
 #
 # Usage: ruby read.rb <repo> < repo-relative paths, one per line
 # Writes {"ruby": RUBY_DESCRIPTION, "files": {"<path>": {"parsed": true, "bodies": [...],
@@ -192,7 +193,7 @@ class FileReader
   end
 
   # `Plan = Services::Plan` in a body or at the top level makes `Plan` an alias of the
-  # constant on its right, which the TypeScript half resolves in the nesting of the assignment.
+  # constant on its right, which the rules resolve in the nesting of the assignment.
   def alias?(field, value, context)
     context.method.nil? && declared_path(field) && constant_path(value)
   end
@@ -349,7 +350,7 @@ class FileReader
     node.flat_map { |child| written_names_of(child) }
   end
 
-  # `def Foo.x` names a method of Foo, which the TypeScript half resolves in the nesting of the def.
+  # `def Foo.x` names a method of Foo, which the rules resolve in the nesting of the def.
   def owner_reference_of(receiver, nesting)
     path, absolute = constant_path(receiver)
     path && { "nesting" => nesting, "path" => path, "absolute" => absolute }
@@ -500,7 +501,7 @@ class FileReader
   }.freeze
 
   # A literal names its core class. A call on a constant, such as `Foo.new` or `Foo.find_by(id: 1)`,
-  # names the class that may make the value. Which calls do is a question the TypeScript half answers.
+  # names the class that may make the value. Which calls do is a question the rules answer.
   def made_value_of(node, context)
     literal = LITERAL_CLASSES[node.first]
     return { "nesting" => [], "path" => [literal], "absolute" => true, "by" => nil } if literal
@@ -522,7 +523,7 @@ class FileReader
 
   # In a singleton method of a class, `new` with no receiver or on `self` is `Foo.new` of that
   # class. A module has no `new`, so a singleton method of a module keeps the rule of `self`.
-  # Only the TypeScript half knows if the owner of `def Foo.x` is a module, so it reads `selfNew`.
+  # Only the rules know if the owner of `def Foo.x` is a module, so it reads `selfNew`.
   def own_class_of_new(receiver, called, context)
     return unless called == "new" && (receiver.nil? || self?(receiver))
     return unless context.method && context.singleton
@@ -596,23 +597,26 @@ class FileReader
   end
 end
 
-repo = ARGV.fetch(0) { abort("usage: ruby read.rb <repo> < paths") }
-files = {}
-$stdin.each_line(chomp: true) do |path|
-  next if path.empty?
-
+# The read of one file, as the report holds it. callmap-rb reads each file with it in its own
+# process.
+def read_ruby_file(repo, path)
   source = File.binread(File.join(repo, path)).force_encoding(Encoding::UTF_8).scrub
   parser = PositionedSexp.new(source, path)
   tree = parser.parse
-  if tree.nil? || parser.error?
-    files[path] = { "parsed" => false }
-    next
-  end
+  return { "parsed" => false } if tree.nil? || parser.error?
 
   read = FileReader.new(source, tree)
-  files[path] = {
+  {
     "parsed" => true, "bodies" => read.bodies, "methods" => read.methods, "calls" => read.calls,
     "aliases" => read.aliases
   }
 end
-$stdout.write(JSON.generate({ "ruby" => RUBY_DESCRIPTION, "files" => files }))
+
+if $PROGRAM_NAME == __FILE__
+  repo = ARGV.fetch(0) { abort("usage: ruby read.rb <repo> < paths") }
+  files = {}
+  $stdin.each_line(chomp: true) do |path|
+    files[path] = read_ruby_file(repo, path) unless path.empty?
+  end
+  $stdout.write(JSON.generate({ "ruby" => RUBY_DESCRIPTION, "files" => files }))
+end

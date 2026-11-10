@@ -10,7 +10,7 @@ Callmap needs Node 22.18 or later. Install the dependencies from the root of a c
 npm install
 ```
 
-The tests of the Go extractor and of `callmap-go` need `go` on the `PATH`, in the version that `callmap-go/go.mod` declares. The tests of the Ruby extractor need `ruby` on the `PATH`. They need no gem.
+The tests of the Go extractor and of `callmap-go` need `go` on the `PATH`, in the version that `callmap-go/go.mod` declares. The tests of the Ruby extractor and of `callmap-rb` need `ruby` on the `PATH`. They need no gem.
 
 To try your change on another repo, link the `callmap` command to the clone:
 
@@ -39,7 +39,11 @@ npm run test:browser
 
 Each pull request and each push to `master` runs the `lint and test` check in GitHub Actions. The workflow is `.github/workflows/ci.yml`. It runs `npm ci`, `npm run lint` and `npm test` on Node 22, with Go and Ruby installed. Then it runs the conformance suite against the current `callmap` command, and the conformance suite for TypeScript against `callmap-ts` in `callmap-ts/`.
 
-The `callmap-go` check in the same workflow fails when `callmap-go/internal/scope/test-globs.json` differs from `packages/scope/test-globs.json`. Then it runs `go install` in `callmap-go/` with no network, and runs the conformance suite for Go against the installed `callmap-go`. `packages/conformance/README.md` tells how the suite works and how to update an expected file. The check does not run `npm run test:browser`, so run that check on your machine.
+The `callmap-go` check in the same workflow fails when `callmap-go/internal/scope/test-globs.json` differs from `packages/scope/test-globs.json`. Then it runs `go install` in `callmap-go/` with no network, and runs the conformance suite for Go against the installed `callmap-go`. `packages/conformance/README.md` tells how the suite works and how to update an expected file.
+
+The `callmap-rb` check in the same workflow builds the page template, builds the gem in `callmap-rb/`, installs it into a temporary gem home and runs the conformance suite for Ruby against the installed `callmap-rb`.
+
+These checks do not run `npm run test:browser`, so run that check on your machine.
 
 The `packed cli` check in the same workflow runs `npm run test:pack`. It packs `callmap-ts`, installs the tarball with `npx` in fixture repos and runs `callmap-ts review`. The tarball of `callmap-ts` may hold only the manifest, the README, the LICENSE and the built files in `dist/`, and no Go source and no Ruby script. The check also packs `@callmap/cli`, installs the tarball in a fixture repo and runs `callmap review` from that install. The tarball may hold the manifest, the README, the LICENSE and the built files. It may also hold the Go extractor source with its vendored modules in `dist/go/`, and the Ripper script of the Ruby extractor in `dist/ruby/`. Any other file fails the check. The check builds the Go extractor from `dist/go/cmd/callmap-extract-go`, so it needs `go` 1.26 or later on the `PATH`. The check reads a Ruby fixture repo with the script in `dist/ruby/`, so it needs `ruby` on the `PATH` too.
 
@@ -76,6 +80,7 @@ The git log uses these prefixes:
 - `cli:` for the `callmap` command and the reader page in `packages/cli`.
 - `callmap-ts:` for the distribution `callmap-ts` in `callmap-ts/`.
 - `callmap-go:` for the distribution `callmap-go` in `callmap-go/`.
+- `callmap-rb:` for the distribution `callmap-rb` in `callmap-rb/`.
 - `core:` for the core packages, such as `@callmap/review` and `@callmap/graph-document`.
 - `extractor:` for an extractor package.
 - `docs:` for the README, the ADRs, the glossary and the other records.
