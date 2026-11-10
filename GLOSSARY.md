@@ -45,7 +45,7 @@ The one-of calls of one call site. The page draws them as alternatives, and the 
 _Avoid_: call site group, alternative set
 
 **Resolution rate**:
-The share of calls into the repo's own code that the language's tools tie to one function: the calls, divided by the calls plus the open ends. A one-of group counts as one call. A call into a library and a call that no named function holds count in neither. It tells the reader how much of the graph the tools proved. A page with several languages shows one rate for each language, because one mixed rate hides the weak language.
+The share of calls into the repo's own code that the checker ties to one function: the calls, divided by the calls plus the open ends. A one-of group counts as one call. A call into a library and a call that no named function holds count in neither. It tells the reader how much of the graph the tools proved. A distribution reads one language, so its page shows one rate. The review core never mixes the graph documents of 2 languages into one rate, because one mixed rate hides the weak language.
 _Avoid_: accuracy, confidence, coverage
 
 **File frame**:
@@ -99,7 +99,7 @@ The source texts of a review input as one text: the JSON of the branch sources a
 _Avoid_: compressed sources, source blob
 
 **Checker**:
-The tool of a language that proves the calls of a graph document, with its name and its full version, such as TypeScript 6.0.3. It is the tool that the extractor runs, not the tool that the repo under review installs. Ruby has no type checker, so its checker names Callmap's own Ruby rules and the Ruby that runs them. The page shows it next to the resolution rate of its language, one checker for each language on the page.
+The tool of a language that proves the calls of a graph document, with its name and its full version, such as TypeScript 6.0.3. It is the tool that the extractor runs, not the tool that the repo under review installs. Ruby has no type checker, so its checker names Callmap's own Ruby rules and the Ruby that runs them. The page shows it next to the resolution rate. A page of a distribution shows one checker, the one of its language.
 _Avoid_: compiler, type checker version, toolchain
 
 **Reference graph document**:
@@ -123,7 +123,7 @@ A file that a test glob of `@callmap/scope` matches. A test glob is a file-name 
 _Avoid_: spec file, test code
 
 **Reader page**:
-The one self-contained HTML file that the CLI writes. It holds the whole call graph in scope as data, so the reader can open more of it with no server.
+The one self-contained HTML file that the review command of a distribution writes. It holds the whole call graph in scope as data, so the reader can open more of it with no server.
 _Avoid_: report, dashboard, artifact
 
 **Page template**:
@@ -205,7 +205,7 @@ The commit that a review compares the branch against: the merge base with the de
 _Avoid_: target, parent, main
 
 **Dependency file**:
-A file of the checkout that decides which code from outside the repo a language loads. The cache keeps one entry of the base for each language. A change of a dependency file reads the base of its language again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
+A file of the checkout that decides which code from outside the repo a language loads. The base cache of a distribution keys each entry on the dependency files of its language, so a change of a dependency file reads the base again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
 _Avoid_: lock file, for a file of Go
 
 **Changed function**:
@@ -229,7 +229,3 @@ _Avoid_: golden test, snapshot test
 **Fixture repo**:
 A small repo that a test reads from disk. A fixture repo of the conformance suite holds the files of the base, the files of the branch and the expected review input, for one language and one case. The suite makes a repo with git history from it, with one commit for each side.
 _Avoid_: sample repo, test repo
-
-**Release assets**:
-The files that a `v*` tag of this repo releases for the distributions: the page template, the JSON Schemas, the test globs and the fixture repos of the conformance suite. The release attaches them as one archive with a checksum file. Each distribution pins one version of them.
-_Avoid_: artifacts, bundle

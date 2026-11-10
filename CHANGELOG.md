@@ -14,6 +14,8 @@ Each version of Callmap gets a section here. The changes that no version holds y
 - The Ripper script of the Ruby extractor moves from `packages/extractor-ruby/ruby/` to `callmap-rb/lib/callmap_rb/ripper/`.
 - `callmap review` also reads Ruby with the Callmap Ruby rules when `ruby` is on the `PATH`. Ripper parses each file, so the review needs no gem. A call that the rules do not prove is an open end.
 - The npm package carries the Ruby extractor and its Ripper script.
+- The old command `callmap` in `packages/cli`, the 3 extractor packages and the release assets go, as ADR-0040 records. The reader page gets its own package, `@callmap/reader-page`, and its tests build each page from a review input file. The TypeScript extractor moves to `callmap-ts/extractor/`. The tests of the Go extractor move to `callmap-go/test/`, and the tests of the Ruby rules move to `callmap-rb/test/`. A plain `v*` tag releases nothing.
+- The skill `callmap-review` runs the review command of the distribution of the repo.
 - The repo is a Claude Code plugin marketplace. Its plugin `callmap` holds the skill `callmap-review`, so `/plugin install callmap --marketplace callmap-dev/callmap` installs the skill with no clone.
 
 ## 0.1.1

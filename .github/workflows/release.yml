@@ -1,12 +1,11 @@
 name: release
 
-# A plain v* tag releases @callmap/cli. A tag with the name of a distribution, such as
-# callmap-ts/v0.1.0, callmap-go/v0.1.0 or callmap-rb/v0.1.0, releases only that distribution, as
-# ADR-0040 records.
+# A tag with the name of a distribution, such as callmap-ts/v0.1.0, callmap-go/v0.1.0 or
+# callmap-rb/v0.1.0, releases only that distribution, as ADR-0040 records. @callmap/cli had its last
+# release, so a plain v* tag releases nothing.
 on:
   push:
     tags:
-      - 'v*'
       - 'callmap-ts/v*'
       - 'callmap-go/v*'
       - 'callmap-rb/v*'
@@ -16,47 +15,6 @@ permissions:
   id-token: write
 
 jobs:
-  publish:
-    name: publish
-    if: startsWith(github.ref_name, 'v')
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: npm
-          registry-url: https://registry.npmjs.org
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: callmap-go/go.mod
-          cache-dependency-path: callmap-go/go.mod
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.4'
-
-      # npm trusted publishing with the OIDC token of the job needs npm 11.5.1 or later.
-      - run: npm install --global npm@^11.5.1
-
-      - run: npm ci
-
-      # The script runs the conformance suite on the fixture repos that it packs,
-      # so a failed suite stops the release before anything is published.
-      - run: npm run release-assets -- "$GITHUB_REF_NAME" release-assets node packages/cli/src/cli.ts
-
-      - run: npm run test:pack
-
-      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes release-assets/*
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      # npm logs why the OIDC token exchange fails only at the verbose level.
-      - run: npm publish --workspace @callmap/cli --loglevel verbose
-
   publish-callmap-ts:
     name: publish callmap-ts
     if: startsWith(github.ref_name, 'callmap-ts/v')
@@ -112,9 +70,9 @@ jobs:
 
       # go install builds from the files of the tag, so the committed copy of the page template must
       # equal the page template that the tagged commit builds.
-      - run: npm run build --workspace @callmap/cli
+      - run: npm run build --workspace @callmap/reader-page
 
-      - run: cmp packages/cli/dist/page-template.html callmap-go/page-template.html
+      - run: cmp packages/reader-page/dist/page-template.html callmap-go/page-template.html
 
       - run: cmp packages/scope/test-globs.json callmap-go/internal/scope/test-globs.json
 
@@ -155,7 +113,7 @@ jobs:
       - run: npm ci
 
       # The gem build copies the page template of the build of the tagged commit.
-      - run: npm run build --workspace @callmap/cli
+      - run: npm run build --workspace @callmap/reader-page
 
       - run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"
         working-directory: callmap-rb

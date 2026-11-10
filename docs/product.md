@@ -13,21 +13,27 @@ AI writes code faster than an engineer can review it. Callmap does not replace r
 
 ## The MVP
 
-A CLI that writes one self-contained HTML page. See ADR-0012.
+A CLI that writes one self-contained HTML page. See ADR-0012. Each language has its own distribution with this CLI, as ADR-0036 and ADR-0040 record:
 
-- **`callmap review`:** reads the git diff of the branch against the merge base with the default branch. It shows each changed function, marked added, removed or changed, and one hop of callers and callees around it, greyed. It marks the calls that the branch added or removed. A click on a greyed function opens its next hop.
+- **`callmap-ts`:** the npm package for TypeScript and JavaScript.
+- **`callmap-go`:** the Go module `github.com/callmap-dev/callmap/callmap-go`, for Go.
+- **`callmap-rb`:** the gem for Ruby.
+
+Each distribution reads only the files of its own language, so its user needs no tool of another language. The reader page computes the review and lays out every view, so every distribution gives the same page for the same review input (ADR-0037).
+
+- **`review`:** the command of each distribution, such as `callmap-ts review`. It reads the git diff of the branch against the merge base with the default branch. It shows each changed function, marked added, removed or changed, and one hop of callers and callees around it, greyed. It marks the calls that the branch added or removed. A click on a greyed function opens its next hop.
 - **The page:** each function is a box inside the frame of its file, and each call is an arrow. A click on a box shows its code in a read-only panel. An editor link opens the file and line in the editor.
 - **What the page holds:** the whole call graph in scope as data, so the reader can search any function and walk its calls with no server.
 - **Honesty:** the page shows the resolution rate. A call that the tools cannot resolve is an open end. A call through an interface shows as one-of calls.
-- **A thin Claude skill:** after the CLI works, a skill of about 10 lines tells Claude to run `callmap review` and open the page. It adds no logic.
+- **A thin Claude skill:** after the CLI works, a skill of about 10 lines tells Claude to run the review command of the distribution of the repo and open the page. It adds no logic.
 
 ## Languages
 
 - TypeScript first, read with the type checker. On a private app it resolved 96.7% of backend calls and 98.8% of mobile calls.
 - Go next, read with `go/types` at each call site, with load errors allowed (ADR-0024). On `go-gitea/gitea` at `85211296` it resolved 93.9% of calls with tests and 97.6% without. See `docs/research/2026-10-26-go-resolution-on-gitea/`.
 - Ruby after Go, read with Zeitwerk naming, the class chain and a local type flow, with no guess (ADR-0027). The owner chose variant 3 of the local type flow. It ties `x = Foo.new`, an instance variable that one method of the class chain alone sets, and the ActiveRecord finders that return their model. On `mastodon/mastodon` at `7be1842` it resolved 46.7% of calls without tests. After the commit `99206f9`, a write in a subclass, a superclass or a module counts too, and the rate is 46.6%. After the fix of a constant alias and of `new` in a singleton method, the rate is 46.7%. After a constant whose first segment is in no body of its load unit became a library call (ADR-0034), the rate is 47.6%. See `docs/research/2026-10-30-ruby-type-flow-on-mastodon/`.
-- A review reads one graph document for each language and shows one rate for each (ADR-0025).
-- The core is language-blind. A new language costs one extractor. See ADR-0009.
+- A review reads the files of one language, the language of its distribution. Its page shows one rate and one checker. A branch that changes 2 languages gives one page for each language, from 2 distributions.
+- The core is language-blind. A new language costs one distribution: its extractor and its thin CLI. See ADR-0009 and ADR-0036.
 
 ## Cut from the MVP
 
@@ -35,7 +41,7 @@ Every AI pass, flows of business logic, the branches inside a function, componen
 
 ## Known risks
 
-- VS Code and GoLand already show the call hierarchy of one function. Callmap earns its place only with the view of a whole branch across files and languages.
+- VS Code and GoLand already show the call hierarchy of one function. Callmap earns its place only with the view of a whole branch across its files.
 - Understanding tools die as nice-to-haves. CodeSee, Sourcetrail, and Structurizr cloud are the record. Callmap must live inside the daily review.
 - The Ruby resolution rate is low. On a private Rails app, the rules tied about a third of the calls before any type flow, so many methods show as entry points and the Route view helps less.
 - Nothing from the owner's employer repos appears in demos, essays, screenshots, or committed fixtures. Public material uses a private app of the owner and open-source repos.

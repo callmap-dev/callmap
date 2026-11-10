@@ -39,13 +39,13 @@ The module is `github.com/callmap-dev/callmap/callmap-go`, in the folder `callma
 `go install` builds from the files of the module only. So the module commits a copy of each file of the core that it embeds:
 
 - `internal/scope/test-globs.json` is a copy of `packages/scope/test-globs.json`. The CI fails when the 2 files differ.
-- `page-template.html` is a copy of the page template that `npm run build` writes to `packages/cli/dist/page-template.html`. It changes only in a pull request that prepares a release.
+- `page-template.html` is a copy of the page template that `npm run build` writes to `packages/reader-page/dist/page-template.html`. It changes only in a pull request that prepares a release.
 
-`cmd/callmap-extract-go` is the Go extractor as a separate process for the `callmap` command of `@callmap/cli`. It goes with that command.
+`cmd/callmap-extract-go` is the Go extractor as a separate process. The tests of the Go extractor in `test/` run it, and the command `callmap-go` does not.
 
 ## Release
 
-1. In a pull request, set the copy of the page template to the build of the same commit: `npm run build && cp packages/cli/dist/page-template.html callmap-go/page-template.html`.
+1. In a pull request, set the copy of the page template to the build of the same commit: `npm run build && cp packages/reader-page/dist/page-template.html callmap-go/page-template.html`.
 2. After the merge, push a tag `callmap-go/v<version>`, for example `callmap-go/v0.1.0`.
 
 The release job builds the page template from the tagged commit, and fails when the copy differs. It then installs `callmap-go` from the checkout, runs the conformance suite for Go, makes the GitHub release and asks the Go module proxy for the version.

@@ -3,8 +3,10 @@
  * already emitted and nothing else. If a package ever needs a filesystem, it stops being core and
  * belongs behind the extractor contract (ADR-0009).
  *
- * An extractor package is the other side of that contract, so the guard reads it the other way
- * round: it is the one that reads a repo and the one that names a language.
+ * The extractor of a distribution is the other side of that contract, so the guard reads it the
+ * other way round: it is the one that reads a repo and the one that names a language. The guard
+ * reads the TypeScript code of callmap-ts. The extractors of callmap-go and callmap-rb are Go and
+ * Ruby, and their own tests hold them.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -12,14 +14,14 @@ import { builtinModules } from 'node:module';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const PACKAGES_DIR = join(import.meta.dirname, '..', 'packages');
+const REPO_ROOT = join(import.meta.dirname, '..');
+const PACKAGES_DIR = join(REPO_ROOT, 'packages');
+const CALLMAP_TS = join(REPO_ROOT, 'callmap-ts');
 
-/** A package that reads a repo and emits a document. It is not core; it is what core reads. */
-const isExtractor = (name: string): boolean => name.startsWith('extractor-');
+/** The package of the reader page: a page script for the browser, and the build that bundles it. */
+const PAGE_PACKAGES: readonly string[] = ['reader-page'];
 
-const HOST_PACKAGES: readonly string[] = ['cli'];
-
-const isHost = (name: string): boolean => HOST_PACKAGES.includes(name);
+const isPage = (name: string): boolean => PAGE_PACKAGES.includes(name);
 
 /** A package that runs a distribution on fixture repos and reads its page. It is not core. */
 const SUITE_PACKAGES: readonly string[] = ['conformance'];
@@ -61,11 +63,8 @@ const packageNames = readdirSync(PACKAGES_DIR)
   .filter((entry) => statSync(join(PACKAGES_DIR, entry)).isDirectory())
   .sort();
 
-const corePackages = packageNames.filter(
-  (name) => !isExtractor(name) && !isHost(name) && !isSuite(name),
-);
-const extractorPackages = packageNames.filter(isExtractor);
-const hostPackages = packageNames.filter(isHost);
+const corePackages = packageNames.filter((name) => !isPage(name) && !isSuite(name));
+const pagePackages = packageNames.filter(isPage);
 const suitePackages = packageNames.filter(isSuite);
 
 const importsUnder = (directory: string): ReadonlySet<string> =>
@@ -73,6 +72,9 @@ const importsUnder = (directory: string): ReadonlySet<string> =>
 
 const importsIn = (name: string): ReadonlySet<string> =>
   importsUnder(join(PACKAGES_DIR, name, 'src'));
+
+const namesALanguage = (path: string): boolean =>
+  /'(typescript|javascript|go|ruby)'/.test(readFileSync(path, 'utf8'));
 
 const isNodeBuiltin = (specifier: string): boolean =>
   specifier.startsWith('node:') || builtinModules.includes(specifier.split('/')[0] ?? '');
@@ -113,53 +115,55 @@ describe('the core', () => {
   });
 
   it.each(corePackages)('%s names no language, because the core is language-blind', (name) => {
-    const offenders = sourceFilesOf(join(PACKAGES_DIR, name, 'src')).filter((path) =>
-      /'(typescript|javascript|go|ruby)'/.test(readFileSync(path, 'utf8')),
-    );
+    const offenders = sourceFilesOf(join(PACKAGES_DIR, name, 'src')).filter(namesALanguage);
     expect(offenders).toEqual([]);
   });
 });
 
-describe('the extractors it ships', () => {
-  it('holds one package per language that Callmap reads, so far', () => {
-    expect(extractorPackages).toEqual(['extractor-go', 'extractor-ruby', 'extractor-typescript']);
-  });
-
-  it.each(extractorPackages)('%s is the side of the contract that reads a repo', (name) => {
-    expect(importsIn(name)).toContain('node:fs');
-  });
-
-  it.each(extractorPackages)(
-    '%s names the language it claims, so the core never has to',
-    (name) => {
-      const sources = sourceFilesOf(join(PACKAGES_DIR, name, 'src'));
-      const naming = sources.filter((path) =>
-        /'(typescript|javascript|go|ruby)'/.test(readFileSync(path, 'utf8')),
-      );
-      expect(naming.length).toBeGreaterThan(0);
-    },
-  );
-});
-
-describe('the host that runs it', () => {
-  it('holds the CLI, and nothing else', () => {
-    expect(hostPackages).toEqual(HOST_PACKAGES);
-  });
-
-  it('runs every extractor from the CLI, as a process of its own', () => {
-    expect(importsIn('cli')).toContain('node:child_process');
-  });
-
-  it('reads source text for the code panel but parses none, because it imports no parser and no extractor', () => {
-    expect(importsIn('cli')).toContain('node:fs');
-    const offenders = [...importsIn('cli')].filter(
-      (specifier) => specifier === 'typescript' || specifier.startsWith('@callmap/extractor-'),
-    );
-    expect(offenders).toEqual([]);
+describe('the reader page', () => {
+  it('has a package of its own', () => {
+    expect(pagePackages).toEqual(PAGE_PACKAGES);
   });
 
   it('keeps the page script off every Node built-in, because it runs in the browser', () => {
-    const offenders = [...importsUnder(join(PACKAGES_DIR, 'cli', 'page'))].filter(isNodeBuiltin);
+    const offenders = [...importsUnder(join(PACKAGES_DIR, 'reader-page', 'page'))].filter(
+      isNodeBuiltin,
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it('names no language in the page script, because the page is language-blind', () => {
+    const offenders = sourceFilesOf(join(PACKAGES_DIR, 'reader-page', 'page')).filter(
+      namesALanguage,
+    );
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('the extractor of callmap-ts', () => {
+  const extractor = join(CALLMAP_TS, 'extractor');
+
+  it('is the side of the contract that reads a repo', () => {
+    expect(importsUnder(extractor)).toContain('node:fs');
+  });
+
+  it('names the language it claims, so the core never has to', () => {
+    expect(sourceFilesOf(extractor).filter(namesALanguage).length).toBeGreaterThan(0);
+  });
+});
+
+describe('the command of callmap-ts that runs it', () => {
+  const command = join(CALLMAP_TS, 'src');
+
+  it('runs the extractor as a process of its own', () => {
+    expect(importsUnder(command)).toContain('node:child_process');
+  });
+
+  it('reads source text for the code panel but parses none, because it imports no parser and no extractor', () => {
+    expect(importsUnder(command)).toContain('node:fs');
+    const offenders = [...importsUnder(command)].filter(
+      (specifier) => specifier === 'typescript' || specifier.includes('/extractor/'),
+    );
     expect(offenders).toEqual([]);
   });
 });

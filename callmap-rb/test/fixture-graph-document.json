@@ -1,0 +1,2362 @@
+{
+  "calls": [
+    {
+      "callee": "billing/app/models/order.rb#Order.from_payload",
+      "caller": "billing/app/controllers/invoices_controller.rb#InvoicesController#create",
+      "line": 3
+    },
+    {
+      "callee": "billing/app/models/invoice.rb#Invoice.for",
+      "caller": "billing/app/controllers/invoices_controller.rb#InvoicesController#create",
+      "line": 4
+    },
+    {
+      "callee": "gems/pricing/lib/pricing/tax.rb#Pricing::Tax.rate",
+      "caller": "gems/pricing/lib/pricing.rb#Pricing.quote",
+      "line": 3
+    },
+    {
+      "callee": "rules/abstract/lib/csv_exporter.rb#CsvExporter#write",
+      "caller": "rules/abstract/lib/exporter.rb#Exporter#run",
+      "group": "rules/abstract/lib/exporter.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/abstract/lib/json_exporter.rb#JsonExporter#write",
+      "caller": "rules/abstract/lib/exporter.rb#Exporter#run",
+      "group": "rules/abstract/lib/exporter.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/class-methods/app/models/concerns/searchable.rb#Searchable::ClassMethods#search",
+      "caller": "rules/class-methods/app/models/post.rb#Post.top",
+      "line": 5
+    },
+    {
+      "callee": "rules/concern-one-of/app/models/order.rb#Order#total",
+      "caller": "rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice",
+      "group": "rules/concern-one-of/app/models/concerns/billable.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/concern-one-of/app/models/refund.rb#Refund#total",
+      "caller": "rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice",
+      "group": "rules/concern-one-of/app/models/concerns/billable.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/concrete-override/lib/exporter.rb#Exporter#write",
+      "caller": "rules/concrete-override/lib/exporter.rb#Exporter#run",
+      "line": 3
+    },
+    {
+      "callee": "rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb#Accounts::Billing::Services::InvoicePlan.build",
+      "caller": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#plan",
+      "line": 10
+    },
+    {
+      "callee": "rules/constant-aliases/lib/shared/services/ledger_index.rb#Shared::Services::LedgerIndex.code_for",
+      "caller": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#code",
+      "line": 11
+    },
+    {
+      "callee": "rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb#Accounts::Billing::Services::InvoicePlan.build",
+      "caller": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#chained",
+      "line": 12
+    },
+    {
+      "callee": "rules/constant-aliases/lib/shared/services/ledger_index.rb#Shared::Services::LedgerIndex.code_for",
+      "caller": "rules/constant-aliases/lib/report.rb#Report#code",
+      "line": 5
+    },
+    {
+      "callee": "rules/def-in-scope/app/models/order.rb#Order#total",
+      "caller": "rules/def-in-scope/app/models/order.rb#Order#run",
+      "line": 5
+    },
+    {
+      "callee": "rules/define-method/lib/flags.rb#Flags#reset",
+      "caller": "rules/define-method/lib/flags.rb#Flags#on",
+      "line": 3
+    },
+    {
+      "callee": "rules/extend-self/lib/m.rb#M#a",
+      "caller": "rules/extend-self/lib/runner.rb#Runner#run",
+      "line": 3
+    },
+    {
+      "callee": "rules/finders/lib/account.rb#Account#suspend",
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "line": 7
+    },
+    {
+      "callee": "rules/finders/lib/account.rb#Account#suspend",
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "line": 9
+    },
+    {
+      "callee": "rules/finders/lib/account.rb#Account#suspend",
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "line": 10
+    },
+    {
+      "callee": "rules/finders/lib/vault.rb#Vault.create",
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "line": 12
+    },
+    {
+      "callee": "rules/finders/lib/ledger.rb#Ledger.find",
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "line": 13
+    },
+    {
+      "callee": "rules/instance-variables/lib/invoice.rb#Invoice#total",
+      "caller": "rules/instance-variables/lib/checkout.rb#Checkout#run",
+      "line": 14
+    },
+    {
+      "callee": "rules/instance-variables/lib/refund.rb#Refund#total",
+      "caller": "rules/instance-variables/lib/checkout.rb#Checkout#run",
+      "line": 15
+    },
+    {
+      "callee": "rules/library-constants/lib/payments/gateway.rb#Payments::Gateway.charge",
+      "caller": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "line": 16
+    },
+    {
+      "callee": "rules/library-include-one-of/lib/order.rb#Order#total",
+      "caller": "rules/library-include-one-of/lib/billable.rb#Billable#invoice",
+      "group": "rules/library-include-one-of/lib/billable.rb:5:5",
+      "line": 5
+    },
+    {
+      "callee": "rules/library-include-one-of/lib/refund.rb#Refund#total",
+      "caller": "rules/library-include-one-of/lib/billable.rb#Billable#invoice",
+      "group": "rules/library-include-one-of/lib/billable.rb:5:5",
+      "line": 5
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#String#slugify",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 3
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#String#slugify",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 4
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#Array#second",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 5
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#Array#second",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 6
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#Hash#deep_keys",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 7
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#Symbol#to_label",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 8
+    },
+    {
+      "callee": "rules/literals/lib/core_ext.rb#Integer#minutes",
+      "caller": "rules/literals/lib/page.rb#Page#render",
+      "line": 9
+    },
+    {
+      "callee": "rules/local-variables/lib/invoice.rb#Invoice#total",
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "line": 4
+    },
+    {
+      "callee": "rules/local-variables/lib/invoice.rb#Invoice#total",
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "line": 5
+    },
+    {
+      "callee": "rules/local-variables/lib/core_ext.rb#String#slugify",
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "line": 7
+    },
+    {
+      "callee": "rules/local-variables/lib/invoice.rb#Invoice#total",
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "line": 9
+    },
+    {
+      "callee": "rules/made-classes/lib/shapes/base.rb#Shapes::Base#outline",
+      "caller": "rules/made-classes/lib/shapes.rb#Shapes::Square#draw",
+      "line": 14
+    },
+    {
+      "callee": "rules/made-classes/lib/shapes.rb#Shapes::Point#norm",
+      "caller": "rules/made-classes/lib/shapes.rb#Shapes::Square#draw",
+      "line": 15
+    },
+    {
+      "callee": "rules/module-function/lib/units.rb#Units.to_mm",
+      "caller": "rules/module-function/lib/ruler.rb#Ruler#mark",
+      "line": 3
+    },
+    {
+      "callee": "rules/module-function/lib/units.rb#Units.to_cm",
+      "caller": "rules/module-function/lib/units.rb#Units.to_mm",
+      "line": 9
+    },
+    {
+      "callee": "rules/new/lib/billing/invoice.rb#Billing::Invoice#total",
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "line": 4
+    },
+    {
+      "callee": "rules/new/lib/billing/invoice.rb#Billing::Invoice#total",
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "line": 5
+    },
+    {
+      "callee": "rules/new/lib/billing/invoice.rb#Billing::Invoice#total",
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "line": 6
+    },
+    {
+      "callee": "rules/new/lib/cache.rb#Cache.new",
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "line": 7
+    },
+    {
+      "callee": "rules/no-implementation/lib/csv_exporter.rb#CsvExporter#write",
+      "caller": "rules/no-implementation/lib/exporter.rb#Exporter#run",
+      "group": "rules/no-implementation/lib/exporter.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/prepend-extend/lib/loud.rb#Loud#greet",
+      "caller": "rules/prepend-extend/lib/person.rb#Person#hello",
+      "line": 8
+    },
+    {
+      "callee": "rules/prepend-extend/lib/finders.rb#Finders#find_all",
+      "caller": "rules/prepend-extend/lib/person.rb#Person.load",
+      "line": 12
+    },
+    {
+      "callee": "rules/send-splat/lib/robot.rb#Robot#turn",
+      "caller": "rules/send-splat/lib/robot.rb#Robot#step",
+      "line": 7
+    },
+    {
+      "callee": "rules/send/lib/robot.rb#Robot#turn",
+      "caller": "rules/send/lib/robot.rb#Robot#step",
+      "line": 5
+    },
+    {
+      "callee": "rules/send/lib/robot.rb#Robot.build",
+      "caller": "rules/send/lib/robot.rb#Robot#step",
+      "line": 6
+    },
+    {
+      "callee": "rules/several-modules/lib/a.rb#A#x",
+      "caller": "rules/several-modules/lib/c.rb#C#run",
+      "line": 5
+    },
+    {
+      "callee": "rules/several-modules/lib/b.rb#B#x",
+      "caller": "rules/several-modules/lib/d.rb#D#run",
+      "line": 7
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#call",
+      "caller": "rules/singleton-new/lib/copier.rb#Copier.call",
+      "line": 3
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#initialize",
+      "caller": "rules/singleton-new/lib/copier.rb#Copier.call",
+      "line": 3
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#initialize",
+      "caller": "rules/singleton-new/lib/copier.rb#Copier.build",
+      "line": 7
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#call",
+      "caller": "rules/singleton-new/lib/copier.rb#Copier.build",
+      "line": 8
+    },
+    {
+      "callee": "rules/singleton-new/lib/pool.rb#Pool.new",
+      "caller": "rules/singleton-new/lib/pool.rb#Pool.checkout",
+      "line": 5
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#call",
+      "caller": "rules/singleton-new/lib/special_copier.rb#SpecialCopier.make",
+      "line": 4
+    },
+    {
+      "callee": "rules/singleton-new/lib/copier.rb#Copier#initialize",
+      "caller": "rules/singleton-new/lib/special_copier.rb#SpecialCopier.make",
+      "line": 4
+    },
+    {
+      "callee": "rules/singleton-owner/lib/holder.rb#Other.made_here",
+      "caller": "rules/singleton-owner/lib/other.rb#Other.run",
+      "line": 3
+    },
+    {
+      "callee": "rules/singleton-prepend/lib/tracer.rb#Tracer#greet",
+      "caller": "rules/singleton-prepend/lib/person.rb#Person.welcome",
+      "line": 9
+    },
+    {
+      "callee": "rules/singleton-prepend/lib/person.rb#Person.greet",
+      "caller": "rules/singleton-prepend/lib/tracer.rb#Tracer#greet",
+      "group": "rules/singleton-prepend/lib/tracer.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/super-in-module/lib/person.rb#Person#greet",
+      "caller": "rules/super-in-module/lib/loud.rb#Loud#greet",
+      "group": "rules/super-in-module/lib/loud.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/super-in-module/lib/base.rb#Base#greet",
+      "caller": "rules/super-in-module/lib/polite.rb#Polite#greet",
+      "group": "rules/super-in-module/lib/polite.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/super-several-includers/lib/a.rb#A#greet",
+      "caller": "rules/super-several-includers/lib/polite.rb#Polite#greet",
+      "group": "rules/super-several-includers/lib/polite.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "rules/super-several-includers/lib/b.rb#B#greet",
+      "caller": "rules/super-several-includers/lib/polite.rb#Polite#greet",
+      "group": "rules/super-several-includers/lib/polite.rb:3:5",
+      "line": 3
+    },
+    {
+      "callee": "shop/app/controllers/application_controller.rb#ApplicationController#authorize",
+      "caller": "shop/app/controllers/admin/orders_controller.rb#Admin::OrdersController#index",
+      "line": 4
+    },
+    {
+      "callee": "shop/app/services/shipping/label.rb#Shipping::Label#print",
+      "caller": "shop/app/jobs/receipt_job.rb#ReceiptJob#perform",
+      "line": 4
+    },
+    {
+      "callee": "shop/app/services/shipping/label.rb#Shipping::Label#initialize",
+      "caller": "shop/app/jobs/receipt_job.rb#ReceiptJob#perform",
+      "line": 4
+    },
+    {
+      "callee": "shop/app/jobs/application_job.rb#ApplicationJob#perform",
+      "caller": "shop/app/jobs/receipt_job.rb#ReceiptJob#perform",
+      "line": 5
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order.find_open",
+      "caller": "shop/app/models/order.rb#Order.recent",
+      "line": 12
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order#count",
+      "caller": "shop/app/models/order.rb#Order#total",
+      "line": 17
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order#subtotal",
+      "caller": "shop/app/models/order.rb#Order#total",
+      "line": 18
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order#discount_of",
+      "caller": "shop/app/models/order.rb#Order#total",
+      "line": 18
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order#subtotal",
+      "caller": "shop/app/models/order.rb#Order#total",
+      "line": 18
+    },
+    {
+      "callee": "shop/app/models/concerns/discountable.rb#Discountable#discount",
+      "caller": "shop/app/models/order.rb#Order#discount_of",
+      "line": 26
+    },
+    {
+      "callee": "shop/app/models/order.rb#Order.recent",
+      "caller": "shop/app/models/report.rb#Report#rows",
+      "line": 3
+    },
+    {
+      "callee": "shop/app/models/report.rb#Report#rows",
+      "caller": "shop/app/models/report.rb#Report#render",
+      "line": 7
+    },
+    {
+      "callee": "shop/lib/core_ext/string.rb#String#squish_dashes",
+      "caller": "shop/config/initializers/slug.rb#String#slugify",
+      "line": 3
+    },
+    {
+      "callee": "shop/app/models/report.rb#Report#rows",
+      "caller": "shop/lib/reconcile.rb#Reconcile#run",
+      "line": 3
+    }
+  ],
+  "files": [
+    "billing/app/controllers/invoices_controller.rb",
+    "billing/app/models/invoice.rb",
+    "billing/app/models/order.rb",
+    "billing/config/application.rb",
+    "gems/pricing/lib/pricing.rb",
+    "gems/pricing/lib/pricing/archive/order.rb",
+    "gems/pricing/lib/pricing/tax.rb",
+    "rules/abstract/lib/csv_exporter.rb",
+    "rules/abstract/lib/exporter.rb",
+    "rules/abstract/lib/json_exporter.rb",
+    "rules/abstract/lib/null_exporter.rb",
+    "rules/class-methods/app/models/concerns/searchable.rb",
+    "rules/class-methods/app/models/post.rb",
+    "rules/concern-one-of/app/models/cart.rb",
+    "rules/concern-one-of/app/models/concerns/billable.rb",
+    "rules/concern-one-of/app/models/order.rb",
+    "rules/concern-one-of/app/models/refund.rb",
+    "rules/concrete-override/lib/csv_exporter.rb",
+    "rules/concrete-override/lib/exporter.rb",
+    "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+    "rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb",
+    "rules/constant-aliases/lib/report.rb",
+    "rules/constant-aliases/lib/shared/services/ledger_index.rb",
+    "rules/def-in-scope/app/models/order.rb",
+    "rules/define-method/lib/flags.rb",
+    "rules/extend-self/lib/m.rb",
+    "rules/extend-self/lib/runner.rb",
+    "rules/finders/lib/account.rb",
+    "rules/finders/lib/admin.rb",
+    "rules/finders/lib/application_record.rb",
+    "rules/finders/lib/ledger.rb",
+    "rules/finders/lib/vault.rb",
+    "rules/function-value/lib/hooks.rb",
+    "rules/instance-variables/lib/checkout.rb",
+    "rules/instance-variables/lib/invoice.rb",
+    "rules/instance-variables/lib/refund.rb",
+    "rules/library-constants/lib/orders/checkout.rb",
+    "rules/library-constants/lib/other/bar.rb",
+    "rules/library-constants/lib/payments/gateway.rb",
+    "rules/library-include-one-of/lib/auditable.rb",
+    "rules/library-include-one-of/lib/billable.rb",
+    "rules/library-include-one-of/lib/order.rb",
+    "rules/library-include-one-of/lib/refund.rb",
+    "rules/library-literals/lib/page.rb",
+    "rules/literals/lib/core_ext.rb",
+    "rules/literals/lib/page.rb",
+    "rules/local-variables/lib/core_ext.rb",
+    "rules/local-variables/lib/invoice.rb",
+    "rules/local-variables/lib/refund.rb",
+    "rules/local-variables/lib/run.rb",
+    "rules/macros/lib/axis.rb",
+    "rules/macros/lib/point.rb",
+    "rules/made-classes/lib/shapes.rb",
+    "rules/made-classes/lib/shapes/base.rb",
+    "rules/method-missing/lib/ghost.rb",
+    "rules/method-missing/lib/magician.rb",
+    "rules/module-function/lib/ruler.rb",
+    "rules/module-function/lib/units.rb",
+    "rules/new/lib/billing/invoice.rb",
+    "rules/new/lib/billing/run.rb",
+    "rules/new/lib/cache.rb",
+    "rules/no-implementation/lib/billable.rb",
+    "rules/no-implementation/lib/cart.rb",
+    "rules/no-implementation/lib/csv_exporter.rb",
+    "rules/no-implementation/lib/exporter.rb",
+    "rules/prepend-extend/lib/finders.rb",
+    "rules/prepend-extend/lib/loud.rb",
+    "rules/prepend-extend/lib/person.rb",
+    "rules/reopened-core/lib/label.rb",
+    "rules/reopened-core/lib/string.rb",
+    "rules/self-other/lib/cart.rb",
+    "rules/self-other/lib/order.rb",
+    "rules/send-missing/lib/books/ledger.rb",
+    "rules/send-missing/lib/robot.rb",
+    "rules/send-splat/lib/robot.rb",
+    "rules/send/lib/robot.rb",
+    "rules/several-modules/lib/a.rb",
+    "rules/several-modules/lib/b.rb",
+    "rules/several-modules/lib/c.rb",
+    "rules/several-modules/lib/d.rb",
+    "rules/shared-instance-variables/lib/base.rb",
+    "rules/shared-instance-variables/lib/child.rb",
+    "rules/shared-instance-variables/lib/heir.rb",
+    "rules/shared-instance-variables/lib/invoice.rb",
+    "rules/shared-instance-variables/lib/parent.rb",
+    "rules/shared-instance-variables/lib/refund.rb",
+    "rules/shared-instance-variables/lib/settable.rb",
+    "rules/shared-instance-variables/lib/writable.rb",
+    "rules/singleton-new/lib/copier.rb",
+    "rules/singleton-new/lib/helpers.rb",
+    "rules/singleton-new/lib/pool.rb",
+    "rules/singleton-new/lib/special_copier.rb",
+    "rules/singleton-owner/lib/holder.rb",
+    "rules/singleton-owner/lib/other.rb",
+    "rules/singleton-owner/lib/shop.rb",
+    "rules/singleton-prepend/lib/person.rb",
+    "rules/singleton-prepend/lib/tracer.rb",
+    "rules/super-in-module/lib/base.rb",
+    "rules/super-in-module/lib/guest.rb",
+    "rules/super-in-module/lib/loud.rb",
+    "rules/super-in-module/lib/person.rb",
+    "rules/super-in-module/lib/polite.rb",
+    "rules/super-several-includers/lib/a.rb",
+    "rules/super-several-includers/lib/b.rb",
+    "rules/super-several-includers/lib/ca.rb",
+    "rules/super-several-includers/lib/cb.rb",
+    "rules/super-several-includers/lib/framed.rb",
+    "rules/super-several-includers/lib/lonely.rb",
+    "rules/super-several-includers/lib/polite.rb",
+    "rules/super-several-includers/lib/view.rb",
+    "rules/unparsed/app/models/broken.rb",
+    "rules/unparsed/app/models/cart.rb",
+    "rules/untyped/lib/label.rb",
+    "rules/untyped/lib/printer.rb",
+    "rules/zeitwerk-aliases/app/models/request_error.rb",
+    "rules/zeitwerk-aliases/app/models/sync.rb",
+    "rules/zeitwerk-aliases/config/application.rb",
+    "shop/app/controllers/admin/base_controller.rb",
+    "shop/app/controllers/admin/orders_controller.rb",
+    "shop/app/controllers/admin/refunds_controller.rb",
+    "shop/app/controllers/application_controller.rb",
+    "shop/app/jobs/application_job.rb",
+    "shop/app/jobs/receipt_job.rb",
+    "shop/app/jobs/refund_job.rb",
+    "shop/app/models/admin/report.rb",
+    "shop/app/models/application_record.rb",
+    "shop/app/models/concerns/discountable.rb",
+    "shop/app/models/line_item.rb",
+    "shop/app/models/order.rb",
+    "shop/app/models/report.rb",
+    "shop/app/services/shipping/invoice.rb",
+    "shop/app/services/shipping/label.rb",
+    "shop/config/application.rb",
+    "shop/config/initializers/slug.rb",
+    "shop/lib/core_ext/string.rb",
+    "shop/lib/reconcile.rb",
+    "tools/release.rb"
+  ],
+  "functions": [
+    {
+      "file": "billing/app/controllers/invoices_controller.rb",
+      "firstLine": 2,
+      "id": "billing/app/controllers/invoices_controller.rb#InvoicesController#create",
+      "lastLine": 5,
+      "name": "InvoicesController#create",
+      "sourceHash": "abf26c35681bd254d59f75c9ef135a4d27e28f3a8cf920dfb40f94a130f2ce77"
+    },
+    {
+      "file": "billing/app/models/invoice.rb",
+      "firstLine": 2,
+      "id": "billing/app/models/invoice.rb#Invoice.for",
+      "lastLine": 4,
+      "name": "Invoice.for",
+      "sourceHash": "2e9078f0af539c27bc6c336f930ade32bec3ff1512b41fc5c7637922fc290f11"
+    },
+    {
+      "file": "billing/app/models/invoice.rb",
+      "firstLine": 6,
+      "id": "billing/app/models/invoice.rb#Invoice#coupons",
+      "lastLine": 8,
+      "name": "Invoice#coupons",
+      "sourceHash": "5310d761676f4fa9e122330fb04abbdc010e38766dfa96e319c4a514593154dd"
+    },
+    {
+      "file": "billing/app/models/order.rb",
+      "firstLine": 2,
+      "id": "billing/app/models/order.rb#Order.from_payload",
+      "lastLine": 4,
+      "name": "Order.from_payload",
+      "sourceHash": "18bc9ab973aebd19eef4b75fae101acef3341ed1d258912d4059c2097d366520"
+    },
+    {
+      "file": "gems/pricing/lib/pricing.rb",
+      "firstLine": 2,
+      "id": "gems/pricing/lib/pricing.rb#Pricing.quote",
+      "lastLine": 4,
+      "name": "Pricing.quote",
+      "sourceHash": "6bd05343848c9e095d6c9c6bb2cae550c2e00ceec38fb931c4d53db0d0b9dbfe"
+    },
+    {
+      "file": "gems/pricing/lib/pricing.rb",
+      "firstLine": 6,
+      "id": "gems/pricing/lib/pricing.rb#Pricing.recent",
+      "lastLine": 8,
+      "name": "Pricing.recent",
+      "sourceHash": "6bcdb228557610fdb88fa9c64520cedd23713be62e2c02ce37761492e5b2530a"
+    },
+    {
+      "file": "gems/pricing/lib/pricing/tax.rb",
+      "firstLine": 3,
+      "id": "gems/pricing/lib/pricing/tax.rb#Pricing::Tax.rate",
+      "lastLine": 5,
+      "name": "Pricing::Tax.rate",
+      "sourceHash": "9151d19ce9fbed92f2ce0211108f9da28a3949a811c0496487586531e7e409e3"
+    },
+    {
+      "file": "rules/abstract/lib/csv_exporter.rb",
+      "firstLine": 2,
+      "id": "rules/abstract/lib/csv_exporter.rb#CsvExporter#write",
+      "lastLine": 2,
+      "name": "CsvExporter#write",
+      "sourceHash": "ab17146090d8cf7e38fab590cbf8675cbbff72ff5d220f80df7c4bf03e5bbc4c"
+    },
+    {
+      "file": "rules/abstract/lib/exporter.rb",
+      "firstLine": 2,
+      "id": "rules/abstract/lib/exporter.rb#Exporter#run",
+      "lastLine": 4,
+      "name": "Exporter#run",
+      "sourceHash": "696c1186e04c0318465c1bafbb854f5e92bb959cee6ebf1d33b75543f9e66c27"
+    },
+    {
+      "file": "rules/abstract/lib/exporter.rb",
+      "firstLine": 6,
+      "id": "rules/abstract/lib/exporter.rb#Exporter#write",
+      "lastLine": 8,
+      "name": "Exporter#write",
+      "sourceHash": "9367d80af59c27ecf0f4571c76499ea955e3df0653178ce0f224ff324a65294f"
+    },
+    {
+      "file": "rules/abstract/lib/json_exporter.rb",
+      "firstLine": 2,
+      "id": "rules/abstract/lib/json_exporter.rb#JsonExporter#write",
+      "lastLine": 2,
+      "name": "JsonExporter#write",
+      "sourceHash": "b1f30e6f7b20b7e24ac3c9c91352e288e4445cc50956ae3defc7a1220b1f9c57"
+    },
+    {
+      "file": "rules/class-methods/app/models/concerns/searchable.rb",
+      "firstLine": 5,
+      "id": "rules/class-methods/app/models/concerns/searchable.rb#Searchable::ClassMethods#search",
+      "lastLine": 5,
+      "name": "Searchable::ClassMethods#search",
+      "sourceHash": "321afd25c1fc9f0fc9d642d879390e5d20fb5081bc3b8a9518f1657621ea389b"
+    },
+    {
+      "file": "rules/class-methods/app/models/post.rb",
+      "firstLine": 4,
+      "id": "rules/class-methods/app/models/post.rb#Post.top",
+      "lastLine": 6,
+      "name": "Post.top",
+      "sourceHash": "6dc1083f782bea28453f0272837cd25d152f435ef7a38522aa9d5f9cdb338ab9"
+    },
+    {
+      "file": "rules/concern-one-of/app/models/cart.rb",
+      "firstLine": 2,
+      "id": "rules/concern-one-of/app/models/cart.rb#Cart#total",
+      "lastLine": 2,
+      "name": "Cart#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/concern-one-of/app/models/concerns/billable.rb",
+      "firstLine": 2,
+      "id": "rules/concern-one-of/app/models/concerns/billable.rb#Billable#invoice",
+      "lastLine": 4,
+      "name": "Billable#invoice",
+      "sourceHash": "516e7adda9d8cb5afcf78e3107a539d635f9516233410709bba80c7fe51b4dc6"
+    },
+    {
+      "file": "rules/concern-one-of/app/models/order.rb",
+      "firstLine": 4,
+      "id": "rules/concern-one-of/app/models/order.rb#Order#total",
+      "lastLine": 4,
+      "name": "Order#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/concern-one-of/app/models/refund.rb",
+      "firstLine": 4,
+      "id": "rules/concern-one-of/app/models/refund.rb#Refund#total",
+      "lastLine": 4,
+      "name": "Refund#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/concrete-override/lib/csv_exporter.rb",
+      "firstLine": 2,
+      "id": "rules/concrete-override/lib/csv_exporter.rb#CsvExporter#write",
+      "lastLine": 2,
+      "name": "CsvExporter#write",
+      "sourceHash": "ab17146090d8cf7e38fab590cbf8675cbbff72ff5d220f80df7c4bf03e5bbc4c"
+    },
+    {
+      "file": "rules/concrete-override/lib/exporter.rb",
+      "firstLine": 2,
+      "id": "rules/concrete-override/lib/exporter.rb#Exporter#run",
+      "lastLine": 4,
+      "name": "Exporter#run",
+      "sourceHash": "696c1186e04c0318465c1bafbb854f5e92bb959cee6ebf1d33b75543f9e66c27"
+    },
+    {
+      "file": "rules/concrete-override/lib/exporter.rb",
+      "firstLine": 6,
+      "id": "rules/concrete-override/lib/exporter.rb#Exporter#write",
+      "lastLine": 6,
+      "name": "Exporter#write",
+      "sourceHash": "ab17146090d8cf7e38fab590cbf8675cbbff72ff5d220f80df7c4bf03e5bbc4c"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 10,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#plan",
+      "lastLine": 10,
+      "name": "Accounts::Billing::Services::InvoiceCopier#plan",
+      "sourceHash": "2b9119b7abfb0bdffa08fd32424dfd1998f55acca8cfeccdec7c8937410a580f"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 11,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#code",
+      "lastLine": 11,
+      "name": "Accounts::Billing::Services::InvoiceCopier#code",
+      "sourceHash": "c23ed64885f277b382ade4da64b04de4005b0b6779d807368a3db8845470558e"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 12,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#chained",
+      "lastLine": 12,
+      "name": "Accounts::Billing::Services::InvoiceCopier#chained",
+      "sourceHash": "1d0e1b339969828c7a4e8dd051b688fa10e5a682c2322ff2a7c97ab8bc0dfeb7"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 13,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#failure",
+      "lastLine": 13,
+      "name": "Accounts::Billing::Services::InvoiceCopier#failure",
+      "sourceHash": "cb5a3035441f47cfc1f0fa3703d71c9c5f903cd820873a36920d5012b58f2bda"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 14,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#direct_failure",
+      "lastLine": 14,
+      "name": "Accounts::Billing::Services::InvoiceCopier#direct_failure",
+      "sourceHash": "c8b4d768ce62d9ecb3260640bc2441d0d8bed52adde802da1e95db6375629404"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb",
+      "firstLine": 15,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#loop",
+      "lastLine": 15,
+      "name": "Accounts::Billing::Services::InvoiceCopier#loop",
+      "sourceHash": "04601d6e26de05a537d31641e406d1e0bd174ace086e3070fbaf1151288a1efb"
+    },
+    {
+      "file": "rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb",
+      "firstLine": 5,
+      "id": "rules/constant-aliases/lib/accounts/billing/services/invoice_plan.rb#Accounts::Billing::Services::InvoicePlan.build",
+      "lastLine": 5,
+      "name": "Accounts::Billing::Services::InvoicePlan.build",
+      "sourceHash": "f10957df2f09810a058f224cfe0313cd80c41f838ed420203764b2feead8d255"
+    },
+    {
+      "file": "rules/constant-aliases/lib/report.rb",
+      "firstLine": 4,
+      "id": "rules/constant-aliases/lib/report.rb#Report#code",
+      "lastLine": 6,
+      "name": "Report#code",
+      "sourceHash": "7c1746f57a760e523505e07741969e79f250585fdf763c90e725f4647f591e19"
+    },
+    {
+      "file": "rules/constant-aliases/lib/shared/services/ledger_index.rb",
+      "firstLine": 4,
+      "id": "rules/constant-aliases/lib/shared/services/ledger_index.rb#Shared::Services::LedgerIndex.code_for",
+      "lastLine": 4,
+      "name": "Shared::Services::LedgerIndex.code_for",
+      "sourceHash": "9636b6d202d47f87af89db18db27964485642296a62bf452c1238f693be6fef1"
+    },
+    {
+      "file": "rules/def-in-scope/app/models/order.rb",
+      "firstLine": 2,
+      "id": "rules/def-in-scope/app/models/order.rb#Order#total",
+      "lastLine": 2,
+      "name": "Order#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/def-in-scope/app/models/order.rb",
+      "firstLine": 4,
+      "id": "rules/def-in-scope/app/models/order.rb#Order#run",
+      "lastLine": 6,
+      "name": "Order#run",
+      "sourceHash": "7e53c4cff8d759c78cef65ac0d7afb1739b01b5bcad2807394e32f0cb107cd6f"
+    },
+    {
+      "file": "rules/define-method/lib/flags.rb",
+      "firstLine": 2,
+      "id": "rules/define-method/lib/flags.rb#Flags#on",
+      "lastLine": 4,
+      "name": "Flags#on",
+      "sourceHash": "d1604d48f353226de3f723376e046abf2bd1519e2e18bc594e424a936f9812bb"
+    },
+    {
+      "file": "rules/define-method/lib/flags.rb",
+      "firstLine": 7,
+      "id": "rules/define-method/lib/flags.rb#Flags.load",
+      "lastLine": 9,
+      "name": "Flags.load",
+      "sourceHash": "28381c932c6fdf407329bdc57e1a520d016f0b5f1df5d939dd3bec01c99e4042"
+    },
+    {
+      "file": "rules/define-method/lib/flags.rb",
+      "firstLine": 14,
+      "id": "rules/define-method/lib/flags.rb#Flags#reset",
+      "lastLine": 14,
+      "name": "Flags#reset",
+      "sourceHash": "88c382a9e36bd14b41822d51c0c26d3f5e4629b08b29b479dbeffb8745fdcf7f"
+    },
+    {
+      "file": "rules/extend-self/lib/m.rb",
+      "firstLine": 4,
+      "id": "rules/extend-self/lib/m.rb#M#a",
+      "lastLine": 4,
+      "name": "M#a",
+      "sourceHash": "4a8478b32f5fecebb48ad393ea7e84040cc4f5c0a30c6b603aebbbf3c060f086"
+    },
+    {
+      "file": "rules/extend-self/lib/runner.rb",
+      "firstLine": 2,
+      "id": "rules/extend-self/lib/runner.rb#Runner#run",
+      "lastLine": 4,
+      "name": "Runner#run",
+      "sourceHash": "7be20fa2825d96c00cfe71a9eea0b9b79615539d870472a7ab8505e3d332d99b"
+    },
+    {
+      "file": "rules/finders/lib/account.rb",
+      "firstLine": 2,
+      "id": "rules/finders/lib/account.rb#Account#suspend",
+      "lastLine": 2,
+      "name": "Account#suspend",
+      "sourceHash": "922523b2f262ab552be7b3e21d486019131ee9272cc79f429e386feb6d089e3e"
+    },
+    {
+      "file": "rules/finders/lib/admin.rb",
+      "firstLine": 2,
+      "id": "rules/finders/lib/admin.rb#Admin#load",
+      "lastLine": 4,
+      "name": "Admin#load",
+      "sourceHash": "165a87c635e2edbf253a7e4d8bb5d468a417c27253d3776b2a8948206820c664"
+    },
+    {
+      "file": "rules/finders/lib/admin.rb",
+      "firstLine": 6,
+      "id": "rules/finders/lib/admin.rb#Admin#run",
+      "lastLine": 14,
+      "name": "Admin#run",
+      "sourceHash": "144787b4b4a96f153bba2b513d163bc265987ae060bd18ab3c060a2aef0c5302"
+    },
+    {
+      "file": "rules/finders/lib/ledger.rb",
+      "firstLine": 2,
+      "id": "rules/finders/lib/ledger.rb#Ledger.find",
+      "lastLine": 2,
+      "name": "Ledger.find",
+      "sourceHash": "21491413a61b1c8b3e53dc90e5d5616275cebd614cd23c99b870e8cc0dd77aee"
+    },
+    {
+      "file": "rules/finders/lib/ledger.rb",
+      "firstLine": 4,
+      "id": "rules/finders/lib/ledger.rb#Ledger#suspend",
+      "lastLine": 4,
+      "name": "Ledger#suspend",
+      "sourceHash": "922523b2f262ab552be7b3e21d486019131ee9272cc79f429e386feb6d089e3e"
+    },
+    {
+      "file": "rules/finders/lib/vault.rb",
+      "firstLine": 2,
+      "id": "rules/finders/lib/vault.rb#Vault.create",
+      "lastLine": 2,
+      "name": "Vault.create",
+      "sourceHash": "516b858014a2b48cf6036459911f9bc8c929108a5ee9893ec64fcecd5e89b9dd"
+    },
+    {
+      "file": "rules/finders/lib/vault.rb",
+      "firstLine": 4,
+      "id": "rules/finders/lib/vault.rb#Vault#suspend",
+      "lastLine": 4,
+      "name": "Vault#suspend",
+      "sourceHash": "922523b2f262ab552be7b3e21d486019131ee9272cc79f429e386feb6d089e3e"
+    },
+    {
+      "file": "rules/function-value/lib/hooks.rb",
+      "firstLine": 2,
+      "id": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "lastLine": 11,
+      "name": "Hooks#run",
+      "sourceHash": "c71c690b5243ad661acc7ce31a027292e3722992854a42e9244c1220ce2efee3"
+    },
+    {
+      "file": "rules/function-value/lib/hooks.rb",
+      "firstLine": 13,
+      "id": "rules/function-value/lib/hooks.rb#Hooks#call",
+      "lastLine": 13,
+      "name": "Hooks#call",
+      "sourceHash": "06f44e17286110c4452240eeccbd18b1c8fa26be307751945438cdbeccca9fa4"
+    },
+    {
+      "file": "rules/instance-variables/lib/checkout.rb",
+      "firstLine": 4,
+      "id": "rules/instance-variables/lib/checkout.rb#Checkout#initialize",
+      "lastLine": 7,
+      "name": "Checkout#initialize",
+      "sourceHash": "474d68e56bd5f45a11d01deb3c266598556047d9e9aa8da0d41232950741ebe3"
+    },
+    {
+      "file": "rules/instance-variables/lib/checkout.rb",
+      "firstLine": 9,
+      "id": "rules/instance-variables/lib/checkout.rb#Checkout#refund",
+      "lastLine": 11,
+      "name": "Checkout#refund",
+      "sourceHash": "1142731370425f650c678197ec8e4602dd7c0675fce8556b0fb605329cca7442"
+    },
+    {
+      "file": "rules/instance-variables/lib/checkout.rb",
+      "firstLine": 13,
+      "id": "rules/instance-variables/lib/checkout.rb#Checkout#run",
+      "lastLine": 18,
+      "name": "Checkout#run",
+      "sourceHash": "67f8b14b6e6bb1c340782896d9ceb1cae3bf5234b887ece146027ad32079882a"
+    },
+    {
+      "file": "rules/instance-variables/lib/checkout.rb",
+      "firstLine": 20,
+      "id": "rules/instance-variables/lib/checkout.rb#Checkout#first",
+      "lastLine": 20,
+      "name": "Checkout#first",
+      "sourceHash": "0255d6f24a2308b7058ac96af4285ce670aa181ef21f49ea954058e23a556b95"
+    },
+    {
+      "file": "rules/instance-variables/lib/checkout.rb",
+      "firstLine": 21,
+      "id": "rules/instance-variables/lib/checkout.rb#Checkout#second",
+      "lastLine": 21,
+      "name": "Checkout#second",
+      "sourceHash": "58bf2288a3effd4d1fb40f5b4cb1311b0087aacad0797af71d0059752e78efae"
+    },
+    {
+      "file": "rules/instance-variables/lib/invoice.rb",
+      "firstLine": 2,
+      "id": "rules/instance-variables/lib/invoice.rb#Invoice#total",
+      "lastLine": 2,
+      "name": "Invoice#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/instance-variables/lib/refund.rb",
+      "firstLine": 2,
+      "id": "rules/instance-variables/lib/refund.rb#Refund#total",
+      "lastLine": 2,
+      "name": "Refund#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/library-constants/lib/orders/checkout.rb",
+      "firstLine": 7,
+      "id": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "lastLine": 18,
+      "name": "Orders::Checkout#run",
+      "sourceHash": "6eee04aaa2518d71469093ac745a3a702e510b2ab8163ad0f5d5c2fa3e82a905"
+    },
+    {
+      "file": "rules/library-constants/lib/orders/checkout.rb",
+      "firstLine": 20,
+      "id": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#current",
+      "lastLine": 20,
+      "name": "Orders::Checkout#current",
+      "sourceHash": "c130b64b35a1de187f391fc084c5ac622f7c8124a21e4bf24f738bc9fc30cccb"
+    },
+    {
+      "file": "rules/library-constants/lib/orders/checkout.rb",
+      "firstLine": 21,
+      "id": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#logger",
+      "lastLine": 21,
+      "name": "Orders::Checkout#logger",
+      "sourceHash": "276075def1806f4f90ae537c61d0ea88b2b5c91afcb62edbbc1d69c10305711c"
+    },
+    {
+      "file": "rules/library-constants/lib/orders/checkout.rb",
+      "firstLine": 22,
+      "id": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#build",
+      "lastLine": 22,
+      "name": "Orders::Checkout#build",
+      "sourceHash": "3786f1888c743cddfc88e63f0f578d33884bfa5667ae378beca3021b9d9ef6a3"
+    },
+    {
+      "file": "rules/library-constants/lib/other/bar.rb",
+      "firstLine": 3,
+      "id": "rules/library-constants/lib/other/bar.rb#Other::Bar.x",
+      "lastLine": 3,
+      "name": "Other::Bar.x",
+      "sourceHash": "ef3fc7fcb6cae1c1538c0b44d8296b7ac8ab174b789419bb69e5f2784c39e21b"
+    },
+    {
+      "file": "rules/library-constants/lib/payments/gateway.rb",
+      "firstLine": 3,
+      "id": "rules/library-constants/lib/payments/gateway.rb#Payments::Gateway.charge",
+      "lastLine": 3,
+      "name": "Payments::Gateway.charge",
+      "sourceHash": "8e374ea2b60065e0f5e00399dc2bc0edbd52b582675c28a48248b98643929be0"
+    },
+    {
+      "file": "rules/library-include-one-of/lib/auditable.rb",
+      "firstLine": 4,
+      "id": "rules/library-include-one-of/lib/auditable.rb#Auditable#audit",
+      "lastLine": 6,
+      "name": "Auditable#audit",
+      "sourceHash": "8539791069aa7f1c23cdccc889b8a60a738182d27c721a1eafbddb0ede845abb"
+    },
+    {
+      "file": "rules/library-include-one-of/lib/billable.rb",
+      "firstLine": 4,
+      "id": "rules/library-include-one-of/lib/billable.rb#Billable#invoice",
+      "lastLine": 6,
+      "name": "Billable#invoice",
+      "sourceHash": "516e7adda9d8cb5afcf78e3107a539d635f9516233410709bba80c7fe51b4dc6"
+    },
+    {
+      "file": "rules/library-include-one-of/lib/order.rb",
+      "firstLine": 4,
+      "id": "rules/library-include-one-of/lib/order.rb#Order#total",
+      "lastLine": 4,
+      "name": "Order#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/library-include-one-of/lib/refund.rb",
+      "firstLine": 4,
+      "id": "rules/library-include-one-of/lib/refund.rb#Refund#total",
+      "lastLine": 4,
+      "name": "Refund#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/library-literals/lib/page.rb",
+      "firstLine": 2,
+      "id": "rules/library-literals/lib/page.rb#Page#render",
+      "lastLine": 5,
+      "name": "Page#render",
+      "sourceHash": "20f6502c545f0502edf7eb44074708f061fcb99bb325dd57d2ad41d27a835da7"
+    },
+    {
+      "file": "rules/library-literals/lib/page.rb",
+      "firstLine": 7,
+      "id": "rules/library-literals/lib/page.rb#Page#upcase",
+      "lastLine": 7,
+      "name": "Page#upcase",
+      "sourceHash": "8366e36dc7b9162e769ab1f31ca21cb94016dbd4e695a02a17e3b71691d8d4af"
+    },
+    {
+      "file": "rules/library-literals/lib/page.rb",
+      "firstLine": 8,
+      "id": "rules/library-literals/lib/page.rb#Page#first",
+      "lastLine": 8,
+      "name": "Page#first",
+      "sourceHash": "7dd4ea70fea0b3559f304fb26e9f7f60c11c412a0b2f5537fc972f2d2e00a613"
+    },
+    {
+      "file": "rules/literals/lib/core_ext.rb",
+      "firstLine": 2,
+      "id": "rules/literals/lib/core_ext.rb#String#slugify",
+      "lastLine": 2,
+      "name": "String#slugify",
+      "sourceHash": "9cd978e2bca2095a5fae62d7c1b8c2c77817b0530ac5906fd08dfe816b3e2ace"
+    },
+    {
+      "file": "rules/literals/lib/core_ext.rb",
+      "firstLine": 6,
+      "id": "rules/literals/lib/core_ext.rb#Array#second",
+      "lastLine": 6,
+      "name": "Array#second",
+      "sourceHash": "eba8b712fbbbc173cb3611c140ca29de34b829439f753f55e6cfb0031ebe94c5"
+    },
+    {
+      "file": "rules/literals/lib/core_ext.rb",
+      "firstLine": 10,
+      "id": "rules/literals/lib/core_ext.rb#Hash#deep_keys",
+      "lastLine": 10,
+      "name": "Hash#deep_keys",
+      "sourceHash": "8cee2df4c9119c4c986091df9619b7aeec221f37104173ddb05b437fbbb0987c"
+    },
+    {
+      "file": "rules/literals/lib/core_ext.rb",
+      "firstLine": 14,
+      "id": "rules/literals/lib/core_ext.rb#Symbol#to_label",
+      "lastLine": 14,
+      "name": "Symbol#to_label",
+      "sourceHash": "c6a4845b49191b3e274fb27248d0f5dbe46d46b56ceb25586b65f78406942424"
+    },
+    {
+      "file": "rules/literals/lib/core_ext.rb",
+      "firstLine": 18,
+      "id": "rules/literals/lib/core_ext.rb#Integer#minutes",
+      "lastLine": 18,
+      "name": "Integer#minutes",
+      "sourceHash": "b6b2d5ad2336cf2ac2f20d6776a790ad585a3021d891db22fddb96f7520e07b8"
+    },
+    {
+      "file": "rules/literals/lib/page.rb",
+      "firstLine": 2,
+      "id": "rules/literals/lib/page.rb#Page#render",
+      "lastLine": 10,
+      "name": "Page#render",
+      "sourceHash": "24e4d1d5cc39a4cf9993d22f6756df7b7cef0930eb2e5c3c59b85672ba66a7ac"
+    },
+    {
+      "file": "rules/local-variables/lib/core_ext.rb",
+      "firstLine": 2,
+      "id": "rules/local-variables/lib/core_ext.rb#String#slugify",
+      "lastLine": 2,
+      "name": "String#slugify",
+      "sourceHash": "9cd978e2bca2095a5fae62d7c1b8c2c77817b0530ac5906fd08dfe816b3e2ace"
+    },
+    {
+      "file": "rules/local-variables/lib/invoice.rb",
+      "firstLine": 2,
+      "id": "rules/local-variables/lib/invoice.rb#Invoice#total",
+      "lastLine": 2,
+      "name": "Invoice#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/local-variables/lib/refund.rb",
+      "firstLine": 2,
+      "id": "rules/local-variables/lib/refund.rb#Refund#total",
+      "lastLine": 2,
+      "name": "Refund#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/local-variables/lib/run.rb",
+      "firstLine": 2,
+      "id": "rules/local-variables/lib/run.rb#Run#call",
+      "lastLine": 17,
+      "name": "Run#call",
+      "sourceHash": "bf25ee8829520701030e8f1506051ca5c8e9fdaa94b15981e5e251a24e3cabe8"
+    },
+    {
+      "file": "rules/macros/lib/axis.rb",
+      "firstLine": 2,
+      "id": "rules/macros/lib/axis.rb#Axis#x",
+      "lastLine": 2,
+      "name": "Axis#x",
+      "sourceHash": "f23471dc8ca43239fc22172d3b3be99fa8b66de6f79f12c8c93950705c6d03fb"
+    },
+    {
+      "file": "rules/macros/lib/axis.rb",
+      "firstLine": 4,
+      "id": "rules/macros/lib/axis.rb#Axis#total",
+      "lastLine": 4,
+      "name": "Axis#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/macros/lib/point.rb",
+      "firstLine": 5,
+      "id": "rules/macros/lib/point.rb#Point#norm",
+      "lastLine": 7,
+      "name": "Point#norm",
+      "sourceHash": "fdbf3c49a8341d19038e86f0e564d1389c5727bdf55adbe48d57820e8b4641d8"
+    },
+    {
+      "file": "rules/made-classes/lib/shapes.rb",
+      "firstLine": 3,
+      "id": "rules/made-classes/lib/shapes.rb#Shapes::Point#norm",
+      "lastLine": 3,
+      "name": "Shapes::Point#norm",
+      "sourceHash": "1c6e3eb39933762de13daa1c74cd25f8bbe8fd984c2d8fc882beacf0353e6dcc"
+    },
+    {
+      "file": "rules/made-classes/lib/shapes.rb",
+      "firstLine": 7,
+      "id": "rules/made-classes/lib/shapes.rb#Shapes::Size#area",
+      "lastLine": 9,
+      "name": "Shapes::Size#area",
+      "sourceHash": "64b09588c579aebf8021c3d399cbdad7e1e1964593461bb76163a8c5dab72fad"
+    },
+    {
+      "file": "rules/made-classes/lib/shapes.rb",
+      "firstLine": 13,
+      "id": "rules/made-classes/lib/shapes.rb#Shapes::Square#draw",
+      "lastLine": 17,
+      "name": "Shapes::Square#draw",
+      "sourceHash": "732fa0b948ecedcf76a8e7bd79ff1e0bd01acf3c6259ab21fdecf3d90ce70ced"
+    },
+    {
+      "file": "rules/made-classes/lib/shapes/base.rb",
+      "firstLine": 3,
+      "id": "rules/made-classes/lib/shapes/base.rb#Shapes::Base#outline",
+      "lastLine": 3,
+      "name": "Shapes::Base#outline",
+      "sourceHash": "65e73a3feeba605a650046213604faf91d50ff3e3efa6dfc6f948d7e33b4203b"
+    },
+    {
+      "file": "rules/method-missing/lib/ghost.rb",
+      "firstLine": 2,
+      "id": "rules/method-missing/lib/ghost.rb#Ghost#method_missing",
+      "lastLine": 4,
+      "name": "Ghost#method_missing",
+      "sourceHash": "a990db35ee37bdbab2efe795f0d63d4391525b6ad7d6fe42773a05d7e0779cec"
+    },
+    {
+      "file": "rules/method-missing/lib/ghost.rb",
+      "firstLine": 6,
+      "id": "rules/method-missing/lib/ghost.rb#Ghost#haunt",
+      "lastLine": 8,
+      "name": "Ghost#haunt",
+      "sourceHash": "98255c7f29fe1161fbbe7a7acd99aef084a8bf6da990ce7334c5ce04c4a2a1ef"
+    },
+    {
+      "file": "rules/method-missing/lib/magician.rb",
+      "firstLine": 2,
+      "id": "rules/method-missing/lib/magician.rb#Magician#vanish",
+      "lastLine": 2,
+      "name": "Magician#vanish",
+      "sourceHash": "ab68c3704b5e755b72fcf064b992028e0bb1ce96103f79f24f4bba3ad9ee53ce"
+    },
+    {
+      "file": "rules/module-function/lib/ruler.rb",
+      "firstLine": 2,
+      "id": "rules/module-function/lib/ruler.rb#Ruler#mark",
+      "lastLine": 4,
+      "name": "Ruler#mark",
+      "sourceHash": "812f7df636c4f2836a5424a0ded487553c5d637c6da8540ad9e94c7fc824a61c"
+    },
+    {
+      "file": "rules/module-function/lib/units.rb",
+      "firstLine": 2,
+      "id": "rules/module-function/lib/units.rb#Units.to_cm",
+      "lastLine": 2,
+      "name": "Units.to_cm",
+      "sourceHash": "d30fbff56c238032f87dc3ea55494d8c2d5d9448caaa7e45393bec7ae3e31066"
+    },
+    {
+      "file": "rules/module-function/lib/units.rb",
+      "firstLine": 4,
+      "id": "rules/module-function/lib/units.rb#Units.to_in",
+      "lastLine": 4,
+      "name": "Units.to_in",
+      "sourceHash": "17f1de717273e23aedc9f5cb331df99cf3e632ffef8991da3f17f198ed33e1a1"
+    },
+    {
+      "file": "rules/module-function/lib/units.rb",
+      "firstLine": 8,
+      "id": "rules/module-function/lib/units.rb#Units.to_mm",
+      "lastLine": 10,
+      "name": "Units.to_mm",
+      "sourceHash": "389876f4e5cd283e1c2c0e9910bcf21d1cf0df327b14134b522f8f9a6e8be68c"
+    },
+    {
+      "file": "rules/new/lib/billing/invoice.rb",
+      "firstLine": 3,
+      "id": "rules/new/lib/billing/invoice.rb#Billing::Invoice#total",
+      "lastLine": 3,
+      "name": "Billing::Invoice#total",
+      "sourceHash": "7228ac94c92bb65603159c906b8bb7c91292ff7d04f40b0ee2dbc9e738e52c65"
+    },
+    {
+      "file": "rules/new/lib/billing/run.rb",
+      "firstLine": 3,
+      "id": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "lastLine": 9,
+      "name": "Billing::Run#call",
+      "sourceHash": "a529d4b923c789115a7bf812e0d84878802d39f2fb569796f892767539be1572"
+    },
+    {
+      "file": "rules/new/lib/cache.rb",
+      "firstLine": 2,
+      "id": "rules/new/lib/cache.rb#Cache.new",
+      "lastLine": 2,
+      "name": "Cache.new",
+      "sourceHash": "6623c4860dc338f8eea91aef425ad218b23fd1c4b93e232a9e75629f5355ba12"
+    },
+    {
+      "file": "rules/new/lib/cache.rb",
+      "firstLine": 4,
+      "id": "rules/new/lib/cache.rb#Cache#total",
+      "lastLine": 4,
+      "name": "Cache#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/no-implementation/lib/billable.rb",
+      "firstLine": 2,
+      "id": "rules/no-implementation/lib/billable.rb#Billable#invoice",
+      "lastLine": 4,
+      "name": "Billable#invoice",
+      "sourceHash": "516e7adda9d8cb5afcf78e3107a539d635f9516233410709bba80c7fe51b4dc6"
+    },
+    {
+      "file": "rules/no-implementation/lib/cart.rb",
+      "firstLine": 2,
+      "id": "rules/no-implementation/lib/cart.rb#Cart#total",
+      "lastLine": 2,
+      "name": "Cart#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/no-implementation/lib/csv_exporter.rb",
+      "firstLine": 2,
+      "id": "rules/no-implementation/lib/csv_exporter.rb#CsvExporter#write",
+      "lastLine": 2,
+      "name": "CsvExporter#write",
+      "sourceHash": "ab17146090d8cf7e38fab590cbf8675cbbff72ff5d220f80df7c4bf03e5bbc4c"
+    },
+    {
+      "file": "rules/no-implementation/lib/exporter.rb",
+      "firstLine": 2,
+      "id": "rules/no-implementation/lib/exporter.rb#Exporter#run",
+      "lastLine": 4,
+      "name": "Exporter#run",
+      "sourceHash": "696c1186e04c0318465c1bafbb854f5e92bb959cee6ebf1d33b75543f9e66c27"
+    },
+    {
+      "file": "rules/no-implementation/lib/exporter.rb",
+      "firstLine": 6,
+      "id": "rules/no-implementation/lib/exporter.rb#Exporter#write",
+      "lastLine": 8,
+      "name": "Exporter#write",
+      "sourceHash": "b7a380ad31064af73404e8ae75494d3bd92b6e2ed441b586f27f592669bbba34"
+    },
+    {
+      "file": "rules/prepend-extend/lib/finders.rb",
+      "firstLine": 2,
+      "id": "rules/prepend-extend/lib/finders.rb#Finders#find_all",
+      "lastLine": 2,
+      "name": "Finders#find_all",
+      "sourceHash": "c871902b8cef0698629a789db34af89c0f61cd45e11762b36cc5dd0df9e11921"
+    },
+    {
+      "file": "rules/prepend-extend/lib/loud.rb",
+      "firstLine": 2,
+      "id": "rules/prepend-extend/lib/loud.rb#Loud#greet",
+      "lastLine": 2,
+      "name": "Loud#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/prepend-extend/lib/person.rb",
+      "firstLine": 5,
+      "id": "rules/prepend-extend/lib/person.rb#Person#greet",
+      "lastLine": 5,
+      "name": "Person#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/prepend-extend/lib/person.rb",
+      "firstLine": 7,
+      "id": "rules/prepend-extend/lib/person.rb#Person#hello",
+      "lastLine": 9,
+      "name": "Person#hello",
+      "sourceHash": "355c71c03401b6036cb5b5118d9cdfa12e60f30f900e12b5f3089907285e5b03"
+    },
+    {
+      "file": "rules/prepend-extend/lib/person.rb",
+      "firstLine": 11,
+      "id": "rules/prepend-extend/lib/person.rb#Person.load",
+      "lastLine": 13,
+      "name": "Person.load",
+      "sourceHash": "8eb7cc4c46fefbefaa066361fa6a1b7d46163fba941b64fb63f7557996cc2eae"
+    },
+    {
+      "file": "rules/reopened-core/lib/label.rb",
+      "firstLine": 2,
+      "id": "rules/reopened-core/lib/label.rb#Label#downcase",
+      "lastLine": 2,
+      "name": "Label#downcase",
+      "sourceHash": "f9968e168112b0745d60f9c638c2ccf1eb44e83daf6e20eea745492268e56e8c"
+    },
+    {
+      "file": "rules/reopened-core/lib/string.rb",
+      "firstLine": 2,
+      "id": "rules/reopened-core/lib/string.rb#String#slugify",
+      "lastLine": 4,
+      "name": "String#slugify",
+      "sourceHash": "fb35f05c7fe9ddf4990772d368adf7ed4a94c56402e6c53b69950c35ac590455"
+    },
+    {
+      "file": "rules/self-other/lib/cart.rb",
+      "firstLine": 2,
+      "id": "rules/self-other/lib/cart.rb#Cart#add",
+      "lastLine": 4,
+      "name": "Cart#add",
+      "sourceHash": "014b79619a8491d299fc797cef45b4db1070f5037e46a0b5d7bc21cc0130ee7d"
+    },
+    {
+      "file": "rules/self-other/lib/order.rb",
+      "firstLine": 2,
+      "id": "rules/self-other/lib/order.rb#Order#total",
+      "lastLine": 2,
+      "name": "Order#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/send-missing/lib/robot.rb",
+      "firstLine": 2,
+      "id": "rules/send-missing/lib/robot.rb#Robot#step",
+      "lastLine": 5,
+      "name": "Robot#step",
+      "sourceHash": "290880c2f1abca03b5a6ceed6f8898ee372e85c08c8d3f239c0355d0ee1ba2c3"
+    },
+    {
+      "file": "rules/send-missing/lib/robot.rb",
+      "firstLine": 7,
+      "id": "rules/send-missing/lib/robot.rb#Robot#total",
+      "lastLine": 7,
+      "name": "Robot#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/send-splat/lib/robot.rb",
+      "firstLine": 5,
+      "id": "rules/send-splat/lib/robot.rb#Robot#step",
+      "lastLine": 8,
+      "name": "Robot#step",
+      "sourceHash": "33e7b7c77651dd57259a532b79ded7782fc14152a919d5eb8b1b040a457ea733"
+    },
+    {
+      "file": "rules/send-splat/lib/robot.rb",
+      "firstLine": 10,
+      "id": "rules/send-splat/lib/robot.rb#Robot#turn",
+      "lastLine": 10,
+      "name": "Robot#turn",
+      "sourceHash": "322586d2eb436c8f220e1dcf05486f95499af09de5d7bd5aeb003d383c58adb2"
+    },
+    {
+      "file": "rules/send/lib/robot.rb",
+      "firstLine": 2,
+      "id": "rules/send/lib/robot.rb#Robot.build",
+      "lastLine": 2,
+      "name": "Robot.build",
+      "sourceHash": "9c479c2b78de028b643d3d7cc19781d85347719a822cfd3306421383f81066a1"
+    },
+    {
+      "file": "rules/send/lib/robot.rb",
+      "firstLine": 4,
+      "id": "rules/send/lib/robot.rb#Robot#step",
+      "lastLine": 10,
+      "name": "Robot#step",
+      "sourceHash": "3a3baf295f104b5a547e34ec05781c7b3173fadd06cc0277266948d0b05ad5cb"
+    },
+    {
+      "file": "rules/send/lib/robot.rb",
+      "firstLine": 12,
+      "id": "rules/send/lib/robot.rb#Robot#turn",
+      "lastLine": 12,
+      "name": "Robot#turn",
+      "sourceHash": "d7ccded70b99c70910b37bdf59afdcacda838a4553c9678e36a625b8b1dd7d3d"
+    },
+    {
+      "file": "rules/several-modules/lib/a.rb",
+      "firstLine": 2,
+      "id": "rules/several-modules/lib/a.rb#A#x",
+      "lastLine": 2,
+      "name": "A#x",
+      "sourceHash": "f23471dc8ca43239fc22172d3b3be99fa8b66de6f79f12c8c93950705c6d03fb"
+    },
+    {
+      "file": "rules/several-modules/lib/b.rb",
+      "firstLine": 2,
+      "id": "rules/several-modules/lib/b.rb#B#x",
+      "lastLine": 2,
+      "name": "B#x",
+      "sourceHash": "f23471dc8ca43239fc22172d3b3be99fa8b66de6f79f12c8c93950705c6d03fb"
+    },
+    {
+      "file": "rules/several-modules/lib/c.rb",
+      "firstLine": 4,
+      "id": "rules/several-modules/lib/c.rb#C#run",
+      "lastLine": 6,
+      "name": "C#run",
+      "sourceHash": "5d6a442933c359fed6f7e40e544e4a13950c10c1a84cbf1873cc5a96df779034"
+    },
+    {
+      "file": "rules/several-modules/lib/d.rb",
+      "firstLine": 4,
+      "id": "rules/several-modules/lib/d.rb#D#x",
+      "lastLine": 4,
+      "name": "D#x",
+      "sourceHash": "f23471dc8ca43239fc22172d3b3be99fa8b66de6f79f12c8c93950705c6d03fb"
+    },
+    {
+      "file": "rules/several-modules/lib/d.rb",
+      "firstLine": 6,
+      "id": "rules/several-modules/lib/d.rb#D#run",
+      "lastLine": 8,
+      "name": "D#run",
+      "sourceHash": "5d6a442933c359fed6f7e40e544e4a13950c10c1a84cbf1873cc5a96df779034"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/base.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/base.rb#Base#setup",
+      "lastLine": 4,
+      "name": "Base#setup",
+      "sourceHash": "225ed71e6c396d79d1420e9be7d1b812eb92ccaf35bc7d275c3f50a0d70dd249"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/base.rb",
+      "firstLine": 6,
+      "id": "rules/shared-instance-variables/lib/base.rb#Base#run",
+      "lastLine": 8,
+      "name": "Base#run",
+      "sourceHash": "ea35a298b4bad78b11a9bbb4b5b54742e43d70e3d9bf0e2ff31f4fb3da035f1e"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/child.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/child.rb#Child#setup",
+      "lastLine": 4,
+      "name": "Child#setup",
+      "sourceHash": "1c798baa6e989e2010b5ebb38b83910da324b77e03ceeaf2aff5851ad4bc1f51"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/heir.rb",
+      "firstLine": 5,
+      "id": "rules/shared-instance-variables/lib/heir.rb#Heir#initialize",
+      "lastLine": 9,
+      "name": "Heir#initialize",
+      "sourceHash": "9d9761b42e323c5bbba7380befcad4ff00b2d774c22acd00bb9a61e475012fec"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/heir.rb",
+      "firstLine": 11,
+      "id": "rules/shared-instance-variables/lib/heir.rb#Heir#run",
+      "lastLine": 15,
+      "name": "Heir#run",
+      "sourceHash": "250914a9f9cdef1cc1df3e8145acc4d5138cdd7dac74581858e2ebfd73aa7539"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/invoice.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/invoice.rb#Invoice#total",
+      "lastLine": 2,
+      "name": "Invoice#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/parent.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/parent.rb#Parent#prepare",
+      "lastLine": 4,
+      "name": "Parent#prepare",
+      "sourceHash": "20945685a2f090a812a65461d661735b06ea93051de6aa9d5e138b4cd7a873a5"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/refund.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/refund.rb#Refund#total",
+      "lastLine": 2,
+      "name": "Refund#total",
+      "sourceHash": "085e774555de716ada5aa323a69dab3ff00ddefed2820597d5e2fa8c0bbc7c25"
+    },
+    {
+      "file": "rules/shared-instance-variables/lib/settable.rb",
+      "firstLine": 2,
+      "id": "rules/shared-instance-variables/lib/settable.rb#Settable#assign",
+      "lastLine": 4,
+      "name": "Settable#assign",
+      "sourceHash": "31a743ace2cb0e04277dab1072d0c1919496b344f009fa48e8d67b6e3d3bdf4c"
+    },
+    {
+      "file": "rules/singleton-new/lib/copier.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-new/lib/copier.rb#Copier.call",
+      "lastLine": 4,
+      "name": "Copier.call",
+      "sourceHash": "320d566db2cfc892533f1ac162f853d2a0dcfe3bdea7ab2f3b8e5368cdfaf3fe"
+    },
+    {
+      "file": "rules/singleton-new/lib/copier.rb",
+      "firstLine": 6,
+      "id": "rules/singleton-new/lib/copier.rb#Copier.build",
+      "lastLine": 9,
+      "name": "Copier.build",
+      "sourceHash": "619ef1122e80d32e8e51760b24b08ac817ded7b60b63f0614d428cb1e8e7c86a"
+    },
+    {
+      "file": "rules/singleton-new/lib/copier.rb",
+      "firstLine": 13,
+      "id": "rules/singleton-new/lib/copier.rb#Copier#initialize",
+      "lastLine": 15,
+      "name": "Copier#initialize",
+      "sourceHash": "5d4f25054b68421aaa0c8292469e841b06f1c6611266ddc26f5baf0c19a6ee81"
+    },
+    {
+      "file": "rules/singleton-new/lib/copier.rb",
+      "firstLine": 17,
+      "id": "rules/singleton-new/lib/copier.rb#Copier#call",
+      "lastLine": 17,
+      "name": "Copier#call",
+      "sourceHash": "06f44e17286110c4452240eeccbd18b1c8fa26be307751945438cdbeccca9fa4"
+    },
+    {
+      "file": "rules/singleton-new/lib/helpers.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-new/lib/helpers.rb#Helpers.make",
+      "lastLine": 6,
+      "name": "Helpers.make",
+      "sourceHash": "b87a440f146a7363bc1d16f3180a95efc6a6bc9d00917d43ed53084a2604b035"
+    },
+    {
+      "file": "rules/singleton-new/lib/helpers.rb",
+      "firstLine": 8,
+      "id": "rules/singleton-new/lib/helpers.rb#Helpers#go",
+      "lastLine": 8,
+      "name": "Helpers#go",
+      "sourceHash": "5ebdd9475e98d44bfc92a9f86e3aa4e7fe3afda0dd63580e059bf1e937df67ca"
+    },
+    {
+      "file": "rules/singleton-new/lib/helpers.rb",
+      "firstLine": 11,
+      "id": "rules/singleton-new/lib/helpers.rb#Helpers.build",
+      "lastLine": 13,
+      "name": "Helpers.build",
+      "sourceHash": "2340b1e88e09c1471931d28ddaadd4a1453715cf6e27ff4fb5a84265de53f99b"
+    },
+    {
+      "file": "rules/singleton-new/lib/pool.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-new/lib/pool.rb#Pool.new",
+      "lastLine": 2,
+      "name": "Pool.new",
+      "sourceHash": "6623c4860dc338f8eea91aef425ad218b23fd1c4b93e232a9e75629f5355ba12"
+    },
+    {
+      "file": "rules/singleton-new/lib/pool.rb",
+      "firstLine": 4,
+      "id": "rules/singleton-new/lib/pool.rb#Pool.checkout",
+      "lastLine": 6,
+      "name": "Pool.checkout",
+      "sourceHash": "5b1f148a9e6008aa3e131a9373565047119593b94c5283ccc8f89a2b13f35569"
+    },
+    {
+      "file": "rules/singleton-new/lib/pool.rb",
+      "firstLine": 8,
+      "id": "rules/singleton-new/lib/pool.rb#Pool#call",
+      "lastLine": 8,
+      "name": "Pool#call",
+      "sourceHash": "06f44e17286110c4452240eeccbd18b1c8fa26be307751945438cdbeccca9fa4"
+    },
+    {
+      "file": "rules/singleton-new/lib/special_copier.rb",
+      "firstLine": 3,
+      "id": "rules/singleton-new/lib/special_copier.rb#SpecialCopier.make",
+      "lastLine": 5,
+      "name": "SpecialCopier.make",
+      "sourceHash": "e345ae9e1cb5aaa622e9c428ebcfeab33f1af86c3da143b08e8ef7d77de85f80"
+    },
+    {
+      "file": "rules/singleton-owner/lib/holder.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-owner/lib/holder.rb#Other.made_here",
+      "lastLine": 2,
+      "name": "Other.made_here",
+      "sourceHash": "5a7b1706cc019d4653d8f6ec03d03175cd7ce4ebea09e924e8d37c6721c1c7a5"
+    },
+    {
+      "file": "rules/singleton-owner/lib/holder.rb",
+      "firstLine": 5,
+      "id": "rules/singleton-owner/lib/holder.rb#Holder.top_level_singleton",
+      "lastLine": 5,
+      "name": "Holder.top_level_singleton",
+      "sourceHash": "3eab9917d05a42dd9dd9cb3795e2127955be844d8598079186e14ab46b39e4a8"
+    },
+    {
+      "file": "rules/singleton-owner/lib/other.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-owner/lib/other.rb#Other.run",
+      "lastLine": 4,
+      "name": "Other.run",
+      "sourceHash": "b300e8839d1d0c9783d599aa79245d500f98ec353d4c36d11fe3bfc720398b8d"
+    },
+    {
+      "file": "rules/singleton-owner/lib/shop.rb",
+      "firstLine": 5,
+      "id": "rules/singleton-owner/lib/shop.rb#Shop::Order.build",
+      "lastLine": 5,
+      "name": "Shop::Order.build",
+      "sourceHash": "7ca548c2e9dd0876df6ba5264226cfb95ef9322522e0ba9b32c1f15e699d6e05"
+    },
+    {
+      "file": "rules/singleton-prepend/lib/person.rb",
+      "firstLine": 5,
+      "id": "rules/singleton-prepend/lib/person.rb#Person.greet",
+      "lastLine": 5,
+      "name": "Person.greet",
+      "sourceHash": "ee4803b88d5beb34d81ce292e897d1c0f472f9ca2426fa7669ce9f10ae75f997"
+    },
+    {
+      "file": "rules/singleton-prepend/lib/person.rb",
+      "firstLine": 8,
+      "id": "rules/singleton-prepend/lib/person.rb#Person.welcome",
+      "lastLine": 10,
+      "name": "Person.welcome",
+      "sourceHash": "78444e86db668bdba7712138f0ce3d2006c8e279a3f6a78075d10bf938c414d9"
+    },
+    {
+      "file": "rules/singleton-prepend/lib/person.rb",
+      "firstLine": 12,
+      "id": "rules/singleton-prepend/lib/person.rb#Person#run",
+      "lastLine": 14,
+      "name": "Person#run",
+      "sourceHash": "9dd1c3ecd66f6d11521aeb1a5171fabe25411fa3f47fc7fe1818390dd5d26cd1"
+    },
+    {
+      "file": "rules/singleton-prepend/lib/tracer.rb",
+      "firstLine": 2,
+      "id": "rules/singleton-prepend/lib/tracer.rb#Tracer#greet",
+      "lastLine": 4,
+      "name": "Tracer#greet",
+      "sourceHash": "bf0738a797c190598e6c635ac8c02615f428171783c8d706e13b3c8651e000c7"
+    },
+    {
+      "file": "rules/super-in-module/lib/base.rb",
+      "firstLine": 2,
+      "id": "rules/super-in-module/lib/base.rb#Base#greet",
+      "lastLine": 2,
+      "name": "Base#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/super-in-module/lib/loud.rb",
+      "firstLine": 2,
+      "id": "rules/super-in-module/lib/loud.rb#Loud#greet",
+      "lastLine": 4,
+      "name": "Loud#greet",
+      "sourceHash": "bf0738a797c190598e6c635ac8c02615f428171783c8d706e13b3c8651e000c7"
+    },
+    {
+      "file": "rules/super-in-module/lib/person.rb",
+      "firstLine": 4,
+      "id": "rules/super-in-module/lib/person.rb#Person#greet",
+      "lastLine": 4,
+      "name": "Person#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/super-in-module/lib/polite.rb",
+      "firstLine": 2,
+      "id": "rules/super-in-module/lib/polite.rb#Polite#greet",
+      "lastLine": 4,
+      "name": "Polite#greet",
+      "sourceHash": "bf0738a797c190598e6c635ac8c02615f428171783c8d706e13b3c8651e000c7"
+    },
+    {
+      "file": "rules/super-several-includers/lib/a.rb",
+      "firstLine": 2,
+      "id": "rules/super-several-includers/lib/a.rb#A#greet",
+      "lastLine": 2,
+      "name": "A#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/super-several-includers/lib/b.rb",
+      "firstLine": 2,
+      "id": "rules/super-several-includers/lib/b.rb#B#greet",
+      "lastLine": 2,
+      "name": "B#greet",
+      "sourceHash": "c0a2cf44bc5a6b99cec2c1eba04e8b83c8babb89cecd32a340cefa9d2bd251de"
+    },
+    {
+      "file": "rules/super-several-includers/lib/framed.rb",
+      "firstLine": 2,
+      "id": "rules/super-several-includers/lib/framed.rb#Framed#frame",
+      "lastLine": 4,
+      "name": "Framed#frame",
+      "sourceHash": "12bc17515b22945e4e50a549853b01d2b772f048fc86e74614bf27a7fd96c79a"
+    },
+    {
+      "file": "rules/super-several-includers/lib/lonely.rb",
+      "firstLine": 2,
+      "id": "rules/super-several-includers/lib/lonely.rb#Lonely#greet",
+      "lastLine": 4,
+      "name": "Lonely#greet",
+      "sourceHash": "bf0738a797c190598e6c635ac8c02615f428171783c8d706e13b3c8651e000c7"
+    },
+    {
+      "file": "rules/super-several-includers/lib/polite.rb",
+      "firstLine": 2,
+      "id": "rules/super-several-includers/lib/polite.rb#Polite#greet",
+      "lastLine": 4,
+      "name": "Polite#greet",
+      "sourceHash": "bf0738a797c190598e6c635ac8c02615f428171783c8d706e13b3c8651e000c7"
+    },
+    {
+      "file": "rules/unparsed/app/models/cart.rb",
+      "firstLine": 2,
+      "id": "rules/unparsed/app/models/cart.rb#Cart#add",
+      "lastLine": 2,
+      "name": "Cart#add",
+      "sourceHash": "584bb0b75488e4ba89feb5340a326c77945e408fe8e2faba0381ee6dd57d3131"
+    },
+    {
+      "file": "rules/untyped/lib/label.rb",
+      "firstLine": 2,
+      "id": "rules/untyped/lib/label.rb#Label#print",
+      "lastLine": 2,
+      "name": "Label#print",
+      "sourceHash": "de9213c441b7862a2256c7c55380f9dda5fef889258d7ecaf40026ac0fff2d1d"
+    },
+    {
+      "file": "rules/untyped/lib/printer.rb",
+      "firstLine": 2,
+      "id": "rules/untyped/lib/printer.rb#Printer#run",
+      "lastLine": 4,
+      "name": "Printer#run",
+      "sourceHash": "7677224d195e097d52a5862465844cd322ebc1f197ad6e37aa12e547c7ce006d"
+    },
+    {
+      "file": "rules/zeitwerk-aliases/app/models/sync.rb",
+      "firstLine": 4,
+      "id": "rules/zeitwerk-aliases/app/models/sync.rb#Sync#run",
+      "lastLine": 8,
+      "name": "Sync#run",
+      "sourceHash": "75e90464da740ec157cfb25c7fed829056e54d45e6220fdd393803b5aac01184"
+    },
+    {
+      "file": "rules/zeitwerk-aliases/app/models/sync.rb",
+      "firstLine": 10,
+      "id": "rules/zeitwerk-aliases/app/models/sync.rb#Sync#build",
+      "lastLine": 10,
+      "name": "Sync#build",
+      "sourceHash": "35600fbc8f28d5faffcf33ddd4e45c0e20004558b08fdde27885c67a676928f1"
+    },
+    {
+      "file": "shop/app/controllers/admin/orders_controller.rb",
+      "firstLine": 3,
+      "id": "shop/app/controllers/admin/orders_controller.rb#Admin::OrdersController#index",
+      "lastLine": 7,
+      "name": "Admin::OrdersController#index",
+      "sourceHash": "c1a1a3510ad57894f8d3b9d75b3180ddb830a9792809eb2cae8a8cd86f263192"
+    },
+    {
+      "file": "shop/app/controllers/admin/orders_controller.rb",
+      "firstLine": 9,
+      "id": "shop/app/controllers/admin/orders_controller.rb#Admin::OrdersController#show",
+      "lastLine": 12,
+      "name": "Admin::OrdersController#show",
+      "sourceHash": "5d1d4fbd7b9b0c61b0af0398c9a65ad5b926dab66936d80506e9df3c53124a23"
+    },
+    {
+      "file": "shop/app/controllers/admin/refunds_controller.rb",
+      "firstLine": 2,
+      "id": "shop/app/controllers/admin/refunds_controller.rb#Admin::RefundsController#index",
+      "lastLine": 4,
+      "name": "Admin::RefundsController#index",
+      "sourceHash": "7e2679c87377f0321a8a0995708ec5fc89c0a3a30d9589d166f2be3ee21ea108"
+    },
+    {
+      "file": "shop/app/controllers/application_controller.rb",
+      "firstLine": 2,
+      "id": "shop/app/controllers/application_controller.rb#ApplicationController#authorize",
+      "lastLine": 4,
+      "name": "ApplicationController#authorize",
+      "sourceHash": "6be072beb0eaf328b693c8ede4d33ed49d37f31a663b5160e4b76ff72ea98fb6"
+    },
+    {
+      "file": "shop/app/jobs/application_job.rb",
+      "firstLine": 2,
+      "id": "shop/app/jobs/application_job.rb#ApplicationJob#perform",
+      "lastLine": 4,
+      "name": "ApplicationJob#perform",
+      "sourceHash": "2e5e6a2e82555caf5085b4053f8097ea3851487d5feb40f758fc74f7c9f1df8c"
+    },
+    {
+      "file": "shop/app/jobs/receipt_job.rb",
+      "firstLine": 2,
+      "id": "shop/app/jobs/receipt_job.rb#ReceiptJob#perform",
+      "lastLine": 6,
+      "name": "ReceiptJob#perform",
+      "sourceHash": "f8e347fed13096186eb47eb92240178dcd2c4ba2e9a4f67210d4d81880735ced"
+    },
+    {
+      "file": "shop/app/jobs/refund_job.rb",
+      "firstLine": 4,
+      "id": "shop/app/jobs/refund_job.rb#RefundJob#perform",
+      "lastLine": 6,
+      "name": "RefundJob#perform",
+      "sourceHash": "f318ffc1b10bf91a876a6a7008bfe61caa053601c5f421eb618fee1ca7a65e89"
+    },
+    {
+      "file": "shop/app/models/admin/report.rb",
+      "firstLine": 3,
+      "id": "shop/app/models/admin/report.rb#Admin::Report#rows",
+      "lastLine": 5,
+      "name": "Admin::Report#rows",
+      "sourceHash": "84085a2718a5072b1c21df784f436cf29914dbd899e0bd9adc07efa2a0bb83ea"
+    },
+    {
+      "file": "shop/app/models/concerns/discountable.rb",
+      "firstLine": 8,
+      "id": "shop/app/models/concerns/discountable.rb#Discountable#discount",
+      "lastLine": 10,
+      "name": "Discountable#discount",
+      "sourceHash": "e5d6abb830a3d5520b188733f21da475e4973faf8af1f66cfd602580f1a5a2eb"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 6,
+      "id": "shop/app/models/order.rb#Order.find_open",
+      "lastLine": 8,
+      "name": "Order.find_open",
+      "sourceHash": "3358b89208607ab5392496a122d6c2be50eb87fa78a98192285a9a1a44d448ea"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 11,
+      "id": "shop/app/models/order.rb#Order.recent",
+      "lastLine": 13,
+      "name": "Order.recent",
+      "sourceHash": "e05a27c09e03418d523bb6b81bf7a8c6070bd4c1788930e9ebba46b799ca8beb"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 16,
+      "id": "shop/app/models/order.rb#Order#total",
+      "lastLine": 19,
+      "name": "Order#total",
+      "sourceHash": "af7821eb818cdb6d275243692b87df850262a2c8486b5b27fa92649a2c3694c6"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 21,
+      "id": "shop/app/models/order.rb#Order#subtotal",
+      "lastLine": 23,
+      "name": "Order#subtotal",
+      "sourceHash": "b382a71309096688a814782c64626e9b4a1f080751104bb35821187905cc132b"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 25,
+      "id": "shop/app/models/order.rb#Order#discount_of",
+      "lastLine": 27,
+      "name": "Order#discount_of",
+      "sourceHash": "fa66e979a00b26403bd12f2c0fb1ac98dd37225e184a4ae643de8dede3074155"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 29,
+      "id": "shop/app/models/order.rb#Order#count",
+      "lastLine": 31,
+      "name": "Order#count",
+      "sourceHash": "834e6066c063a4a133fdc21397634117600d545f7e2f2870ce62e07ae09b912e"
+    },
+    {
+      "file": "shop/app/models/order.rb",
+      "firstLine": 33,
+      "id": "shop/app/models/order.rb#Order.from_payload",
+      "lastLine": 35,
+      "name": "Order.from_payload",
+      "sourceHash": "e8b6563133448e29327a00d15efff16796fc51a38edbe638d58f56dbca688cf4"
+    },
+    {
+      "file": "shop/app/models/report.rb",
+      "firstLine": 2,
+      "id": "shop/app/models/report.rb#Report#rows",
+      "lastLine": 4,
+      "name": "Report#rows",
+      "sourceHash": "320ddc73535bb4e6237d085afd18dc9e711738aea158fd271685885b4e587f3e"
+    },
+    {
+      "file": "shop/app/models/report.rb",
+      "firstLine": 6,
+      "id": "shop/app/models/report.rb#Report#render",
+      "lastLine": 8,
+      "name": "Report#render",
+      "sourceHash": "c848238c821bec3e3c7dea7a9b4c2e51786b5e875732ec0b9babaed4c3bfe9ce"
+    },
+    {
+      "file": "shop/app/services/shipping/label.rb",
+      "firstLine": 3,
+      "id": "shop/app/services/shipping/label.rb#Shipping::Label#initialize",
+      "lastLine": 5,
+      "name": "Shipping::Label#initialize",
+      "sourceHash": "c122f9563a41c23b7c5213a2638226e32c773759453102fc111d74c4552efa0f"
+    },
+    {
+      "file": "shop/app/services/shipping/label.rb",
+      "firstLine": 7,
+      "id": "shop/app/services/shipping/label.rb#Shipping::Label#print",
+      "lastLine": 9,
+      "name": "Shipping::Label#print",
+      "sourceHash": "dde3b5457883df802b946edf9155ec599708ac3389ae38228a966449c4871345"
+    },
+    {
+      "file": "shop/config/initializers/slug.rb",
+      "firstLine": 2,
+      "id": "shop/config/initializers/slug.rb#String#slugify",
+      "lastLine": 4,
+      "name": "String#slugify",
+      "sourceHash": "e6a2612b8b01ef6b8e73a8afa4c68ed9609bb0a0c8fb7d14a6a2454248623d25"
+    },
+    {
+      "file": "shop/lib/core_ext/string.rb",
+      "firstLine": 2,
+      "id": "shop/lib/core_ext/string.rb#String#squish_dashes",
+      "lastLine": 4,
+      "name": "String#squish_dashes",
+      "sourceHash": "8b476223b544c966b8d8bf7e206cae35110698bb5fc64a25ebbe6617ebb651c9"
+    },
+    {
+      "file": "shop/lib/reconcile.rb",
+      "firstLine": 2,
+      "id": "shop/lib/reconcile.rb#Reconcile#run",
+      "lastLine": 4,
+      "name": "Reconcile#run",
+      "sourceHash": "a9a80316a81f7ede5d013a88c848990e1f8ced14b152099d4f657b4630edee9f"
+    },
+    {
+      "file": "tools/release.rb",
+      "firstLine": 2,
+      "id": "tools/release.rb#Release#run",
+      "lastLine": 4,
+      "name": "Release#run",
+      "sourceHash": "7f995e1d0faadbe5ce625b97b61a05ab50a46c56bb2676ac6e020ce917e0b506"
+    }
+  ],
+  "language": "ruby",
+  "openEnds": [
+    {
+      "caller": "gems/pricing/lib/pricing.rb#Pricing.recent",
+      "expression": "Order.recent",
+      "line": 7,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/constant-aliases/lib/accounts/billing/services/invoice_copier.rb#Accounts::Billing::Services::InvoiceCopier#loop",
+      "expression": "Loop.build",
+      "line": 15,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "expression": "Account.where(id).suspend",
+      "line": 11,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "expression": "Vault.create.suspend",
+      "line": 12,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/finders/lib/admin.rb#Admin#run",
+      "expression": "Ledger.find(id).suspend",
+      "line": 13,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "yield",
+      "line": 3,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "yield",
+      "line": 4,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "block.call",
+      "line": 5,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "callable.()",
+      "line": 6,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "method(:run).call",
+      "line": 7,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "service.call",
+      "line": 8,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "service.method(:call).call",
+      "line": 9,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/function-value/lib/hooks.rb#Hooks#run",
+      "expression": "self.method(:run).call",
+      "line": 10,
+      "reason": "function-value"
+    },
+    {
+      "caller": "rules/instance-variables/lib/checkout.rb#Checkout#run",
+      "expression": "@note.total",
+      "line": 16,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/instance-variables/lib/checkout.rb#Checkout#run",
+      "expression": "@other.total",
+      "line": 17,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "expression": "Payments::Gatewy.charge",
+      "line": 13,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "expression": "Bar.x",
+      "line": 14,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "expression": "Absent.build",
+      "line": 15,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/library-constants/lib/orders/checkout.rb#Orders::Checkout#run",
+      "expression": "Gate::Missin.charge",
+      "line": 17,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "expression": "either.total",
+      "line": 12,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "expression": "given.total",
+      "line": 13,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "expression": "first.total",
+      "line": 15,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/local-variables/lib/run.rb#Run#call",
+      "expression": "shadowed.total",
+      "line": 16,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/method-missing/lib/ghost.rb#Ghost#haunt",
+      "expression": "vanish",
+      "line": 7,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "expression": "Cache.new.total",
+      "line": 7,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/new/lib/billing/run.rb#Billing::Run#call",
+      "expression": "Missing.new.total",
+      "line": 8,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/no-implementation/lib/billable.rb#Billable#invoice",
+      "expression": "total",
+      "line": 3,
+      "reason": "no-implementation"
+    },
+    {
+      "caller": "rules/self-other/lib/cart.rb#Cart#add",
+      "expression": "total",
+      "line": 3,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/send-missing/lib/robot.rb#Robot#step",
+      "expression": "Ledger.send",
+      "line": 3,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/send-missing/lib/robot.rb#Robot#step",
+      "expression": "Ledger.send",
+      "line": 4,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "rules/send-splat/lib/robot.rb#Robot#step",
+      "expression": "send",
+      "line": 6,
+      "reason": "dynamic-key"
+    },
+    {
+      "caller": "rules/send/lib/robot.rb#Robot#step",
+      "expression": "arm.try",
+      "line": 7,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/send/lib/robot.rb#Robot#step",
+      "expression": "send",
+      "line": 8,
+      "reason": "dynamic-key"
+    },
+    {
+      "caller": "rules/send/lib/robot.rb#Robot#step",
+      "expression": "arm.public_send",
+      "line": 9,
+      "reason": "dynamic-key"
+    },
+    {
+      "caller": "rules/shared-instance-variables/lib/base.rb#Base#run",
+      "expression": "@x.total",
+      "line": 7,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/shared-instance-variables/lib/heir.rb#Heir#run",
+      "expression": "@y.total",
+      "line": 12,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/shared-instance-variables/lib/heir.rb#Heir#run",
+      "expression": "@z.total",
+      "line": 13,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/shared-instance-variables/lib/heir.rb#Heir#run",
+      "expression": "@w.total",
+      "line": 14,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.make",
+      "expression": "new",
+      "line": 3,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.make",
+      "expression": "made.go",
+      "line": 4,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.make",
+      "expression": "new.go",
+      "line": 5,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.make",
+      "expression": "new",
+      "line": 5,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.build",
+      "expression": "new.go",
+      "line": 12,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/singleton-new/lib/helpers.rb#Helpers.build",
+      "expression": "new",
+      "line": 12,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/singleton-new/lib/pool.rb#Pool.checkout",
+      "expression": "new.call",
+      "line": 5,
+      "reason": "untyped"
+    },
+    {
+      "caller": "rules/singleton-prepend/lib/person.rb#Person#run",
+      "expression": "greet",
+      "line": 13,
+      "reason": "other"
+    },
+    {
+      "caller": "rules/super-several-includers/lib/lonely.rb#Lonely#greet",
+      "expression": "super",
+      "line": 3,
+      "reason": "no-implementation"
+    },
+    {
+      "caller": "rules/untyped/lib/printer.rb#Printer#run",
+      "expression": "label.print",
+      "line": 3,
+      "reason": "untyped"
+    },
+    {
+      "caller": "shop/app/controllers/admin/orders_controller.rb#Admin::OrdersController#show",
+      "expression": "Invoice.for",
+      "line": 10,
+      "reason": "missing-module"
+    },
+    {
+      "caller": "shop/config/initializers/slug.rb#String#slugify",
+      "expression": "squish_dashes.downcase",
+      "line": 3,
+      "reason": "untyped"
+    },
+    {
+      "caller": "tools/release.rb#Release#run",
+      "expression": "Order.count",
+      "line": 3,
+      "reason": "missing-module"
+    }
+  ],
+  "scope": [
+    "!**/*_test.go",
+    "!**/*.test.*",
+    "!**/*.spec.*",
+    "!**/*_spec.rb",
+    "!**/*_test.rb",
+    "!**/__tests__/**",
+    "!**/test/**",
+    "!**/tests/**",
+    "!**/spec/**"
+  ]
+}

@@ -1,6 +1,10 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { pageTemplate } from '@callmap/reader-page';
+import { pageOfTemplate, reviewInputOfPage } from '@callmap/review-input';
 import { describe, expect, it } from 'vitest';
+import { featureBranchRepo } from '../../test/fixture-repo.ts';
+import { reviewHtmlOf } from './callmap-ts-run.ts';
 
 const CALLMAP_TS = fileURLToPath(new URL('..', import.meta.url));
 
@@ -15,5 +19,12 @@ describe('the page template of callmap-ts', () => {
     expect(git('check-ignore', '--no-index', 'dist/page-template.html').trim()).toBe(
       'dist/page-template.html',
     );
+  });
+});
+
+describe('the page of callmap-ts', () => {
+  it('is the page template with the escaped review input at the marker of the data block', async () => {
+    const page = reviewHtmlOf(featureBranchRepo());
+    expect(page).toBe(pageOfTemplate(await pageTemplate(), reviewInputOfPage(page)));
   });
 });

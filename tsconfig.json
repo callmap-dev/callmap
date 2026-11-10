@@ -22,20 +22,22 @@
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/test/**/*.ts",
-    "packages/*/test-pack/**/*.ts",
-    "packages/cli/build.ts",
+    "packages/*/build/**/*.ts",
+    "packages/*/build.ts",
     "callmap-ts/src/**/*.ts",
+    "callmap-ts/extractor/**/*.ts",
     "callmap-ts/test/**/*.ts",
     "callmap-ts/test-pack/**/*.ts",
     "callmap-ts/build.ts",
+    "callmap-ts/build-notices.ts",
     "callmap-go/test/**/*.ts",
     "callmap-rb/test/**/*.ts",
-    "scripts/**/*.ts",
     "test/**/*.ts",
     "vitest.config.ts",
     "vitest.browser.config.ts",
     "vitest.pack.config.ts",
     "vitest.screenshots.config.ts",
     "eslint.config.js"
-  ]
+  ],
+  "exclude": ["test/fixture-repos/**"]
 }

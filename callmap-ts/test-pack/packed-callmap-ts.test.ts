@@ -5,9 +5,9 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pageOfTemplate, reviewInputOfPage } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, goRepo, rubyRepo } from '../../packages/cli/test/fixture-repo.ts';
-import { reviewInputOfFile } from '../../packages/cli/test/review-input-file.ts';
-import { readerPageOf } from '../../packages/cli/src/reader-page.ts';
+import { featureBranchRepo, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
+import { reviewInputOfFile } from '../../packages/reader-page/test/review-input-file.ts';
+import { readerPageOf } from '../src/reader-page.ts';
 import { tempDir } from '../../test/temp-dir.ts';
 
 const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -108,12 +108,13 @@ describe('the packed callmap-ts', () => {
       expect(installedFile(repo, file), file).not.toMatch(/extract-go|callmap-extract-go|read\.rb/);
   });
 
-  it('pins typescript at the version of @callmap/cli, and bundles everything else', () => {
-    const cliPin = manifestAt(join(REPO_ROOT, 'packages', 'cli', 'package.json')).dependencies;
+  it('pins typescript at one exact version, and bundles everything else', () => {
+    const pin = manifestAt(join(REPO_ROOT, 'callmap-ts', 'package.json')).dependencies;
+    expect(pin?.['typescript']).toMatch(/^\d+\.\d+\.\d+$/);
     const repo = installedRepo();
     expect(
       manifestAt(join(repo, 'node_modules', 'callmap-ts', 'package.json')).dependencies,
-    ).toEqual({ typescript: cliPin?.['typescript'] });
+    ).toEqual({ typescript: pin?.['typescript'] });
     const notices = installedFile(repo, 'dist/THIRD-PARTY-NOTICES.txt');
     expect(notices).toMatch(/^elkjs \d+\.\d+\.\d+\nLicense: EPL-2\.0 OR GPL-3\.0-or-later\n/m);
     expect(notices).not.toMatch(/^(@callmap\/|typescript |golang\.org)/m);

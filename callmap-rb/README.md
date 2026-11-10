@@ -36,14 +36,15 @@ The command contract gives the rule of each flag: <https://github.com/callmap-de
 
 The gem lives in the folder `callmap-rb/` of the repo `callmap-dev/callmap`, as ADR-0040 records. It holds these parts:
 
-- `lib/callmap_rb/ripper/read.rb` is the Ripper script. It reads the bodies, the methods and the call sites of each file. The `callmap` command of `@callmap/cli` runs the same script.
+- `lib/callmap_rb/ripper/read.rb` is the Ripper script. It reads the bodies, the methods and the call sites of each file.
 - `lib/callmap_rb/extractor/` holds the Ruby rules: the walk, the load units, Zeitwerk, the constant aliases, the class chain, the macros and the type flow. They tie the direct calls: a call on `self`, on `super` and on a constant. The type flow of ADR-0032 ties a call on a value whose class it proves, such as a literal, `Foo.new`, a finder of a model, or a variable that each write sets to the same class. A call to a method that a macro makes, such as `has_many`, is a library call. A call on `self` or on `super` in a module, and a call to an abstract method, give a one-of group. A call on a value whose class the type flow does not prove is an open end with the reason `untyped`.
 - `lib/callmap_rb/` also holds the thin CLI: the arguments, git, the base cache and the page writer.
+- `test/` holds the tests. `test/extract.test.ts` runs the Ruby rules on the fixture repo `test/fixture/`, whose `README.md` names the rule of each file. `test/review.test.ts` builds the gem, installs it and runs `callmap-rb review`.
 
-The gem build copies 3 files of the core into the gem: the page template from `packages/cli/dist/page-template.html`, the test globs from `packages/scope/test-globs.json` and the license. git ignores these copies. So build the page template of the same commit before the gem:
+The gem build copies 3 files of the core into the gem: the page template from `packages/reader-page/dist/page-template.html`, the test globs from `packages/scope/test-globs.json` and the license. git ignores these copies. So build the page template of the same commit before the gem:
 
 ```sh
-npm run build --workspace @callmap/cli
+npm run build --workspace @callmap/reader-page
 cd callmap-rb
 gem build callmap-rb.gemspec
 ```

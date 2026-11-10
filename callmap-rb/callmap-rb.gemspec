@@ -7,7 +7,7 @@ require_relative "lib/callmap_rb/version"
 # the license from the core, as ADR-0040 records. So run `npm run build` before `gem build`.
 core = File.expand_path("..", __dir__)
 copies = {
-  "packages/cli/dist/page-template.html" => "page-template.html",
+  "packages/reader-page/dist/page-template.html" => "page-template.html",
   "packages/scope/test-globs.json" => "test-globs.json",
   "LICENSE" => "LICENSE"
 }
