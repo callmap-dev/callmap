@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fireEvent, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { CALLMAP } from '../src/callmap.ts';
 import { runReview } from '../src/review-command.ts';
 import { featureBranchRepo } from './fixture-repo.ts';
 import { boxesOf, clickBox, loadReaderPageWithDiffLimit, openTab, settled } from './reader-page.ts';
@@ -21,17 +22,20 @@ beforeAll(async () => {
 });
 
 const commandReview = () =>
-  runReview({
-    repo,
-    base: undefined,
-    scope: [],
-    tsconfig: undefined,
-    out: join(tempDir('callmap-out-'), 'review.html'),
-    open: false,
-    cache: false,
-    editor: 'vscode',
-    tests: false,
-  });
+  runReview(
+    {
+      repo,
+      base: undefined,
+      scope: [],
+      tsconfig: undefined,
+      out: join(tempDir('callmap-out-'), 'review.html'),
+      open: false,
+      cache: false,
+      editor: 'vscode',
+      tests: false,
+    },
+    CALLMAP,
+  );
 
 const pageWithDiffLimit = (diffLimit: number): Promise<LoadedPage> =>
   loadReaderPageWithDiffLimit(html, diffLimit);

@@ -5,6 +5,7 @@ import { getByRole, within } from '@testing-library/dom';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { rubyExtractor } from '../src/ruby-extractor.ts';
 import type { Extractor } from '../src/extractor.ts';
+import { CALLMAP } from '../src/callmap.ts';
 import { runReview } from '../src/review-command.ts';
 import { commitFile, rubyRepo } from './fixture-repo.ts';
 import { cacheEntriesOf, reviewOf } from './cached-review.ts';
@@ -191,7 +192,7 @@ describe('the reads of the Ruby extractor', () => {
         editor: 'vscode',
         tests: false,
       },
-      { extractors: [watched] },
+      { ...CALLMAP, extractorsFor: () => [watched] },
     );
     expect(steps).toEqual(['start branch', 'end branch', 'start base', 'end base']);
   });

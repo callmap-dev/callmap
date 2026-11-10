@@ -8,8 +8,9 @@ import { effectiveScope, inScope, isSkippedDirectory } from '@callmap/scope';
 import type { ReviewInvocation } from './arguments.ts';
 import { throughBaseCache } from './base-cache.ts';
 import { openInBrowser } from './browser.ts';
+import { cacheFolderOf } from './cache-folder.ts';
+import type { Distribution } from './distribution.ts';
 import type { Extractor } from './extractor.ts';
-import { extractorsFor } from './extractors.ts';
 import {
   branchNameOf,
   commitOf,
@@ -23,6 +24,7 @@ import {
   uncommittedFilesOf,
   workingTreeFilesOf,
 } from './git.ts';
+import { LANGUAGE_FILES } from './languages.ts';
 import { readerPageOf } from './reader-page.ts';
 import { sourcesOf } from './sources.ts';
 
@@ -60,14 +62,19 @@ const inSkippedDirectory = (path: string): boolean =>
 const isInReviewScope = (path: string, scope: readonly string[]): boolean =>
   !inSkippedDirectory(path) && inScope(path, scope);
 
-const extractorsInScope = (
-  extractors: readonly Extractor[],
+const otherLanguageLinesOf = (
+  { command, language }: Distribution,
+  inScopeFiles: readonly string[],
   files: readonly string[],
-  scope: readonly string[],
-): readonly Extractor[] => {
-  const inScopeFiles = files.filter((path) => isInReviewScope(path, scope));
-  return extractors.filter((extractor) => extractor.claimsAnyOf(inScopeFiles, files));
-};
+): readonly string[] =>
+  language === undefined
+    ? []
+    : LANGUAGE_FILES.filter(
+        (other) => other !== language && other.claimsAnyOf(inScopeFiles, files),
+      ).map(
+        (other) =>
+          `${command} read only the ${language.name} files. Run ${other.distribution} review for the ${other.name} files.`,
+      );
 
 interface Base {
   readonly name: string;
@@ -93,10 +100,6 @@ interface LanguageDocuments {
   readonly base: GraphDocument;
 }
 
-export interface ReviewSettings {
-  readonly extractors?: readonly Extractor[];
-}
-
 export interface FinishedReview {
   readonly out: string;
   readonly notes: readonly string[];
@@ -104,7 +107,7 @@ export interface FinishedReview {
 
 export const runReview = async (
   invocation: ReviewInvocation,
-  { extractors }: ReviewSettings = {},
+  distribution: Distribution,
 ): Promise<FinishedReview> => {
   const root = repoRootOf(resolve(invocation.repo));
   const reviewBase = baseOf(root, invocation.base);
@@ -124,7 +127,14 @@ export const runReview = async (
     const readCachedBase = (): Promise<GraphDocument> =>
       invocation.cache
         ? throughBaseCache(
-            { repo: commonDirOf(root), checkout: root, commit: base, scope, extractor },
+            {
+              cacheFolder: cacheFolderOf(distribution.command),
+              repo: commonDirOf(root),
+              checkout: root,
+              commit: base,
+              scope,
+              extractor,
+            },
             readBase,
           )
         : readBase();
@@ -136,11 +146,11 @@ export const runReview = async (
     return { branch: settled(branchRead), base: settled(baseRead) };
   };
 
-  const picked = extractorsInScope(
-    extractors ?? extractorsFor(root, invocation),
-    [...workingTreeFilesOf(root), ...filesAtCommit(root, base)],
-    scope,
-  );
+  const files = [...workingTreeFilesOf(root), ...filesAtCommit(root, base)];
+  const inScopeFiles = files.filter((path) => isInReviewScope(path, scope));
+  const picked = distribution
+    .extractorsFor(root, invocation)
+    .filter((extractor) => extractor.claimsAnyOf(inScopeFiles, files));
   const checked = picked.map((extractor) => ({ extractor, skipNote: extractor.skipNote?.() }));
   const read: LanguageDocuments[] = [];
   for (const { extractor } of checked.filter(({ skipNote }) => skipNote === undefined)) {
@@ -165,6 +175,7 @@ export const runReview = async (
   return {
     out,
     notes: [
+      ...otherLanguageLinesOf(distribution, inScopeFiles, files),
       ...checked.flatMap(({ skipNote }) => skipNote ?? []),
       ...checked.flatMap(({ extractor }) => extractor.notes?.() ?? []),
     ],

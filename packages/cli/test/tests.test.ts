@@ -4,6 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { GraphDocument } from '@callmap/graph-document';
 import { effectiveScope } from '@callmap/scope';
 import type { Extractor } from '../src/extractor.ts';
+import { CALLMAP } from '../src/callmap.ts';
 import { runReview } from '../src/review-command.ts';
 import { git, goRepo } from './fixture-repo.ts';
 import { pageDataOf, runCallmap } from './reader-page.ts';
@@ -147,7 +148,7 @@ describe('the scope that the launcher gives each extractor', () => {
         editor: 'vscode',
         tests,
       },
-      { extractors: [recording] },
+      { ...CALLMAP, extractorsFor: () => [recording] },
     );
     return given;
   };
