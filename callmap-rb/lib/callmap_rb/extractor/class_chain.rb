@@ -3,12 +3,13 @@
 require "set"
 require_relative "constants"
 require_relative "macros"
+require_relative "type_flow"
 
 module CallmapRb
   module Extractor
-    # The rules that tie the direct calls of one load unit: a call on `self`, on `super` and on a
-    # constant, through the class chain of the class of the caller (ADR-0027). A method is a hash of
-    # the Ripper script, with the full name of its owner, its file and its id.
+    # The rules that tie the calls of one load unit: a call on `self`, on `super`, on a constant and
+    # on a value whose class the type flow proves, through the class chain of a class (ADR-0027). A
+    # method is a hash of the Ripper script, with the full name of its owner, its file and its id.
     class ClassChain
       # Every body of one full name in a load unit, merged, as Ruby merges them.
       # `macro_names` holds the names that a macro of a body makes, on each side.
@@ -58,6 +59,13 @@ module CallmapRb
         @constants = Constants.new(bodies, names, aliases)
         @chains = {}
         @below = {}
+        @type_flow = TypeFlow.new(self, methods)
+      end
+
+      attr_reader :classes
+
+      def constant_of(reference)
+        @constants.constant_of(reference)
       end
 
       # How one call site of a method of the load unit ties: `[:call, id]`, `[:one_of, ids]`,
@@ -187,6 +195,8 @@ module CallmapRb
         :none
       end
 
+      public :superclass_of, :chain_for, :module?, :classes_below, :find_in
+
       # What `super` in a method of the owner finds: the first def of the name after the owner.
       def super_of(chain, owner, side, name)
         own = chain.index { |ancestor| step?(ancestor, owner, side) }
@@ -233,7 +243,14 @@ module CallmapRb
         initialize == :none ? :library : initialize
       end
 
-      # A call on a value, whose class only the type flow proves, is untyped.
+      # A call on a value whose class the type flow does not prove is untyped.
+      def callee_on_value(receiver, caller, name)
+        class_name = @type_flow.class_name_of(receiver, caller)
+        return "untyped" if class_name.nil?
+
+        overrides_of(find_in(chain_for(class_name, :instance), name), class_name, :instance, name)
+      end
+
       def callee_of(site, caller)
         receiver = site["receiver"]
         name = site["name"]
@@ -241,6 +258,7 @@ module CallmapRb
         when "self" then callee_on_self(caller, name)
         when "super" then callee_on_super(caller, name)
         when "constant" then callee_on_constant(receiver, name)
+        when "made", "variable" then callee_on_value(receiver, caller, name)
         else "untyped"
         end
       end

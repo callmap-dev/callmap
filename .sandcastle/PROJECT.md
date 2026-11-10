@@ -12,7 +12,7 @@ Callmap is an npm workspace with these packages in `packages/`:
 
 `callmap-go/` is the Go module of the distribution `callmap-go`: its review command at the root of the module, the Go extractor in `internal/extractor/`, the vendored modules, and committed copies of the page template and of the test globs. Its tests in `callmap-go/test/` run in `npm test`.
 
-`callmap-rb/` is the gem of the distribution `callmap-rb`: its thin CLI in Ruby, the Ripper script that `extractor-ruby` also runs, and the Ruby rules of the direct calls and the macros in `lib/callmap_rb/extractor/`. The gem build copies the page template of `packages/cli/dist/`, so its tests in `callmap-rb/test/` need `npm run build` first. They run in `npm test`.
+`callmap-rb/` is the gem of the distribution `callmap-rb`: its thin CLI in Ruby, the Ripper script that `extractor-ruby` also runs, and the Ruby rules of the direct calls, the macros and the type flow in `lib/callmap_rb/extractor/`. The gem build copies the page template of `packages/cli/dist/`, so its tests in `callmap-rb/test/` need `npm run build` first. They run in `npm test`.
 
 `callmap-ts/` is the npm workspace of the distribution `callmap-ts`: its thin CLI in `callmap-ts/src/`, its build and its tests. It reuses the review command of `packages/cli/src/` and bundles the TypeScript extractor. ADR-0040 records the folder.
 

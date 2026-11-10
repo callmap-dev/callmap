@@ -29,46 +29,6 @@ const TYPESCRIPT_LINE =
   'callmap-rb read only the Ruby files. Run callmap-ts review for the TypeScript files.';
 const GO_LINE = 'callmap-rb read only the Ruby files. Run callmap-go review for the Go files.';
 
-/**
- * The folders of the extractor fixture whose calls are on `self`, on `super` or on a constant, or
- * call the methods that a macro makes. The other folders also hold calls on a value whose class the
- * type flow proves. callmap-rb does not port the type flow yet.
- */
-const PORTED_RULE_FOLDERS: readonly string[] = [
-  'rules/abstract/',
-  'rules/class-methods/',
-  'rules/concern-one-of/',
-  'rules/concrete-override/',
-  'rules/constant-aliases/',
-  'rules/def-in-scope/',
-  'rules/define-method/',
-  'rules/extend-self/',
-  'rules/function-value/',
-  'rules/library-constants/',
-  'rules/library-include-one-of/',
-  'rules/macros/',
-  'rules/method-missing/',
-  'rules/module-function/',
-  'rules/no-implementation/',
-  'rules/prepend-extend/',
-  'rules/reopened-core/',
-  'rules/self-other/',
-  'rules/send/',
-  'rules/send-missing/',
-  'rules/send-splat/',
-  'rules/several-modules/',
-  'rules/singleton-owner/',
-  'rules/singleton-prepend/',
-  'rules/super-in-module/',
-  'rules/super-several-includers/',
-  'rules/unparsed/',
-  'rules/untyped/',
-  'rules/zeitwerk-aliases/',
-  'billing/',
-  'gems/',
-  'tools/',
-];
-
 let gemHome = '';
 let gemFile = '';
 let noNodePath = '';
@@ -150,11 +110,6 @@ const extractorFixtureRepo = (): string => {
   return repo;
 };
 
-const ofPortedRuleFolders = <Site extends { readonly caller: string }>(
-  sites: readonly Site[],
-): readonly Site[] =>
-  sites.filter(({ caller }) => PORTED_RULE_FOLDERS.some((folder) => caller.startsWith(folder)));
-
 const withoutChecker = ({ checker: _checker, ...document }: GraphDocument) => document;
 
 describe('callmap-rb review, from a gem install with no Node on the PATH', () => {
@@ -170,19 +125,20 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
     expect(input.branch[0]?.checker.name).toBe('Callmap Ruby rules');
   });
 
-  it('gives the graph documents of the extractor of today for the direct calls, the macros, the one-of groups and the open-end reasons on its fixtures', () => {
+  it('gives the graph documents of the extractor of today on every folder of its fixture, with the type flow', () => {
     const repo = extractorFixtureRepo();
     const { finished, out } = runCallmapRb(repo);
     expect(finished.status, finished.stderr).toBe(0);
     const [branch] = reviewInputOf(out).branch;
     const today = readRuby({ repo, scope: effectiveScope([], false) }).document;
     if (branch === undefined) throw new Error('the review input holds no branch document');
-    const { calls, openEnds, ...rest } = withoutChecker(branch);
-    const { calls: todayCalls, openEnds: todayOpenEnds, ...todayRest } = withoutChecker(today);
-    expect(rest).toEqual(todayRest);
-    expect(ofPortedRuleFolders(calls)).toEqual(ofPortedRuleFolders(todayCalls));
-    expect(ofPortedRuleFolders(openEnds)).toEqual(ofPortedRuleFolders(todayOpenEnds));
-    expect(ofPortedRuleFolders(todayCalls).length).toBeGreaterThan(30);
+    expect(withoutChecker(branch)).toEqual(withoutChecker(today));
+    const typeFlowCallers = today.calls.filter(({ caller }) =>
+      ['rules/finders/', 'rules/local-variables/', 'rules/shared-instance-variables/'].some(
+        (folder) => caller.startsWith(folder),
+      ),
+    );
+    expect(typeFlowCallers.length).toBeGreaterThan(0);
   });
 
   it('prints one line for each file that Ripper cannot parse', () => {
@@ -260,7 +216,7 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
       { encoding: 'utf8', env: { ...process.env, GEM_HOME: gemHome, GEM_PATH: gemHome } },
     );
     expect(finished.stderr).toBe('');
-    expect(finished.stdout).toBe('ok ruby/review\n');
+    expect(finished.stdout).toBe('ok ruby/review\nok ruby/type-flow\n');
     expect(finished.status).toBe(0);
   });
 });
@@ -312,5 +268,40 @@ describe('the CI of callmap-rb', () => {
     for (const [index, step] of steps.entries()) expect(positions[index], step).toBeGreaterThan(-1);
     expect(positions).toEqual(positions.toSorted((first, second) => first - second));
     expect(job).toContain('GEM_HOME: ${{ runner.temp }}/gem-home');
+  });
+});
+
+describe('the release of callmap-rb', () => {
+  const release = readFileSync(
+    fileURLToPath(new URL('../../.github/workflows/release.yml', import.meta.url)),
+    'utf8',
+  );
+  const start = release.indexOf('\n  publish-callmap-rb:\n');
+  const end = release.slice(start + 1).search(/\n {2}[a-z-]+:\n/);
+  const job = end === -1 ? release.slice(start) : release.slice(start, start + 1 + end);
+
+  it('runs on a callmap-rb/v* tag, and only that job runs on it', () => {
+    expect(release).toContain("      - 'callmap-rb/v*'\n");
+    expect(start).toBeGreaterThan(-1);
+    expect(job).toContain("if: startsWith(github.ref_name, 'callmap-rb/v')");
+    expect(release.match(/startsWith\(github\.ref_name, 'callmap-rb\/v'\)/g)).toHaveLength(1);
+  });
+
+  it('checks the tag against the version of the gem, and builds, installs and runs the conformance suite before it publishes the gem with a trusted publisher', () => {
+    const steps = [
+      `- run: test "$GITHUB_REF_NAME" = "callmap-rb/v$(ruby -r ./callmap-rb/lib/callmap_rb/version -e 'print CallmapRb::VERSION')"`,
+      '- run: npm run build --workspace @callmap/cli',
+      '- run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"',
+      '- run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"',
+      '- run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"',
+      '- run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes',
+      '- uses: rubygems/configure-rubygems-credentials@v1.0.0',
+      '- run: gem push "$RUNNER_TEMP/callmap-rb.gem"',
+    ];
+    const positions = steps.map((step) => job.indexOf(step));
+    for (const [index, step] of steps.entries()) expect(positions[index], step).toBeGreaterThan(-1);
+    expect(positions).toEqual(positions.toSorted((first, second) => first - second));
+    expect(job).not.toContain('GEM_HOST_API_KEY');
+    expect(release).toContain('id-token: write');
   });
 });

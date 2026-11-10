@@ -1,0 +1,221 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "app/models/receipt.rb#Receipt#initialize",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 3
+        },
+        {
+          "callee": "app/models/receipt.rb#Receipt#text",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 4
+        }
+      ],
+      "checker": {
+        "name": "Callmap Ruby rules",
+        "version": "<checker version>"
+      },
+      "files": [
+        "app/models/receipt.rb",
+        "app/services/checkout.rb"
+      ],
+      "functions": [
+        {
+          "file": "app/models/receipt.rb",
+          "firstLine": 2,
+          "id": "app/models/receipt.rb#Receipt#initialize",
+          "lastLine": 4,
+          "name": "Receipt#initialize",
+          "sourceHash": "92bf4855b5d051f3719fcea7d0fe22536efb3c5731fed828f6dc605019cde87b"
+        },
+        {
+          "file": "app/models/receipt.rb",
+          "firstLine": 6,
+          "id": "app/models/receipt.rb#Receipt#text",
+          "lastLine": 8,
+          "name": "Receipt#text",
+          "sourceHash": "52f0311a2471a1c204381bf2b6d079a58da3591b84286bf21e4e69a9ac4c2d8c"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 2,
+          "id": "app/services/checkout.rb#Checkout#run",
+          "lastLine": 5,
+          "name": "Checkout#run",
+          "sourceHash": "fd204aface4e6d1dd95df6cd41acfceaa88d46fa49e4704f2014c1570412442d"
+        }
+      ],
+      "language": "ruby",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "app/models/receipt.rb#Receipt#initialize",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 7
+        },
+        {
+          "callee": "app/models/order.rb#Order#total",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 7
+        },
+        {
+          "callee": "app/models/receipt.rb#Receipt#text",
+          "caller": "app/services/checkout.rb#Checkout#run",
+          "line": 8
+        },
+        {
+          "callee": "app/services/checkout.rb#Checkout#load_order",
+          "caller": "app/services/checkout.rb#Checkout#guess",
+          "line": 13
+        },
+        {
+          "callee": "app/models/order.rb#Order#label",
+          "caller": "app/services/checkout.rb#Checkout#made",
+          "line": 22
+        }
+      ],
+      "checker": {
+        "name": "Callmap Ruby rules",
+        "version": "<checker version>"
+      },
+      "files": [
+        "app/models/order.rb",
+        "app/models/receipt.rb",
+        "app/services/checkout.rb"
+      ],
+      "functions": [
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 2,
+          "id": "app/models/order.rb#Order#total",
+          "lastLine": 4,
+          "name": "Order#total",
+          "sourceHash": "05fdf48d7dab784460c8ee1d920b5354e926ad332678a6dee42c0d1e66fe18c8"
+        },
+        {
+          "file": "app/models/order.rb",
+          "firstLine": 6,
+          "id": "app/models/order.rb#Order#label",
+          "lastLine": 8,
+          "name": "Order#label",
+          "sourceHash": "bbefa2bacb04a8f6e6b9482cf8420bb69835192a942df061e3f71e5f494d6dfe"
+        },
+        {
+          "file": "app/models/receipt.rb",
+          "firstLine": 2,
+          "id": "app/models/receipt.rb#Receipt#initialize",
+          "lastLine": 4,
+          "name": "Receipt#initialize",
+          "sourceHash": "92bf4855b5d051f3719fcea7d0fe22536efb3c5731fed828f6dc605019cde87b"
+        },
+        {
+          "file": "app/models/receipt.rb",
+          "firstLine": 6,
+          "id": "app/models/receipt.rb#Receipt#text",
+          "lastLine": 8,
+          "name": "Receipt#text",
+          "sourceHash": "52f0311a2471a1c204381bf2b6d079a58da3591b84286bf21e4e69a9ac4c2d8c"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 2,
+          "id": "app/services/checkout.rb#Checkout#initialize",
+          "lastLine": 4,
+          "name": "Checkout#initialize",
+          "sourceHash": "502c6c86d6d20e7132059cbaf4831a57962845140844f78ec57ab9e94c25dd0a"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 6,
+          "id": "app/services/checkout.rb#Checkout#run",
+          "lastLine": 9,
+          "name": "Checkout#run",
+          "sourceHash": "b936e049a0a7e14fa6ab263d1d040d1df3338fef4531934060ed34eb8891ba48"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 11,
+          "id": "app/services/checkout.rb#Checkout#guess",
+          "lastLine": 15,
+          "name": "Checkout#guess",
+          "sourceHash": "04d7246e627033f34c1f4c15eb184a33c467285f5e3c937bc3423f28f53b4e4d"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 17,
+          "id": "app/services/checkout.rb#Checkout#load_order",
+          "lastLine": 19,
+          "name": "Checkout#load_order",
+          "sourceHash": "aa64115e8a7b70d8fa2a878ec182ae404a5f90142b460d646f8c1829216b1193"
+        },
+        {
+          "file": "app/services/checkout.rb",
+          "firstLine": 21,
+          "id": "app/services/checkout.rb#Checkout#made",
+          "lastLine": 23,
+          "name": "Checkout#made",
+          "sourceHash": "b9efb591f701465d010f8983e3f6841d4e61ca0c8702b085a1e80df071f871ac"
+        }
+      ],
+      "language": "ruby",
+      "openEnds": [
+        {
+          "caller": "app/services/checkout.rb#Checkout#guess",
+          "expression": "order.total",
+          "line": 14,
+          "reason": "untyped"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "app/services/checkout.rb": "class Checkout\n  def run\n    receipt = Receipt.new(1)\n    receipt.text\n  end\nend\n"
+    },
+    "branch": {
+      "app/models/order.rb": "class Order < ActiveRecord::Base\n  def total\n    1\n  end\n\n  def label\n    \"order\".upcase\n  end\nend\n",
+      "app/models/receipt.rb": "class Receipt\n  def initialize(total)\n    @total = total\n  end\n\n  def text\n    @total.to_s\n  end\nend\n",
+      "app/services/checkout.rb": "class Checkout\n  def initialize\n    @order = Order.find(1)\n  end\n\n  def run\n    receipt = Receipt.new(@order.total)\n    receipt.text\n  end\n\n  def guess\n    order = Order.find_by(id: 1)\n    order = load_order if order.nil?\n    order.total\n  end\n\n  def load_order\n    Order.new\n  end\n\n  def made\n    Order.new.label\n  end\nend\n"
+    }
+  }
+}

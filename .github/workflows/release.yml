@@ -1,13 +1,15 @@
 name: release
 
 # A plain v* tag releases @callmap/cli. A tag with the name of a distribution, such as
-# callmap-ts/v0.1.0 or callmap-go/v0.1.0, releases only that distribution, as ADR-0040 records.
+# callmap-ts/v0.1.0, callmap-go/v0.1.0 or callmap-rb/v0.1.0, releases only that distribution, as
+# ADR-0040 records.
 on:
   push:
     tags:
       - 'v*'
       - 'callmap-ts/v*'
       - 'callmap-go/v*'
+      - 'callmap-rb/v*'
 
 permissions:
   contents: write
@@ -130,3 +132,48 @@ jobs:
       # The tag releases the module. This request makes the Go module proxy fetch it, so that
       # go install github.com/callmap-dev/callmap/callmap-go@latest finds it.
       - run: curl --fail --silent --show-error "https://proxy.golang.org/github.com/callmap-dev/callmap/callmap-go/@v/${GITHUB_REF_NAME#callmap-go/}.info"
+
+  publish-callmap-rb:
+    name: publish callmap-rb
+    if: startsWith(github.ref_name, 'callmap-rb/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
+      - run: test "$GITHUB_REF_NAME" = "callmap-rb/v$(ruby -r ./callmap-rb/lib/callmap_rb/version -e 'print CallmapRb::VERSION')"
+
+      - run: npm ci
+
+      # The gem build copies the page template of the build of the tagged commit.
+      - run: npm run build --workspace @callmap/cli
+
+      - run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"
+        working-directory: callmap-rb
+
+      - run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"
+
+      # The gem that the job publishes reviews each Ruby fixture repo of the tagged commit first.
+      - run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"
+        env:
+          GEM_HOME: ${{ runner.temp }}/gem-home
+          GEM_PATH: ${{ runner.temp }}/gem-home
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The trusted publisher of callmap-rb on rubygems.org names this repo and this workflow. The
+      # action exchanges the OIDC token of the job for a short-lived API key.
+      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+
+      - run: gem push "$RUNNER_TEMP/callmap-rb.gem"
