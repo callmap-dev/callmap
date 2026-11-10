@@ -92,12 +92,28 @@ jobs:
         if: github.event.pull_request.state == 'open'
         run: cd "$RUNNER_TEMP/base-tooling/.sandcastle" && npm ci
 
+      # pull_request_target runs this file from master, but the checkout holds the
+      # PR, which can use the old layout or the callmap-go/ layout of ADR-0040.
+      - name: Find the Go version
+        if: github.event.pull_request.state == 'open'
+        id: go_version
+        run: |
+          for mod in callmap-go/go.mod packages/extractor-go/go/go.mod; do
+            if [ -f "$mod" ]; then
+              echo "version=$(awk '$1 == "go" {print $2}' "$mod")" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "No go.mod in callmap-go/ or packages/extractor-go/go/" >&2
+          exit 1
+
       - name: Setup Go
         if: github.event.pull_request.state == 'open'
         uses: actions/setup-go@v5
         with:
           go-version-file: packages/extractor-go/go/go.mod
           cache: false
+          go-version: ${{ steps.go_version.outputs.version }}
 
       - name: Setup Ruby
         if: github.event.pull_request.state == 'open'
