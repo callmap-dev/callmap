@@ -65,6 +65,7 @@ describe('the conformance suite', () => {
     expect(finished.stdout.split('\n')).toEqual([
       'ok go/review',
       'ok ruby/review',
+      'ok ruby/type-flow',
       'ok typescript/levels',
       'ok typescript/review',
       '',
@@ -156,6 +157,7 @@ describe('the expected files', () => {
     expect(expectedFiles).toEqual([
       'go/review/expected-review-input.json',
       'ruby/review/expected-review-input.json',
+      'ruby/type-flow/expected-review-input.json',
       'typescript/levels/expected-review-input.json',
       'typescript/review/expected-review-input.json',
     ]);

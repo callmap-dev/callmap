@@ -1,8 +1,15 @@
 name: release
 
+# A plain v* tag releases @callmap/cli. A tag with the name of a distribution, such as
+# callmap-ts/v0.1.0, callmap-go/v0.1.0 or callmap-rb/v0.1.0, releases only that distribution, as
+# ADR-0040 records.
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
+      - 'callmap-ts/v*'
+      - 'callmap-go/v*'
+      - 'callmap-rb/v*'
 
 permissions:
   contents: write
@@ -11,6 +18,7 @@ permissions:
 jobs:
   publish:
     name: publish
+    if: startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -24,8 +32,8 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: packages/extractor-go/go/go.mod
-          cache-dependency-path: packages/extractor-go/go/go.mod
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -48,3 +56,124 @@ jobs:
 
       # npm logs why the OIDC token exchange fails only at the verbose level.
       - run: npm publish --workspace @callmap/cli --loglevel verbose
+
+  publish-callmap-ts:
+    name: publish callmap-ts
+    if: startsWith(github.ref_name, 'callmap-ts/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      # npm trusted publishing with the OIDC token of the job needs npm 11.5.1 or later.
+      - run: npm install --global npm@^11.5.1
+
+      - run: npm ci
+
+      - run: test "$GITHUB_REF_NAME" = "callmap-ts/v$(node -p "require('./callmap-ts/package.json').version")"
+
+      - run: npm run conformance -- --language typescript node callmap-ts/src/cli.ts
+
+      - run: npm run test:pack -- callmap-ts
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The trusted publisher of callmap-ts on npmjs.com names this repo and this workflow.
+      # npm logs why the OIDC token exchange fails only at the verbose level.
+      - run: npm publish --workspace callmap-ts --loglevel verbose
+
+  release-callmap-go:
+    name: release callmap-go
+    if: startsWith(github.ref_name, 'callmap-go/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
+
+      - run: npm ci
+
+      # go install builds from the files of the tag, so the committed copy of the page template must
+      # equal the page template that the tagged commit builds.
+      - run: npm run build --workspace @callmap/cli
+
+      - run: cmp packages/cli/dist/page-template.html callmap-go/page-template.html
+
+      - run: cmp packages/scope/test-globs.json callmap-go/internal/scope/test-globs.json
+
+      - run: go install .
+        working-directory: callmap-go
+        env:
+          GOPROXY: 'off'
+
+      - run: npm run conformance -- --language go "$(go env GOPATH)/bin/callmap-go"
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The tag releases the module. This request makes the Go module proxy fetch it, so that
+      # go install github.com/callmap-dev/callmap/callmap-go@latest finds it.
+      - run: curl --fail --silent --show-error "https://proxy.golang.org/github.com/callmap-dev/callmap/callmap-go/@v/${GITHUB_REF_NAME#callmap-go/}.info"
+
+  publish-callmap-rb:
+    name: publish callmap-rb
+    if: startsWith(github.ref_name, 'callmap-rb/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
+      - run: test "$GITHUB_REF_NAME" = "callmap-rb/v$(ruby -r ./callmap-rb/lib/callmap_rb/version -e 'print CallmapRb::VERSION')"
+
+      - run: npm ci
+
+      # The gem build copies the page template of the build of the tagged commit.
+      - run: npm run build --workspace @callmap/cli
+
+      - run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"
+        working-directory: callmap-rb
+
+      - run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"
+
+      # The gem that the job publishes reviews each Ruby fixture repo of the tagged commit first.
+      - run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"
+        env:
+          GEM_HOME: ${{ runner.temp }}/gem-home
+          GEM_PATH: ${{ runner.temp }}/gem-home
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The trusted publisher of callmap-rb on rubygems.org names this repo and this workflow. The
+      # action exchanges the OIDC token of the job for a short-lived API key.
+      - uses: rubygems/configure-rubygems-credentials@v1.0.0
+
+      - run: gem push "$RUNNER_TEMP/callmap-rb.gem"

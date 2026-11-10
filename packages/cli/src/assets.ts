@@ -1,7 +1,10 @@
-export interface Assets {
+export interface TypescriptAssets {
   readonly typescriptExtractor: string;
   readonly pageTemplate: () => Promise<string>;
   readonly typescriptExtractorVersion: () => string;
+}
+
+export interface Assets extends TypescriptAssets {
   readonly goExtractor: string;
   readonly goExtractorVersion: (goVersion: string) => string;
   readonly goExtractorEnv: (goVersion: string) => Readonly<Record<string, string>>;

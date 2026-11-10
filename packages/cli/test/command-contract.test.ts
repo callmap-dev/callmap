@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { readArguments, USAGE } from '../src/arguments.ts';
+import { readArguments, usageOf } from '../src/arguments.ts';
 import { runCallmap } from './reader-page.ts';
 import { tempDir } from '../../../test/temp-dir.ts';
 
@@ -11,7 +11,7 @@ const CONTRACT = readFileSync(
 
 const messageOf = (args: readonly string[]): string => {
   try {
-    readArguments(args, '/repo');
+    readArguments(args, '/repo', 'callmap');
   } catch (error) {
     if (error instanceof Error) return error.message;
   }
@@ -27,7 +27,7 @@ describe('the command contract', () => {
   });
 
   it('names every flag of the usage line that the CLI prints', () => {
-    const flags = USAGE.match(/--[a-z-]+/g) ?? [];
+    const flags = usageOf('callmap').match(/--[a-z-]+/g) ?? [];
     expect(flags.length).toBeGreaterThan(0);
     for (const flag of flags) expect(CONTRACT, flag).toContain(`\`${flag}`);
   });

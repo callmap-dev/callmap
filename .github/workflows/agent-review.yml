@@ -100,7 +100,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: packages/extractor-go/go/go.mod
+          go-version-file: callmap-go/go.mod
           cache: false
           go-version: ${{ steps.go_version.outputs.version }}
 

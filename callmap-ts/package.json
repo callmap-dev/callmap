@@ -1,0 +1,39 @@
+{
+  "name": "callmap-ts",
+  "version": "0.1.0",
+  "description": "Callmap for TypeScript and JavaScript: a call graph reader for an engineer who still reads code.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/callmap-dev/callmap.git",
+    "directory": "callmap-ts"
+  },
+  "type": "module",
+  "bin": {
+    "callmap-ts": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node build.ts",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "@callmap/cli": "*",
+    "@callmap/extractor-typescript": "*",
+    "@callmap/review-input": "*",
+    "rolldown": "^1.2.14"
+  }
+}

@@ -114,7 +114,7 @@ describe('the release job of a v* tag', () => {
       readonly scripts: Readonly<Record<string, string>>;
     };
     expect(scripts['release-assets']).toBe('node scripts/release-assets.ts');
-    expect(workflow).toContain("tags: ['v*']");
+    expect(workflow).toContain("      - 'v*'\n");
     expect(stepAt('npm ci')).toBeLessThan(
       stepAt(
         'npm run release-assets -- "$GITHUB_REF_NAME" release-assets node packages/cli/src/cli.ts',

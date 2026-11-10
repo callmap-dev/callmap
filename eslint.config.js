@@ -14,6 +14,7 @@ export default tseslint.config(
       'packages/*/fixture/**',
       'packages/*/fixture-*/**',
       'packages/*/dist/**',
+      'callmap-ts/dist/**',
       '.claude/**',
       '.sandcastle/**',
       'docs/**',

@@ -1,56 +1,21 @@
-import {
-  chmodSync,
-  copyFileSync,
-  cpSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { join } from 'node:path';
-import { build } from 'rolldown';
+import { copyFileSync, cpSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { assets } from './src/assets.ts';
 import {
-  extractorSourceFiles,
   GO_PROGRAM,
   goSourceFiles,
-  isGoTestFile,
+  isGoExtractorSource,
   RUBY_SCRIPTS,
   rubySourceFiles,
 } from './src/clone-assets.ts';
 import { sha256OfFiles } from './src/file-hash.ts';
-import { packageManifestAt } from './src/package-manifest.ts';
-import { pageTemplateBuild } from './src/page-build.ts';
-import { PAGE_TEMPLATE_FILE } from './src/page-template.ts';
+import { buildTypescriptPackage } from './src/package-build.ts';
+import { noticesOf, npmNoticesOf } from './src/third-party-notices.ts';
+import type { Notice } from './src/third-party-notices.ts';
 
 const PACKAGE = import.meta.dirname;
 const REPO_ROOT = join(PACKAGE, '..', '..');
 const DIST = join(PACKAGE, 'dist');
-const CLONE_ASSETS = join(PACKAGE, 'src', 'clone-assets.ts');
-const PACKAGE_ASSETS = join(PACKAGE, 'src', 'package-assets.ts');
-
-const PACKAGE_FOLDER = /^(.*[\\/]node_modules[\\/](?:@[^\\/]+[\\/])?[^\\/]+)[\\/]/;
-const LICENSE_FILE = /^(licen[cs]e|copying)(\..*)?$/i;
-
-interface Notice {
-  readonly name: string;
-  readonly version: string;
-  readonly license: string;
-  readonly text: string;
-}
-
-const noticeOf = (folder: string): Notice => {
-  const { name, version, license } = packageManifestAt(join(folder, 'package.json'));
-  const file = readdirSync(folder).find((entry) => LICENSE_FILE.test(entry));
-  if (typeof license !== 'string' || file === undefined)
-    throw new Error(`${name} ${version} names no license or has no license file`);
-  return { name, version, license, text: readFileSync(join(folder, file), 'utf8').trim() };
-};
-
-const npmNoticesOf = (moduleIds: readonly string[]): readonly Notice[] => {
-  const folders = new Set(moduleIds.flatMap((id) => PACKAGE_FOLDER.exec(id)?.slice(1, 2) ?? []));
-  return [...folders].map(noticeOf);
-};
 
 const GO_MODULE_LICENSES: Readonly<Record<string, string>> = {
   'golang.org/x/mod': 'BSD-3-Clause',
@@ -70,62 +35,24 @@ const goNoticesOf = (program: string): readonly Notice[] =>
     },
   );
 
-const noticesOf = (bundled: readonly Notice[]): string => {
-  const notices = new Map(bundled.map((notice) => [`${notice.name} ${notice.version}`, notice]));
-  return [
-    'Callmap bundles the third-party packages below. Each one keeps its own license.\n',
-    ...[...notices.entries()]
-      .sort(([first], [second]) => first.localeCompare(second))
-      .map(([title, { license, text }]) => `${title}\nLicense: ${license}\n\n${text}\n`),
-  ].join(`\n${'-'.repeat(72)}\n\n`);
-};
-
-rmSync(DIST, { recursive: true, force: true });
-
-const { output } = await build({
-  input: {
-    cli: join(PACKAGE, 'src', 'cli.ts'),
-    'extract-typescript': assets.typescriptExtractor,
-    'extract-go': assets.goExtractor,
-    'extract-ruby': assets.rubyExtractor,
-  },
-  platform: 'node',
-  external: ['typescript'],
-  logLevel: 'warn',
-  plugins: [
-    {
-      name: 'package-assets',
-      resolveId: async function (source, importer, options) {
-        const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
-        return resolved?.id === CLONE_ASSETS ? PACKAGE_ASSETS : null;
-      },
-    },
-  ],
-  output: { dir: DIST, format: 'esm' },
+const moduleIds = await buildTypescriptPackage({
+  dist: DIST,
+  cli: join(PACKAGE, 'src', 'cli.ts'),
+  packageAssets: join(PACKAGE, 'src', 'package-assets.ts'),
+  otherExtractors: { 'extract-go': assets.goExtractor, 'extract-ruby': assets.rubyExtractor },
 });
 
-// npm makes a bin executable only when it links it, and a linked clone runs each new build.
-chmodSync(join(DIST, 'cli.js'), 0o755);
-
-const page = await pageTemplateBuild();
-writeFileSync(join(DIST, PAGE_TEMPLATE_FILE), page.template);
-writeFileSync(join(DIST, 'extractor-source.sha256'), sha256OfFiles(extractorSourceFiles()));
 cpSync(GO_PROGRAM, join(DIST, 'go'), {
   recursive: true,
-  filter: (source) => !isGoTestFile(source),
+  filter: (source) =>
+    statSync(source).isDirectory() || isGoExtractorSource(relative(GO_PROGRAM, source)),
 });
 writeFileSync(join(DIST, 'go-extractor-source.sha256'), sha256OfFiles(goSourceFiles()));
 cpSync(RUBY_SCRIPTS, join(DIST, 'ruby'), { recursive: true });
 writeFileSync(join(DIST, 'ruby-extractor-source.sha256'), sha256OfFiles(rubySourceFiles()));
 writeFileSync(
   join(DIST, 'THIRD-PARTY-NOTICES.txt'),
-  noticesOf([
-    ...npmNoticesOf([
-      ...output.flatMap((chunk) => (chunk.type === 'chunk' ? chunk.moduleIds : [])),
-      ...page.moduleIds,
-    ]),
-    ...goNoticesOf(GO_PROGRAM),
-  ]),
+  noticesOf([...npmNoticesOf(moduleIds), ...goNoticesOf(GO_PROGRAM)]),
 );
 
 for (const file of ['README.md', 'LICENSE'])

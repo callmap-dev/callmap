@@ -15,7 +15,6 @@ import { join } from 'node:path';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
 import { inScope, isSkippedDirectory } from '@callmap/scope';
-import { callmapCacheFolder } from './cache-folder.ts';
 import { sha256OfFiles } from './file-hash.ts';
 import type { NamedFile } from './file-hash.ts';
 
@@ -29,6 +28,7 @@ export interface CachedExtractor {
 }
 
 export interface BaseKey {
+  readonly cacheFolder: string;
   readonly repo: string;
   readonly checkout: string;
   readonly commit: string;
@@ -119,7 +119,7 @@ export const throughBaseCache = async (
   key: BaseKey,
   read: () => Promise<GraphDocument>,
 ): Promise<GraphDocument> => {
-  const folder = join(callmapCacheFolder(), sha256(key.repo));
+  const folder = join(key.cacheFolder, sha256(key.repo));
   const entry = join(folder, `${entryNameOf(key)}.json`);
   const cached = cachedAt(entry);
   if (cached !== undefined) return cached;

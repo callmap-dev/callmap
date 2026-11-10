@@ -29,10 +29,13 @@ export interface GoExtractOptions {
 }
 
 /**
- * A host that carries the program elsewhere, such as the npm package with the program in its dist
- * folder, names it in CALLMAP_GO_EXTRACTOR_SOURCE.
+ * The Go module of callmap-go holds the program. A host that carries the module elsewhere, such as
+ * the npm package with the module in its dist folder, names it in CALLMAP_GO_EXTRACTOR_SOURCE.
  */
-const PROGRAM = process.env['CALLMAP_GO_EXTRACTOR_SOURCE'] ?? join(import.meta.dirname, '../go');
+const PROGRAM =
+  process.env['CALLMAP_GO_EXTRACTOR_SOURCE'] ?? join(import.meta.dirname, '../../../callmap-go');
+
+const EXTRACTOR_PACKAGE = './cmd/callmap-extract-go';
 
 let built: string | undefined;
 let temporary = false;
@@ -51,7 +54,7 @@ const isTrimpath = (flag: string): boolean => {
   return name === '-trimpath' || name === 'trimpath';
 };
 
-/** The same filter as `keptGoFlags` in go/load.go, so the build and the load agree. */
+/** The same filter as `KeptGoFlags` in callmap-go/internal/extractor/load.go, so the build and the load agree. */
 const keptGoFlags = (flags: string): string =>
   flags
     .split(/\s+/)
@@ -92,7 +95,7 @@ const buildFailureOf = (finished: SpawnSyncReturns<string>): string | undefined 
 
 const buildGoExtractor = (binary: string): void => {
   const failure = buildFailureOf(
-    spawnSync('go', ['build', '-o', binary, '.'], {
+    spawnSync('go', ['build', '-o', binary, EXTRACTOR_PACKAGE], {
       cwd: PROGRAM,
       encoding: 'utf8',
       env: buildEnv(),

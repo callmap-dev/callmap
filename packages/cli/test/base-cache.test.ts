@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GraphDocument } from '@callmap/graph-document';
 import { throughBaseCache } from '../src/base-cache.ts';
+import { cacheFolderOf } from '../src/cache-folder.ts';
 import type { CachedExtractor } from '../src/base-cache.ts';
 import { goExtractor } from '../src/go-extractor.ts';
 import { featureBranchRepo } from './fixture-repo.ts';
@@ -227,10 +228,20 @@ describe('the base cache with one entry for each language', () => {
     const read: string[] = [];
     const documents = await Promise.all(
       extractors.map((extractor) =>
-        throughBaseCache({ repo: checkout, checkout, commit: 'base', scope: [], extractor }, () => {
-          read.push(extractor.language);
-          return Promise.resolve(documentOf(extractor.language, `read-${read.length}`));
-        }),
+        throughBaseCache(
+          {
+            cacheFolder: cacheFolderOf('callmap'),
+            repo: checkout,
+            checkout,
+            commit: 'base',
+            scope: [],
+            extractor,
+          },
+          () => {
+            read.push(extractor.language);
+            return Promise.resolve(documentOf(extractor.language, `read-${read.length}`));
+          },
+        ),
       ),
     );
     return { read, documents };

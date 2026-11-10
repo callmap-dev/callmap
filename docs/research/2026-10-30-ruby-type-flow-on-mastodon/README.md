@@ -82,6 +82,17 @@ The open ends fell by 319, and each of them was a `missing-module` open end. The
 
 The commits `8633d36`, `dbffec1` and `787052f` each have different rules, but each one prints the checker `Callmap Ruby rules 8`. So each row names its commit. The commit after `787052f` raises the version to 9 for its rules, and its run gives the same counts as `787052f`.
 
+## The run of callmap-rb
+
+Ticket 39 of spec 24 ports the Ruby rules, with the type flow, from TypeScript to Ruby in the gem `callmap-rb`. ADR-0036 asks that the rate on the same commit of mastodon stays at 47.6%. On 2026-11-10, the Ruby rules of `callmap-rb` 0.1.0 and `node packages/extractor-ruby/src/cli.ts` read the same commit of mastodon, with the default scope and no tests, and with ruby 3.4.
+
+| Extractor                    | Files | Functions | Resolved calls | Open ends | Rate  |
+| ---------------------------- | ----- | --------- | -------------- | --------- | ----- |
+| `@callmap/extractor-ruby`    | 2,078 | 8,400     | 8,614          | 9,499     | 47.6% |
+| The Ruby rules of callmap-rb | 2,078 | 8,400     | 8,614          | 9,499     | 47.6% |
+
+The 2 graph documents have the same files, functions, calls and open ends. Only the checker differs.
+
 ## The steps to run the probe again
 
 `probe.sh` beside this record runs the extractor of a callmap folder on a Ruby repo, once for each variant. It writes `variant-1.json`, `variant-2.json` and `variant-3.json` to the out folder. Then it prints one line for each variant with the counts above. It needs `node` 22.18 or later, `ruby`, `git` and `tar`. It runs no code of the Ruby repo, and it loads no gem.

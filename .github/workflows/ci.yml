@@ -23,8 +23,8 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: packages/extractor-go/go/go.mod
-          cache-dependency-path: packages/extractor-go/go/go.mod
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -40,6 +40,70 @@ jobs:
 
       - run: npm run conformance -- node packages/cli/src/cli.ts
 
+      - run: npm run conformance -- --language typescript node callmap-ts/src/cli.ts
+
+  callmap-go:
+    name: callmap-go
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
+
+      - run: npm ci
+
+      # go install builds from the files of the module only, so callmap-go embeds a copy of the test globs.
+      - run: cmp packages/scope/test-globs.json callmap-go/internal/scope/test-globs.json
+
+      # The build reads the vendored modules, so it needs no network.
+      - run: go install .
+        working-directory: callmap-go
+        env:
+          GOPROXY: 'off'
+
+      - run: npm run conformance -- --language go "$(go env GOPATH)/bin/callmap-go"
+
+  callmap-rb:
+    name: callmap-rb
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
+      - run: npm ci
+
+      # The gem build copies the page template of the build of the same commit.
+      - run: npm run build --workspace @callmap/cli
+
+      - run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"
+        working-directory: callmap-rb
+
+      - run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"
+
+      # The installed command reviews each Ruby fixture repo of the same commit.
+      - run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"
+        env:
+          GEM_HOME: ${{ runner.temp }}/gem-home
+          GEM_PATH: ${{ runner.temp }}/gem-home
+
   packed-cli:
     name: packed cli
     runs-on: ubuntu-latest
@@ -54,9 +118,10 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: packages/extractor-go/go/go.mod
-          cache-dependency-path: packages/extractor-go/go/go.mod
+          go-version-file: callmap-go/go.mod
+          cache-dependency-path: callmap-go/go.mod
 
       - run: npm ci
 
+      # It packs @callmap/cli and callmap-ts, and runs the review command of each install.
       - run: npm run test:pack

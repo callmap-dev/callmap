@@ -5,6 +5,7 @@ import { assets } from './assets.ts';
 import { notingExtractionOf, once } from './extractor.ts';
 import type { Extractor } from './extractor.ts';
 import type { BaseWorktree } from './git.ts';
+import { GO_FILES } from './languages.ts';
 
 const goVersionOnPath = (): string | undefined => {
   const finished = spawnSync('go', ['version'], {
@@ -40,7 +41,7 @@ const isTrimpath = (flag: string): boolean => {
   return name === '-trimpath' || name === 'trimpath';
 };
 
-/** The flags that `keptGoFlags` in packages/extractor-go/go/load.go keeps, so the two agree. */
+/** The flags that `KeptGoFlags` in callmap-go/internal/extractor/load.go keeps, so the two agree. */
 const keptGoFlags = (flags: string): string =>
   flags
     .split(/\s+/)
@@ -63,28 +64,6 @@ const goBuildSettings = (): readonly string[] => {
     const value = values[index] ?? '';
     return `${setting}=${setting === 'GOFLAGS' ? keptGoFlags(value) : value}`;
   });
-};
-
-const directoryOf = (path: string): string => path.split('/').slice(0, -1).join('/');
-
-const isGoMod = (path: string): boolean => path === 'go.mod' || path.endsWith('/go.mod');
-
-/** The directories that `skipped` in packages/extractor-go/go/walk.go names, so the two agree. */
-const goSkipsDirectory = (name: string): boolean =>
-  name === 'vendor' ||
-  name === 'testdata' ||
-  name === 'node_modules' ||
-  name.startsWith('.') ||
-  name.startsWith('_');
-
-const goWalkReads = (path: string, moduleDirs: ReadonlySet<string>): boolean => {
-  if (!path.endsWith('.go')) return false;
-  const dirs = path.split('/').slice(0, -1);
-  if (dirs.some(goSkipsDirectory)) return false;
-  return (
-    dirs.some((_, index) => moduleDirs.has(dirs.slice(0, index + 1).join('/'))) ||
-    moduleDirs.has('')
-  );
 };
 
 /**
@@ -159,10 +138,7 @@ export const goExtractor = (): Extractor => {
       return buildSettings();
     },
     version: () => assets.goExtractorVersion(goVersion() ?? ''),
-    claimsAnyOf: (inScope, files) => {
-      const moduleDirs = new Set(files.filter(isGoMod).map(directoryOf));
-      return inScope.some((path) => goWalkReads(path, moduleDirs));
-    },
+    claimsAnyOf: GO_FILES.claimsAnyOf,
     readsInParallel: false,
     prepareBase: copyGoWorkspaceFiles,
     skipNote: () => goSkipNoteOf(goVersion()),

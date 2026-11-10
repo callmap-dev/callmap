@@ -4,8 +4,7 @@ import { assets } from './assets.ts';
 import { extractionOf } from './extractor.ts';
 import type { Extractor } from './extractor.ts';
 import type { BaseWorktree } from './git.ts';
-
-const TYPESCRIPT_FILE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
+import { TYPESCRIPT_FILES } from './languages.ts';
 
 const tsconfigOf = (root: string, tsconfig: string | undefined): string | undefined => {
   if (tsconfig === undefined) return undefined;
@@ -35,7 +34,7 @@ export const typescriptExtractor = (root: string, typedTsconfig: string | undefi
     ],
     options: tsconfig === undefined ? [] : [tsconfig],
     version: () => assets.typescriptExtractorVersion(),
-    claimsAnyOf: (inScope) => inScope.some((path) => TYPESCRIPT_FILE.test(path)),
+    claimsAnyOf: TYPESCRIPT_FILES.claimsAnyOf,
     readsInParallel: true,
     prepareBase: linkPackageFolders,
     extract: async (repo, scope) =>

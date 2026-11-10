@@ -1,7 +1,8 @@
 import { EDITOR_NAMES, isEditor } from '@callmap/editor-link';
 import type { Editor } from '@callmap/editor-link';
 
-export const USAGE = `usage: callmap review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>] [--out <file>] [--no-open] [--no-cache] [--editor ${EDITOR_NAMES.join('|')}] [--tests]`;
+export const usageOf = (command: string): string =>
+  `usage: ${command} review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>] [--out <file>] [--no-open] [--no-cache] [--editor ${EDITOR_NAMES.join('|')}] [--tests]`;
 
 export class CliError extends Error {
   override readonly name = 'CliError';
@@ -21,9 +22,13 @@ export interface ReviewInvocation {
 
 const VALUE_FLAGS: readonly string[] = ['--base', '--scope', '--tsconfig', '--out', '--editor'];
 
-export const readArguments = (args: readonly string[], cwd: string): ReviewInvocation => {
-  const [command, ...rest] = args;
-  if (command !== 'review') throw new CliError(USAGE);
+export const readArguments = (
+  args: readonly string[],
+  cwd: string,
+  command: string,
+): ReviewInvocation => {
+  const [subcommand, ...rest] = args;
+  if (subcommand !== 'review') throw new CliError(usageOf(command));
 
   let repo: string | undefined;
   let base: string | undefined;
@@ -56,7 +61,7 @@ export const readArguments = (args: readonly string[], cwd: string): ReviewInvoc
       else throw new CliError(`--editor needs one of ${EDITOR_NAMES.join(', ')} after it`);
       index += 1;
     } else if (argument.startsWith('--')) {
-      throw new CliError(`${argument} is not a flag callmap review knows`);
+      throw new CliError(`${argument} is not a flag ${command} review knows`);
     } else if (repo === undefined) {
       repo = argument;
     } else {

@@ -1,0 +1,5 @@
+# The gem build copies these files from the core of the same commit, so git keeps no copy.
+/page-template.html
+/test-globs.json
+/LICENSE
+*.gem
