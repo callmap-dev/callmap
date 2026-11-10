@@ -66,6 +66,19 @@
   white-space: nowrap;
 }
 
+.diff-limit-note {
+  flex: 0 1 auto;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 11.5px;
+}
+
+.diff-limit-note[hidden],
+.clear-next-hops[hidden] {
+  display: none;
+}
+
+.clear-next-hops,
 .up-level {
   display: flex;
   flex: none;
@@ -81,6 +94,8 @@
   cursor: pointer;
 }
 
+.clear-next-hops:hover,
+.clear-next-hops:focus-visible,
 .up-level:hover:not(:disabled),
 .up-level:focus-visible {
   border-color: var(--focus);

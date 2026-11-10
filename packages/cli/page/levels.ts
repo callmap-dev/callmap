@@ -1,3 +1,4 @@
+import type { FunctionId } from '@callmap/graph-document';
 import { addTo, byText } from '@callmap/review';
 import type { CallMark } from '@callmap/review';
 import type { ReaderPageData } from './data.ts';
@@ -17,6 +18,8 @@ export interface Levels {
   readonly top: string;
   readonly sceneOf: (level: string) => Scene;
   readonly crumbsOf: (level: string) => readonly Crumb[];
+  readonly holds: (level: string) => boolean;
+  readonly fileOf: (id: FunctionId) => string | undefined;
 }
 
 const ROOT = '';
@@ -92,8 +95,10 @@ const openEndCallersOf = ({ review }: ReaderPageData): readonly string[] =>
     openEnds.map(({ caller }) => caller),
   );
 
-const levelsFor = (data: ReaderPageData): Levels => {
-  const functions = pageFunctionsOf(data);
+const levelsFor = (
+  data: ReaderPageData,
+  functions: ReadonlyMap<FunctionId, PageFunction>,
+): Levels => {
   const files = new Set([...functions.values()].map(({ file }) => file));
   const children = new Map<string, Set<string>>();
   for (const file of files) {
@@ -232,13 +237,35 @@ const levelsFor = (data: ReaderPageData): Levels => {
     return crumbs;
   };
 
-  return { top, sceneOf, crumbsOf };
+  return {
+    top,
+    sceneOf,
+    crumbsOf,
+    holds: (level) => crumbsOf(level).at(-1)?.path === level,
+    fileOf: (id) => functions.get(id)?.file,
+  };
 };
 
 const levelsByData = new WeakMap<ReaderPageData, Levels>();
 
 export const levelsOf = (data: ReaderPageData): Levels => {
-  const levels = levelsByData.get(data) ?? levelsFor(data);
+  const levels = levelsByData.get(data) ?? levelsFor(data, pageFunctionsOf(data));
   levelsByData.set(data, levels);
+  return levels;
+};
+
+interface LevelsAmong {
+  readonly key: string;
+  readonly levels: Levels;
+}
+
+const lastLevelsAmongByData = new WeakMap<ReaderPageData, LevelsAmong>();
+
+export const levelsAmong = (data: ReaderPageData, ids: ReadonlySet<FunctionId>): Levels => {
+  const key = [...ids].sort(byText).join('\n');
+  const last = lastLevelsAmongByData.get(data);
+  if (last?.key === key) return last.levels;
+  const levels = levelsFor(data, new Map([...pageFunctionsOf(data)].filter(([id]) => ids.has(id))));
+  lastLevelsAmongByData.set(data, { key, levels });
   return levels;
 };

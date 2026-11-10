@@ -5,8 +5,14 @@ import type { Camera } from './camera.ts';
 import type { ReaderPageData } from './data.ts';
 import type { SelectedPath } from './highlight.ts';
 import type { Laid } from './layout.ts';
+import type { Levels } from './levels.ts';
 import type { FunctionBox, SceneLine } from './scene.ts';
 import type { Choice, OverLimit, View } from './view.ts';
+
+export interface OpenLevel {
+  readonly levels: Levels;
+  readonly path: string;
+}
 
 export interface ReaderPage {
   readonly data: ReaderPageData;
@@ -22,6 +28,9 @@ export interface ReaderPage {
   readonly onViewChange: (handler: (view: View) => void) => void;
   readonly onChoiceChange: (handler: (view: View, choice: Choice) => void) => void;
   readonly currentView: () => View;
+  readonly openLevel: () => OpenLevel | undefined;
+  readonly hasNextHops: () => boolean;
+  readonly clearNextHops: () => Promise<void>;
   readonly onOverLimitChange: (handler: (over: OverLimit | undefined) => void) => void;
   readonly hiddenMarks: () => ReadonlySet<FunctionMark>;
   readonly toggleMark: (mark: FunctionMark) => void;

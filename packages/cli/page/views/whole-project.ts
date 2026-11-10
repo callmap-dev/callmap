@@ -5,6 +5,7 @@ import type { View } from '../view.ts';
 export const wholeProjectView: View = {
   name: 'Whole project',
   firstChoice: (data) => ({ kind: 'level', path: levelsOf(data).top }),
+  levelsOf: (data) => levelsOf(data),
   sceneOf: (data, _opened, choice) => {
     const levels = levelsOf(data);
     return {

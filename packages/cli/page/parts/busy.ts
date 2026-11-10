@@ -1,17 +1,15 @@
 import { pageFunctionsOf } from '../functions.ts';
-import { levelsOf } from '../levels.ts';
 import type { PagePart } from '../reader-page.ts';
 import type { Choice } from '../view.ts';
 
 const BUSY_DELAY = 150;
 
 const busy: PagePart = (page) => {
-  const levels = levelsOf(page.data);
   const functions = pageFunctionsOf(page.data);
   const labelOf = (choice: Choice): string => {
     switch (choice.kind) {
       case 'level':
-        return levels.crumbsOf(choice.path).at(-1)?.label ?? choice.path;
+        return page.openLevel()?.levels.crumbsOf(choice.path).at(-1)?.label ?? choice.path;
       case 'folder':
         return `${choice.folder}/`;
       case 'tree':
