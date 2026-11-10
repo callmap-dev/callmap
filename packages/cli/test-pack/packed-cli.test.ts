@@ -11,6 +11,7 @@ import { readerPageOf } from '../src/reader-page.ts';
 import { pageDataOf } from '../test/reader-page.ts';
 import { reviewInputOfFile } from '../test/review-input-file.ts';
 
+const REPLACED_LINE = '@callmap/cli is replaced by callmap-ts. Run npx callmap-ts.\n';
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
 interface Tarball {
@@ -185,7 +186,7 @@ describe('the packed @callmap/cli', () => {
     const repo = installedRepo(tarball.path);
     const out = join(tempDir('callmap-out-'), 'review.html');
     const finished = runInstalledCallmap(repo, out, tempDir('callmap-cache-'));
-    expect(finished.stderr).toBe('');
+    expect(finished.stderr).toBe(REPLACED_LINE);
     expect(finished.status).toBe(0);
     expect(finished.stdout.trim()).toBe(out);
     const marks = pageDataOf(readFileSync(out, 'utf8')).review.functions.map(
@@ -220,7 +221,7 @@ describe('the packed @callmap/cli', () => {
     const repo = installedRepo(tarball.path, goRepo());
     const out = join(tempDir('callmap-out-'), 'review.html');
     const finished = runInstalledCallmap(repo, out, tempDir('callmap-cache-'), offlineGo());
-    expect(finished.stderr).toBe('');
+    expect(finished.stderr).toBe(REPLACED_LINE);
     expect(finished.status).toBe(0);
     const { review } = pageDataOf(readFileSync(out, 'utf8'));
     expect(review.functions.map(({ id, mark }) => `${mark} ${id}`)).toEqual(
@@ -257,7 +258,7 @@ describe('the packed @callmap/cli', () => {
     const repo = installedRepo(tarball.path, rubyRepo());
     const out = join(tempDir('callmap-out-'), 'review.html');
     const finished = runInstalledCallmap(repo, out, tempDir('callmap-cache-'));
-    expect(finished.stderr).toBe('');
+    expect(finished.stderr).toBe(REPLACED_LINE);
     expect(finished.status).toBe(0);
     const { review } = pageDataOf(readFileSync(out, 'utf8'));
     expect(review.functions.map(({ id, mark }) => `${mark} ${id}`)).toEqual(

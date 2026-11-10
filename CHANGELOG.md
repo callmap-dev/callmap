@@ -4,6 +4,7 @@ Each version of Callmap gets a section here. The changes that no version holds y
 
 ## Unreleased
 
+- `callmap` prints one line on each run that names `callmap-ts`, which replaces `@callmap/cli`. It still writes the page. This is the last release of `@callmap/cli`.
 - The data block of the reader page holds the review input, format version 1: the graph documents of the base and the branch, the packed sources, the facts from git and the editor. The page computes the review when it opens, so the command runs no review. A page that does not know the format version of its review input shows a message that says which side to update. The base sources are the files that the branch changed in scope, as ADR-0038 records.
 - The reader page lays out the Diff view and the Whole project view itself, with ELK in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. The command lays out no view and no longer prints the note that a view is over the Diff limit.
 - The npm package `callmap-ts` gives the command `callmap-ts`, as ADR-0036 and ADR-0040 record. It reads only the TypeScript and JavaScript files, and it prints one line for each other language in scope that names the distribution for it. It carries no Go source and no Ruby script. It keeps its base cache in `$XDG_CACHE_HOME/callmap-ts/`. A `callmap-ts/v*` tag publishes it.
