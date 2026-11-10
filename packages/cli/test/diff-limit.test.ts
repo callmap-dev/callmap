@@ -206,6 +206,25 @@ describe('a next hop inside a level of the Diff view', () => {
   });
 });
 
+describe('clearing the next hops on a level that only the next hops hold', () => {
+  it('opens the first level again, and keeps the levels while the Diff view stays over the limit', async () => {
+    const page = await levelsPageOverLimit();
+    await clickBox(page, MONEY_FOLDER);
+    await clickBox(page, ROUND_FILE);
+    await clickBox(page, `${ROUND_FILE}#round`);
+    fireEvent.click(within(levelBarOf(page) ?? page.window.document.body).getByText('src/'));
+    await settled(page);
+    await clickBox(page, RATE);
+    expect(crumbsOf(page).at(-1)).toBe('tax/rate.ts');
+
+    await clearNextHops(page);
+    expect(crumbsOf(page)).toEqual(['src/']);
+    expect(levelBoxIdsOf(page)).toEqual([MONEY_FOLDER, NOTIFY, ORDERS, CARRIERS]);
+    expect(noteOf(page)).toBe(LEVELS_OVER_LIMIT);
+    expect(bodyOf(page).queryByRole('button', { name: 'Clear next hops' })).toBeNull();
+  });
+});
+
 describe('a next hop on a level of the Diff view whose callers and callees the levels already hold', () => {
   it('adds no next hop and lays out nothing again', async () => {
     const page = await levelsPageOverLimit();
