@@ -193,6 +193,28 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
     expect(names(third)).not.toContain('FromTheCache');
   });
 
+  it('prints one message and no backtrace when it cannot write the page', () => {
+    const blocker = join(tempDir('callmap-rb-out-'), 'a-file');
+    writeFileSync(blocker, '');
+    const finished = spawnSync(
+      join(gemHome, 'bin', 'callmap-rb'),
+      ['review', rubyRepo(), '--no-open', '--out', join(blocker, 'review.html')],
+      {
+        encoding: 'utf8',
+        env: {
+          HOME: process.env['HOME'],
+          PATH: noNodePath,
+          GEM_HOME: gemHome,
+          GEM_PATH: gemHome,
+          XDG_CACHE_HOME: tempDir('callmap-rb-cache-'),
+        },
+      },
+    );
+    expect(finished.status).toBe(1);
+    expect(finished.stderr.trimEnd().split('\n')).toHaveLength(1);
+    expect(finished.stderr).toContain(blocker);
+  });
+
   it('names callmap-rb in its usage line and in its messages, and takes no --tsconfig', () => {
     const run = (...args: readonly string[]) =>
       spawnSync(join(gemHome, 'bin', 'callmap-rb'), args, {

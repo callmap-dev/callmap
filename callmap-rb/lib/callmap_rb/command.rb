@@ -33,7 +33,8 @@ module CallmapRb
       finished.notes.each { |note| warn note }
       puts finished.out
       0
-    rescue Arguments::Error, Git::Error, Review::UnreadableGraph, ReviewInput::MissingPageTemplate => error
+    rescue Arguments::Error, Git::Error, Review::UnreadableGraph, ReviewInput::MissingPageTemplate,
+           SystemCallError => error
       warn error.message
       1
     end
