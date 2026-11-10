@@ -7,6 +7,7 @@ import { fireEvent, within } from '@testing-library/dom';
 import { JSDOM } from 'jsdom';
 import { reviewInputOfPage, unpackedSourcesOf } from '@callmap/review-input';
 import type { Sources } from '@callmap/review-input';
+import { CALLMAP } from '../src/callmap.ts';
 import { readerPageDataOf } from '../page/data.ts';
 import type { ReaderPageData } from '../page/data.ts';
 import { DIFF_LIMIT, DIFF_LIMIT_HOOK } from '../page/views/diff.ts';
@@ -75,7 +76,16 @@ export const runCallmap = (
   });
   if (args[0] === 'review' && finished.status === 0)
     requireOutputsMatchSchemas(finished.stdout.trim(), cacheHome);
-  return finished;
+  return { ...finished, stderr: withoutReplacedLine(finished.stderr) };
+};
+
+const REPLACED_LINE = `${CALLMAP.notice}\n`;
+
+const withoutReplacedLine = (stderr: string): string => {
+  if (!stderr.startsWith(REPLACED_LINE)) {
+    throw new Error(`callmap did not print the line that names callmap-ts first:\n${stderr}`);
+  }
+  return stderr.slice(REPLACED_LINE.length);
 };
 
 export const reviewHtmlOf = (repo: string, ...flags: readonly string[]): string => {

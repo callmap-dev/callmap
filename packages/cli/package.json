@@ -1,6 +1,6 @@
 {
   "name": "@callmap/cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Callmap is a call graph reader for an engineer who still reads code.",
   "license": "MIT",
   "repository": {

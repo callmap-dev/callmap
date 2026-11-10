@@ -3,6 +3,7 @@ import type { Distribution } from './distribution.ts';
 import { runReview } from './review-command.ts';
 
 export const runCommand = async (distribution: Distribution): Promise<void> => {
+  if (distribution.notice !== undefined) process.stderr.write(`${distribution.notice}\n`);
   try {
     const { out, notes } = await runReview(
       readArguments(process.argv.slice(2), process.cwd(), distribution.command),
