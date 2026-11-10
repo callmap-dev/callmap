@@ -40,6 +40,8 @@ jobs:
 
       - run: npm run conformance -- node packages/cli/src/cli.ts
 
+      - run: npm run conformance -- --language typescript node callmap-ts/src/cli.ts
+
   packed-cli:
     name: packed cli
     runs-on: ubuntu-latest
@@ -59,4 +61,5 @@ jobs:
 
       - run: npm ci
 
+      # It packs @callmap/cli and callmap-ts, and runs the review command of each install.
       - run: npm run test:pack

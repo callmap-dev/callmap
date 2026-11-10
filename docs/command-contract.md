@@ -2,7 +2,7 @@
 
 This document gives the rules that every distribution of Callmap follows: `callmap-ts`, `callmap-go` and `callmap-rb`. ADR-0036 makes one distribution for each language. Each distribution writes its own thin CLI in its own language, so this document is the one rule set for the 3 CLIs. The conformance suite tests these rules.
 
-The `callmap` command of `@callmap/cli` follows these rules today, with 2 differences. It reads every language, and it takes `--tsconfig` for every repo. The messages below come from the code of `callmap` today. A distribution prints its own command name in place of `callmap`.
+`callmap-ts` follows these rules. The `callmap` command of `@callmap/cli` follows them too, with 2 differences. It reads every language, and it takes `--tsconfig` for every repo. The messages below come from the code of `callmap` today. A distribution prints its own command name in place of `callmap`.
 
 ## The command
 

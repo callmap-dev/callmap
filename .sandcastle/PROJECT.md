@@ -10,6 +10,8 @@ Callmap is an npm workspace with these packages in `packages/`:
 - `review`, `graph-document`, `scope`, `editor-link`: the core packages.
 - `extractor-typescript`, `extractor-go`, `extractor-ruby`: the extractors. The Go extractor has Go source in `packages/extractor-go/go/`. The Ruby extractor runs a Ripper script.
 
+`callmap-ts/` is the npm workspace of the distribution `callmap-ts`: its thin CLI in `callmap-ts/src/`, its build and its tests. It reuses the review command of `packages/cli/src/` and bundles the TypeScript extractor. ADR-0040 records the folder.
+
 Shared tests are in `test/`.
 
 ## Docs to read first
@@ -26,7 +28,7 @@ Run `npm ci` first if `node_modules` is missing. Then run these from the repo ro
 
 - `npm run lint`: Prettier, `tsc` and ESLint. `npm run format` fixes the format.
 - `npm test -- --testTimeout=30000 --hookTimeout=60000`: the whole Vitest suite. The runner has `go` and `ruby` on the `PATH`.
-- `npm run test:pack`: run it when you change what `@callmap/cli` packs.
+- `npm run test:pack`: run it when you change what `@callmap/cli` or `callmap-ts` packs.
 
 Do not run `npm run test:browser` or `npm run screenshots`. The runner has no Chromium.
 

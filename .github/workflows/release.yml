@@ -1,8 +1,12 @@
 name: release
 
+# A plain v* tag releases @callmap/cli. A tag with the name of a distribution, such as
+# callmap-ts/v0.1.0, releases only that distribution, as ADR-0040 records.
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
+      - 'callmap-ts/v*'
 
 permissions:
   contents: write
@@ -11,6 +15,7 @@ permissions:
 jobs:
   publish:
     name: publish
+    if: startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -48,3 +53,36 @@ jobs:
 
       # npm logs why the OIDC token exchange fails only at the verbose level.
       - run: npm publish --workspace @callmap/cli --loglevel verbose
+
+  publish-callmap-ts:
+    name: publish callmap-ts
+    if: startsWith(github.ref_name, 'callmap-ts/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      # npm trusted publishing with the OIDC token of the job needs npm 11.5.1 or later.
+      - run: npm install --global npm@^11.5.1
+
+      - run: npm ci
+
+      - run: test "$GITHUB_REF_NAME" = "callmap-ts/v$(node -p "require('./callmap-ts/package.json').version")"
+
+      - run: npm run conformance -- --language typescript node callmap-ts/src/cli.ts
+
+      - run: npm run test:pack -- callmap-ts
+
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # The trusted publisher of callmap-ts on npmjs.com names this repo and this workflow.
+      # npm logs why the OIDC token exchange fails only at the verbose level.
+      - run: npm publish --workspace callmap-ts --loglevel verbose

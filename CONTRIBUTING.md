@@ -37,9 +37,9 @@ npm run test:browser
 
 ## The check on a pull request
 
-Each pull request and each push to `master` runs the `lint and test` check in GitHub Actions. The workflow is `.github/workflows/ci.yml`. It runs `npm ci`, `npm run lint` and `npm test` on Node 22, with Go and Ruby installed. Then it runs the conformance suite against the current `callmap` command. `packages/conformance/README.md` tells how the suite works and how to update an expected file. The check does not run `npm run test:browser`, so run that check on your machine.
+Each pull request and each push to `master` runs the `lint and test` check in GitHub Actions. The workflow is `.github/workflows/ci.yml`. It runs `npm ci`, `npm run lint` and `npm test` on Node 22, with Go and Ruby installed. Then it runs the conformance suite against the current `callmap` command, and the conformance suite for TypeScript against `callmap-ts` in `callmap-ts/`. `packages/conformance/README.md` tells how the suite works and how to update an expected file. The check does not run `npm run test:browser`, so run that check on your machine.
 
-The `packed cli` check in the same workflow runs `npm run test:pack`. It packs `@callmap/cli`, installs the tarball in a fixture repo and runs `callmap review` from that install. The tarball may hold the manifest, the README, the LICENSE and the built files. It may also hold the Go extractor source with its vendored modules in `dist/go/`, and the Ripper script of the Ruby extractor in `dist/ruby/`. Any other file fails the check. The check builds the Go extractor from `dist/go/`, so it needs `go` 1.26 or later on the `PATH`. The check reads a Ruby fixture repo with the script in `dist/ruby/`, so it needs `ruby` on the `PATH` too.
+The `packed cli` check in the same workflow runs `npm run test:pack`. It packs `callmap-ts`, installs the tarball with `npx` in fixture repos and runs `callmap-ts review`. The tarball of `callmap-ts` may hold only the manifest, the README, the LICENSE and the built files in `dist/`, and no Go source and no Ruby script. The check also packs `@callmap/cli`, installs the tarball in a fixture repo and runs `callmap review` from that install. The tarball may hold the manifest, the README, the LICENSE and the built files. It may also hold the Go extractor source with its vendored modules in `dist/go/`, and the Ripper script of the Ruby extractor in `dist/ruby/`. Any other file fails the check. The check builds the Go extractor from `dist/go/`, so it needs `go` 1.26 or later on the `PATH`. The check reads a Ruby fixture repo with the script in `dist/ruby/`, so it needs `ruby` on the `PATH` too.
 
 ## Issues and triage
 
@@ -72,6 +72,7 @@ Start each commit subject with a prefix for the part that it changes, then one s
 The git log uses these prefixes:
 
 - `cli:` for the `callmap` command and the reader page in `packages/cli`.
+- `callmap-ts:` for the distribution `callmap-ts` in `callmap-ts/`.
 - `core:` for the core packages, such as `@callmap/review` and `@callmap/graph-document`.
 - `extractor:` for an extractor package.
 - `docs:` for the README, the ADRs, the glossary and the other records.

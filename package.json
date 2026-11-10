@@ -6,10 +6,11 @@
   "license": "MIT",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "callmap-ts"
   ],
   "scripts": {
-    "build": "npm run build --workspace @callmap/cli",
+    "build": "npm run build --workspace @callmap/cli --workspace callmap-ts",
     "prepare": "npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
