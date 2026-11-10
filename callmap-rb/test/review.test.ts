@@ -30,11 +30,11 @@ const TYPESCRIPT_LINE =
 const GO_LINE = 'callmap-rb read only the Ruby files. Run callmap-go review for the Go files.';
 
 /**
- * The folders of the extractor fixture whose calls are on `self`, on `super` or on a constant. The
- * other folders also hold calls on a value whose class the type flow proves, or calls to the
- * methods that a macro makes. callmap-rb does not port these rules yet.
+ * The folders of the extractor fixture whose calls are on `self`, on `super` or on a constant, or
+ * call the methods that a macro makes. The other folders also hold calls on a value whose class the
+ * type flow proves. callmap-rb does not port the type flow yet.
  */
-const DIRECT_CALL_FOLDERS: readonly string[] = [
+const PORTED_RULE_FOLDERS: readonly string[] = [
   'rules/abstract/',
   'rules/class-methods/',
   'rules/concern-one-of/',
@@ -46,6 +46,7 @@ const DIRECT_CALL_FOLDERS: readonly string[] = [
   'rules/function-value/',
   'rules/library-constants/',
   'rules/library-include-one-of/',
+  'rules/macros/',
   'rules/method-missing/',
   'rules/module-function/',
   'rules/no-implementation/',
@@ -61,6 +62,7 @@ const DIRECT_CALL_FOLDERS: readonly string[] = [
   'rules/super-in-module/',
   'rules/super-several-includers/',
   'rules/unparsed/',
+  'rules/untyped/',
   'rules/zeitwerk-aliases/',
   'billing/',
   'gems/',
@@ -148,10 +150,10 @@ const extractorFixtureRepo = (): string => {
   return repo;
 };
 
-const ofDirectCallFolders = <Site extends { readonly caller: string }>(
+const ofPortedRuleFolders = <Site extends { readonly caller: string }>(
   sites: readonly Site[],
 ): readonly Site[] =>
-  sites.filter(({ caller }) => DIRECT_CALL_FOLDERS.some((folder) => caller.startsWith(folder)));
+  sites.filter(({ caller }) => PORTED_RULE_FOLDERS.some((folder) => caller.startsWith(folder)));
 
 const withoutChecker = ({ checker: _checker, ...document }: GraphDocument) => document;
 
@@ -168,7 +170,7 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
     expect(input.branch[0]?.checker.name).toBe('Callmap Ruby rules');
   });
 
-  it('gives the graph documents of the extractor of today for the direct calls on its fixtures', () => {
+  it('gives the graph documents of the extractor of today for the direct calls, the macros, the one-of groups and the open-end reasons on its fixtures', () => {
     const repo = extractorFixtureRepo();
     const { finished, out } = runCallmapRb(repo);
     expect(finished.status, finished.stderr).toBe(0);
@@ -178,9 +180,9 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
     const { calls, openEnds, ...rest } = withoutChecker(branch);
     const { calls: todayCalls, openEnds: todayOpenEnds, ...todayRest } = withoutChecker(today);
     expect(rest).toEqual(todayRest);
-    expect(ofDirectCallFolders(calls)).toEqual(ofDirectCallFolders(todayCalls));
-    expect(ofDirectCallFolders(openEnds)).toEqual(ofDirectCallFolders(todayOpenEnds));
-    expect(ofDirectCallFolders(todayCalls).length).toBeGreaterThan(30);
+    expect(ofPortedRuleFolders(calls)).toEqual(ofPortedRuleFolders(todayCalls));
+    expect(ofPortedRuleFolders(openEnds)).toEqual(ofPortedRuleFolders(todayOpenEnds));
+    expect(ofPortedRuleFolders(todayCalls).length).toBeGreaterThan(30);
   });
 
   it('prints one line for each file that Ripper cannot parse', () => {

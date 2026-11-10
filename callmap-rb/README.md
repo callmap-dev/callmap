@@ -37,7 +37,7 @@ The command contract gives the rule of each flag: <https://github.com/callmap-de
 The gem lives in the folder `callmap-rb/` of the repo `callmap-dev/callmap`, as ADR-0040 records. It holds these parts:
 
 - `lib/callmap_rb/ripper/read.rb` is the Ripper script. It reads the bodies, the methods and the call sites of each file. The `callmap` command of `@callmap/cli` runs the same script.
-- `lib/callmap_rb/extractor/` holds the Ruby rules: the walk, the load units, Zeitwerk, the constant aliases and the class chain. They tie the direct calls: a call on `self`, on `super` and on a constant. A call on a value is an open end with the reason `untyped`, and a call to a method that a macro makes is not yet a library call.
+- `lib/callmap_rb/extractor/` holds the Ruby rules: the walk, the load units, Zeitwerk, the constant aliases and the class chain. They tie the direct calls: a call on `self`, on `super` and on a constant. A call to a method that a macro makes, such as `has_many`, is a library call. A call on `self` or on `super` in a module, and a call to an abstract method, give a one-of group. A call on a value is an open end with the reason `untyped`, because the type flow is not ported yet.
 - `lib/callmap_rb/` also holds the thin CLI: the arguments, git, the base cache and the page writer.
 
 The gem build copies 3 files of the core into the gem: the page template from `packages/cli/dist/page-template.html`, the test globs from `packages/scope/test-globs.json` and the license. git ignores these copies. So build the page template of the same commit before the gem:

@@ -2,6 +2,7 @@
 
 require "set"
 require_relative "constants"
+require_relative "macros"
 
 module CallmapRb
   module Extractor
@@ -10,7 +11,8 @@ module CallmapRb
     # the Ripper script, with the full name of its owner, its file and its id.
     class ClassChain
       # Every body of one full name in a load unit, merged, as Ruby merges them.
-      RubyClass = Struct.new(:name, :bodies, :instance, :singleton, keyword_init: true) do
+      # `macro_names` holds the names that a macro of a body makes, on each side.
+      RubyClass = Struct.new(:name, :bodies, :instance, :singleton, :macro_names, keyword_init: true) do
         def methods_of(side)
           side == :instance ? instance : singleton
         end
@@ -38,7 +40,14 @@ module CallmapRb
         @defined_names = defined_names
         @claimed = claimed
         @classes = {}
-        bodies.each { |body| class_of(body["name"]).bodies << body }
+        bodies.each do |body|
+          owner = class_of(body["name"])
+          owner.bodies << body
+          body["macros"].each do |macro|
+            made = Macros.made_names_of(macro)
+            owner.macro_names[made.side].merge(made.names)
+          end
+        end
         methods.each do |method|
           known_methods = class_of(method["owner"]).methods_of(ClassChain.side_of(method))
           known = known_methods[method["name"]]
@@ -75,7 +84,9 @@ module CallmapRb
       private
 
       def class_of(name)
-        @classes[name] ||= RubyClass.new(name: name, bodies: [], instance: {}, singleton: {})
+        @classes[name] ||= RubyClass.new(
+          name: name, bodies: [], instance: {}, singleton: {}, macro_names: { instance: Set.new, singleton: Set.new }
+        )
       end
 
       def mixins_of(owner, kind)
@@ -171,6 +182,7 @@ module CallmapRb
 
           method = ancestor.owner.methods_of(ancestor.side)[name]
           return method unless method.nil?
+          return :library if ancestor.owner.macro_names[ancestor.side].include?(name)
         end
         :none
       end
