@@ -27,6 +27,20 @@ export const currentDiffLines = (): Map<string, Set<number>> => parseDiffLines(d
 const diffToBase = (): string =>
   safeSh(`git diff ${config.base}...HEAD`) || sh(`git diff ${config.base}..HEAD`);
 
+const MAX_PROMPT_FILE_DIFF_CHARS = 100_000;
+
+const promptDiff = (diff: string): string =>
+  diff
+    .split(/^(?=diff --git )/m)
+    .map((fileDiff) => {
+      if (fileDiff.length <= MAX_PROMPT_FILE_DIFF_CHARS) {
+        return fileDiff;
+      }
+      const header = fileDiff.slice(0, fileDiff.indexOf('\n') + 1);
+      return `${header}(The prompt leaves out the diff of this file, because it has ${fileDiff.length} characters. Read the file in the checkout.)\n`;
+    })
+    .join('');
+
 const THREADS_PAGE_SIZE = 100;
 const COMMENTS_PAGE_SIZE = 50;
 
@@ -168,7 +182,7 @@ query($owner:String!,$repo:String!,$number:Int!) {
     review_threads: reviewThreads,
   };
 
-  const diff = diffToBase();
+  const diff = promptDiff(diffToBase());
 
   return {
     prTitle: prView.title,

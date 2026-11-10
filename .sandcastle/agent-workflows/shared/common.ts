@@ -23,8 +23,14 @@ export const fail = (message: string): never => {
   process.exit(1);
 };
 
+const MAX_OUTPUT_BYTES = 256 * 1024 * 1024;
+
 export const sh = (cmd: string): string =>
-  execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  execSync(cmd, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: MAX_OUTPUT_BYTES,
+  });
 
 export const safeSh = (cmd: string): string => {
   try {
@@ -64,6 +70,7 @@ export const gh = (args: string[]): string =>
   execFileSync('gh', args, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: MAX_OUTPUT_BYTES,
   });
 
 export const writeJson = (filename: string, value: unknown): void => {
