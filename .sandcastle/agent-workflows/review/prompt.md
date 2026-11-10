@@ -51,6 +51,7 @@ Run the checks for the package(s) you touched before committing — the exact co
 If you make changes, commit them as a single commit in the format of `CONTRIBUTING.md`.
 If the code is already clean and there is nothing to answer, make no commit.
 
+Do not edit files in `.github/workflows/`. The token that pushes this branch cannot push them. If a change there is needed, say so in a review comment.
 Do not push.
 Do not edit labels.
 Do not mark review threads resolved.

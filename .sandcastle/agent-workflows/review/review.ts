@@ -2,7 +2,16 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as sandcastle from '@ai-hero/sandcastle';
 import { noSandbox } from '@ai-hero/sandcastle/sandboxes/no-sandbox';
-import { claudeAgent, fail, required, sh, writeJson, writeText } from '../shared/common';
+import {
+  claudeAgent,
+  fail,
+  required,
+  sh,
+  workflowEditReason,
+  workflowFilesTouchedSince,
+  writeJson,
+  writeText,
+} from '../shared/common';
 import { currentDiffLines, fetchPullRequestContext } from '../shared/review-context';
 import { filterInlineComments, filterReplies, reviewOutputSchema } from '../shared/review-output';
 import { runWithExtraction } from '../shared/run-with-extraction';
@@ -20,6 +29,7 @@ try {
   delete process.env.GH_TOKEN;
   delete process.env.GITHUB_TOKEN;
 
+  const before = sh('git rev-parse HEAD').trim();
   const result = await runWithExtraction({
     name: `review-pr-${PR_NUMBER}`,
     agent: claudeAgent(),
@@ -42,6 +52,11 @@ try {
     }),
     extractionPrompt: fs.readFileSync(path.join(import.meta.dirname, 'extraction.md'), 'utf8'),
   });
+
+  const workflowFiles = workflowFilesTouchedSince(before);
+  if (workflowFiles.length > 0) {
+    fail(`Refused to push: ${workflowEditReason(workflowFiles)}.`);
+  }
 
   // The agent may have committed, shifting line numbers; validate against the
   // post-run diff, which matches the commit_id the review is posted against.

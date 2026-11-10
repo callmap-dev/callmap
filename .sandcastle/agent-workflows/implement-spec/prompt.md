@@ -51,6 +51,7 @@ Before you commit, check each acceptance criterion of the ticket against the cod
 
 Make one or more commits on `{{BRANCH}}`. Use the commit format of `CONTRIBUTING.md`.
 
+Do not edit files in `.github/workflows/`. The token that pushes this branch cannot push them. If the ticket needs a change there, make no commit for the ticket.
 Do not push the branch.
 Do not close an issue.
 Do not edit labels.

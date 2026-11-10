@@ -40,6 +40,7 @@ Run the checks for the package(s) you touched before committing — the exact co
 
 If you change code, commit in the format of `CONTRIBUTING.md`.
 
+Do not edit files in `.github/workflows/`. The token that pushes this branch cannot push them. If a comment asks for a change there, reply that a human must make it.
 Do not push.
 Do not edit labels.
 Do not resolve review threads.

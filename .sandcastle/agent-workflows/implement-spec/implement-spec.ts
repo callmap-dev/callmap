@@ -8,6 +8,8 @@ import {
   gh,
   required,
   sh,
+  workflowEditReason,
+  workflowFilesTouchedSince,
   writeJson,
   writeText,
 } from '../shared/common';
@@ -159,6 +161,12 @@ try {
     if (headSha() === before) {
       stopReason = `the run stopped at #${ticket.number}`;
       skipped.push({ ...ticket, reason: 'the agent made no commit' });
+      continue;
+    }
+    const workflowFiles = workflowFilesTouchedSince(before);
+    if (workflowFiles.length > 0) {
+      sh(`git reset --hard ${before}`);
+      skipped.push({ ...ticket, reason: workflowEditReason(workflowFiles) });
       continue;
     }
     done.push(ticket);

@@ -37,6 +37,7 @@ Run the checks for the package(s) you touched before committing — the exact co
 
 Make one or more commits on `{{BRANCH}}` in the commit format of `CONTRIBUTING.md`.
 
+Do not edit files in `.github/workflows/`. The token that pushes this branch cannot push them. If the issue needs a change there, make no commit.
 Do not push the branch.
 Do not close the issue.
 Do not edit labels.

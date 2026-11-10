@@ -1,7 +1,15 @@
 import * as path from 'node:path';
 import * as sandcastle from '@ai-hero/sandcastle';
 import { noSandbox } from '@ai-hero/sandcastle/sandboxes/no-sandbox';
-import { claudeAgent, fail, fetchIssueText, required, sh } from '../shared/common';
+import {
+  claudeAgent,
+  fail,
+  fetchIssueText,
+  required,
+  sh,
+  workflowEditReason,
+  workflowFilesTouchedSince,
+} from '../shared/common';
 import { config } from '../../sandcastle.config';
 
 const ISSUE_NUMBER = required('ISSUE_NUMBER');
@@ -35,6 +43,10 @@ try {
   const commitsAhead = Number(sh(`git rev-list --count ${config.base}..HEAD`).trim());
   if (!Number.isFinite(commitsAhead) || commitsAhead === 0) {
     fail('Agent finished but no commits were made on the branch.');
+  }
+  const workflowFiles = workflowFilesTouchedSince(config.base);
+  if (workflowFiles.length > 0) {
+    fail(`Refused to push: ${workflowEditReason(workflowFiles)}.`);
   }
 
   console.log(`Implementation produced ${commitsAhead} commit(s).`);

@@ -26,6 +26,20 @@ export const fail = (message: string): never => {
 export const sh = (cmd: string): string =>
   execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
+const WORKFLOWS_DIR = '.github/workflows';
+
+export const workflowFilesTouchedSince = (sha: string): string[] => [
+  ...new Set(
+    sh(`git log --format= --name-only ${sha}..HEAD -- ${WORKFLOWS_DIR}`)
+      .split('\n')
+      .filter(Boolean),
+  ),
+];
+
+export const workflowEditReason = (files: string[]): string =>
+  `the agent changed ${files.map((file) => `\`${file}\``).join(', ')}. ` +
+  'The token that pushes the branch has no `workflow` scope, so a human must make that change';
+
 export const safeSh = (cmd: string): string => {
   try {
     return sh(cmd);
