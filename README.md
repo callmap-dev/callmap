@@ -27,7 +27,7 @@ npm install --global @callmap/cli
 
 ## What the page shows
 
-- **Diff:** the changed functions and one hop of callers and callees around each. This view opens first.
+- **Diff:** the changed functions and one hop of callers and callees around each. This view opens first. Over the Diff limit of 2,000 calls, it shows one folder or one file at a time, with only the changed code and its neighbours.
 - **Whole project:** the folder tree one level at a time, with the count of the calls between 2 folders.
 - **Folder:** the functions of one folder and the calls between them.
 - **Route:** the whole call tree of one entry point.
