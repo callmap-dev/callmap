@@ -1,6 +1,6 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import type { SpawnSyncReturns } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pageOfTemplate, reviewInputOfPage } from '@callmap/review-input';
@@ -52,6 +52,14 @@ const installedRepo = (repo = featureBranchRepo()): string => {
 const installedFile = (repo: string, file: string): string =>
   readFileSync(join(repo, 'node_modules', 'callmap-ts', file), 'utf8');
 
+// The release job points NPM_CONFIG_USERCONFIG at the .npmrc of setup-node, and npm warns
+// about its always-auth key on stderr. An empty user config keeps that warning out of stderr.
+const emptyUserConfig = (): string => {
+  const npmrc = join(tempDir('callmap-ts-npmrc-'), '.npmrc');
+  writeFileSync(npmrc, '');
+  return npmrc;
+};
+
 const npxCallmapTs = (repo: string, out: string): SpawnSyncReturns<string> =>
   spawnSync(
     'npx',
@@ -59,7 +67,11 @@ const npxCallmapTs = (repo: string, out: string): SpawnSyncReturns<string> =>
     {
       cwd: repo,
       encoding: 'utf8',
-      env: { ...process.env, XDG_CACHE_HOME: tempDir('callmap-ts-cache-') },
+      env: {
+        ...process.env,
+        XDG_CACHE_HOME: tempDir('callmap-ts-cache-'),
+        NPM_CONFIG_USERCONFIG: emptyUserConfig(),
+      },
     },
   );
 
