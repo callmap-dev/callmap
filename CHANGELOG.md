@@ -5,6 +5,7 @@ Each version of Callmap gets a section here. The changes that no version holds y
 ## Unreleased
 
 - Over the Diff limit, the Diff view shows one level at a time, as ADR-0031 records. Its levels hold only the changed functions, their neighbours and the functions that a next hop or a search opened. A review over the Diff limit opens on the Diff view, and the level bar says that the review is over the limit. The message of the Diff tab that sent the reader to the Whole project view goes away. On a level of the Diff view, "Clear next hops" removes the next hops, and the Diff view is one drawing again when it is at the limit or under it.
+- `callmap` prints one line on each run that names `callmap-ts`, which replaces `@callmap/cli`. It still writes the page. This is the last release of `@callmap/cli`.
 - The data block of the reader page holds the review input, format version 1: the graph documents of the base and the branch, the packed sources, the facts from git and the editor. The page computes the review when it opens, so the command runs no review. A page that does not know the format version of its review input shows a message that says which side to update. The base sources are the files that the branch changed in scope, as ADR-0038 records.
 - The reader page lays out the Diff view and the Whole project view itself, with ELK in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. The command lays out no view and no longer prints the note that a view is over the Diff limit.
 - The npm package `callmap-ts` gives the command `callmap-ts`, as ADR-0036 and ADR-0040 record. It reads only the TypeScript and JavaScript files, and it prints one line for each other language in scope that names the distribution for it. It carries no Go source and no Ruby script. It keeps its base cache in `$XDG_CACHE_HOME/callmap-ts/`. A `callmap-ts/v*` tag publishes it.
@@ -14,6 +15,8 @@ Each version of Callmap gets a section here. The changes that no version holds y
 - The Ripper script of the Ruby extractor moves from `packages/extractor-ruby/ruby/` to `callmap-rb/lib/callmap_rb/ripper/`.
 - `callmap review` also reads Ruby with the Callmap Ruby rules when `ruby` is on the `PATH`. Ripper parses each file, so the review needs no gem. A call that the rules do not prove is an open end.
 - The npm package carries the Ruby extractor and its Ripper script.
+- The old command `callmap` in `packages/cli`, the 3 extractor packages and the release assets go, as ADR-0040 records. The reader page gets its own package, `@callmap/reader-page`, and its tests build each page from a review input file. The TypeScript extractor moves to `callmap-ts/extractor/`. The tests of the Go extractor move to `callmap-go/test/`, and the tests of the Ruby rules move to `callmap-rb/test/`. A plain `v*` tag releases nothing.
+- The skill `callmap-review` runs the review command of the distribution of the repo.
 - The repo is a Claude Code plugin marketplace. Its plugin `callmap` holds the skill `callmap-review`, so `/plugin install callmap --marketplace callmap-dev/callmap` installs the skill with no clone.
 
 ## 0.1.1

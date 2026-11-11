@@ -1,0 +1,138 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "src/statements/rounding.ts#roundToCents",
+          "caller": "src/settlement_reconciliation_adjustments/outstanding_balances.ts#reconcileOutstandingSettlementAdjustments",
+          "line": 4
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/settlement_reconciliation_adjustments/outstanding_balances.ts",
+        "src/statements/rounding.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/settlement_reconciliation_adjustments/outstanding_balances.ts",
+          "firstLine": 3,
+          "id": "src/settlement_reconciliation_adjustments/outstanding_balances.ts#reconcileOutstandingSettlementAdjustments",
+          "lastLine": 4,
+          "name": "reconcileOutstandingSettlementAdjustments",
+          "sourceHash": "96f006d79bb5faf103c6228fada05e0f4298c8c7c6b146d4289c3a61244cb76e"
+        },
+        {
+          "file": "src/statements/rounding.ts",
+          "firstLine": 1,
+          "id": "src/statements/rounding.ts#roundToCents",
+          "lastLine": 1,
+          "name": "roundToCents",
+          "sourceHash": "93053f0bee261669d36f3b20809058e326b17cf19c8525c74b8de95687512b4a"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "src/statements/rounding.ts#roundToCents",
+          "caller": "src/settlement_reconciliation_adjustments/outstanding_balances.ts#reconcileOutstandingSettlementAdjustments",
+          "line": 4
+        },
+        {
+          "callee": "src/statements/rounding.ts#roundToCents",
+          "caller": "src/settlement_reconciliation_adjustments/quarterly_summaries.ts#summariseQuarterlyReconciliationAdjustments",
+          "line": 7
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "src/settlement_reconciliation_adjustments/outstanding_balances.ts",
+        "src/settlement_reconciliation_adjustments/quarterly_summaries.ts",
+        "src/statements/rounding.ts"
+      ],
+      "functions": [
+        {
+          "file": "src/settlement_reconciliation_adjustments/outstanding_balances.ts",
+          "firstLine": 3,
+          "id": "src/settlement_reconciliation_adjustments/outstanding_balances.ts#reconcileOutstandingSettlementAdjustments",
+          "lastLine": 4,
+          "name": "reconcileOutstandingSettlementAdjustments",
+          "sourceHash": "482f70a3fe61a2713139b60a4779f6717f117e963d7d8799f838e9a07b8ed403"
+        },
+        {
+          "file": "src/settlement_reconciliation_adjustments/quarterly_summaries.ts",
+          "firstLine": 4,
+          "id": "src/settlement_reconciliation_adjustments/quarterly_summaries.ts#summariseQuarterlyReconciliationAdjustments",
+          "lastLine": 11,
+          "name": "summariseQuarterlyReconciliationAdjustments",
+          "sourceHash": "5e454b25726e89d9912657e45a351399bec1b990794bd4612e0b49c4e1614b40"
+        },
+        {
+          "file": "src/statements/rounding.ts",
+          "firstLine": 1,
+          "id": "src/statements/rounding.ts#roundToCents",
+          "lastLine": 1,
+          "name": "roundToCents",
+          "sourceHash": "93053f0bee261669d36f3b20809058e326b17cf19c8525c74b8de95687512b4a"
+        }
+      ],
+      "language": "typescript",
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "src/settlement_reconciliation_adjustments/outstanding_balances.ts": "import { roundToCents } from '../statements/rounding';\n\nexport const reconcileOutstandingSettlementAdjustments = (amounts: readonly number[]): number =>\n  roundToCents(amounts.reduce((sum, amount) => sum + amount, 0));\n"
+    },
+    "branch": {
+      "src/settlement_reconciliation_adjustments/outstanding_balances.ts": "import { roundToCents } from '../statements/rounding';\n\nexport const reconcileOutstandingSettlementAdjustments = (amounts: readonly number[]): number =>\n  roundToCents(amounts.filter((amount) => amount !== 0).reduce((sum, amount) => sum + amount, 0));\n",
+      "src/settlement_reconciliation_adjustments/quarterly_summaries.ts": "import { roundToCents } from '../statements/rounding';\nimport { reconcileOutstandingSettlementAdjustments } from './outstanding_balances';\n\nexport const summariseQuarterlyReconciliationAdjustments = (\n  quarters: readonly number[][],\n): number =>\n  roundToCents(\n    quarters\n      .map(reconcileOutstandingSettlementAdjustments)\n      .reduce((sum, amount) => sum + amount, 0),\n  );\n",
+      "src/statements/rounding.ts": "export const roundToCents = (amount: number): number => Math.round(amount * 100) / 100;\n"
+    }
+  }
+}

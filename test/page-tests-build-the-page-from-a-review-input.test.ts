@@ -9,54 +9,36 @@ const textOf = (path: string): string => readFileSync(join(REPO_ROOT, path), 'ut
 const filesThatCall = (paths: readonly string[], names: readonly string[]): readonly string[] =>
   paths.filter((path) => new RegExp(`\\b(${names.join('|')})\\(`).test(textOf(path)));
 
-const CLI_TESTS = globSync('packages/cli/test/*.test.ts', { cwd: REPO_ROOT }).sort();
-const PAGE_READERS = [
-  'loadReaderPage',
-  'loadReaderPageWithDiffLimit',
-  'pageDataOf',
-  'sourcesOf',
-  'startCostsOf',
-];
+const CORE_TESTS = globSync('packages/*/{test,test-browser}/**/*.ts', { cwd: REPO_ROOT }).sort();
 const COMMAND_RUNNERS = [
   'runCallmap',
+  'runCallmapTs',
   'runReview',
   'reviewHtmlOf',
-  'reviewOf',
   'reviewPage',
   'reviewPageOf',
 ];
 
-describe('the DOM tests of the reader page', () => {
-  it('run the command only in the files that check the command, or that read a repo with no review input file', () => {
-    const pageTests = filesThatCall(CLI_TESTS, PAGE_READERS);
-    expect(filesThatCall(pageTests, COMMAND_RUNNERS)).toEqual([
-      'packages/cli/test/base-cache.test.ts',
-      'packages/cli/test/base.test.ts',
-      'packages/cli/test/checkout.test.ts',
-      'packages/cli/test/code-panel.test.ts',
-      'packages/cli/test/diff-limit.test.ts',
-      'packages/cli/test/drawing.test.ts',
-      'packages/cli/test/folder.test.ts',
-      'packages/cli/test/go-review.test.ts',
-      'packages/cli/test/levels.test.ts',
-      'packages/cli/test/look.test.ts',
-      'packages/cli/test/read-on-page.test.ts',
-      'packages/cli/test/resolution.test.ts',
-      'packages/cli/test/review.test.ts',
-      'packages/cli/test/route.test.ts',
-      'packages/cli/test/ruby-review.test.ts',
-      'packages/cli/test/scope.test.ts',
-      'packages/cli/test/tests.test.ts',
-      'packages/cli/test/tsconfig.test.ts',
-    ]);
+describe('the tests of the core', () => {
+  it('build each page from a review input file, and run no command', () => {
+    expect(CORE_TESTS.length).toBeGreaterThan(0);
+    expect(filesThatCall(CORE_TESTS, COMMAND_RUNNERS)).toEqual([]);
+  });
+
+  it('import no code of a distribution', () => {
+    const offenders = CORE_TESTS.filter((path) =>
+      /from '[^']*callmap-(ts|go|rb)\//.test(textOf(path)),
+    );
+    expect(offenders).toEqual([]);
   });
 });
 
 describe('the tests', () => {
   it('write the data block of a page only through the writer of the review input package', () => {
-    const offenders = globSync('packages/*/{test,test-browser,test-pack}/**/*.ts', {
-      cwd: REPO_ROOT,
-    })
+    const offenders = globSync(
+      '{packages/*/{test,test-browser},callmap-ts/{test,test-pack},callmap-go/test,callmap-rb/test}/**/*.ts',
+      { cwd: REPO_ROOT },
+    )
       .filter((path) => !path.startsWith('packages/review-input/'))
       .filter((path) =>
         /['"`]"(formatVersion|base|branch|packedSources|checkout|editor)":/.test(textOf(path)),

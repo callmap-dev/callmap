@@ -2,7 +2,7 @@
 
 This document gives the rules that every distribution of Callmap follows: `callmap-ts`, `callmap-go` and `callmap-rb`. ADR-0036 makes one distribution for each language. Each distribution writes its own thin CLI in its own language, so this document is the one rule set for the 3 CLIs. The conformance suite tests these rules.
 
-`callmap-ts`, `callmap-go` and `callmap-rb` follow these rules. The `callmap` command of `@callmap/cli` follows them too, with 2 differences. It reads every language, and it takes `--tsconfig` for every repo. The messages below come from the code of `callmap` today. A distribution prints its own command name in place of `callmap`.
+The messages below come from the code of `callmap-ts`. Another distribution prints its own command name in place of `callmap-ts`.
 
 ## The command
 
@@ -90,7 +90,7 @@ The command looks at the files of the working tree and of the base commit, in th
 callmap-go read only the Go files. Run callmap-ts review for the TypeScript files.
 ```
 
-A branch with 2 other languages gives 2 lines. `callmap` reads every language today, so it prints no such line.
+A branch with 2 other languages gives 2 lines.
 
 ## The output and the exit codes
 
@@ -107,7 +107,7 @@ In each message, a word in angle brackets is a value of the run.
 | The first argument is not `review` | the usage line below |
 | A flag that takes a value has no value after it | `<flag> needs a value after it` |
 | `--editor` names an editor that Callmap does not know | `--editor needs one of vscode, jetbrains after it` |
-| An argument starts with `--` and is no flag | `<argument> is not a flag callmap review knows` |
+| An argument starts with `--` and is no flag | `<argument> is not a flag callmap-ts review knows` |
 | A second `<repo>` follows the first | `'<argument>' follows no flag. Callmap reviews one repo at a time.` |
 | `<repo>` is not inside a git repo, or does not exist | `<folder> is not inside a git repo` |
 | No `--base`, and the command finds no base branch | `<root> has no remote head, no main and no master to find a base on. Name one with --base.` |
@@ -121,28 +121,28 @@ In each message, a word in angle brackets is a value of the run.
 - `<short commit>` is the base commit with 7 characters.
 - `<reason>` is the message of the extractor. The command removes the path of the read folder from it, so the reason names a repo-relative path.
 
-The usage line of `callmap` today is this:
+The usage line of `callmap-ts` is this:
 
 ```
-usage: callmap review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>] [--out <file>] [--no-open] [--no-cache] [--editor vscode|jetbrains] [--tests]
+usage: callmap-ts review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <file>] [--out <file>] [--no-open] [--no-cache] [--editor vscode|jetbrains] [--tests]
 ```
 
 The usage line names only the flags of the distribution. So the usage line of `callmap-go` has no `--tsconfig`.
 
 ## The notes
 
-A note tells the reader about a part of the review that the command left out or read in another way. The review still runs. These are the notes of `callmap` today:
+A note tells the reader about a part of the review that the command left out or read in another way. The review still runs. The line for the files of another language, above, is a note too.
 
-- `callmap skipped the Go files, because go is not on the PATH.`
-- `callmap skipped the Go files, because the Go extractor needs go 1.26 or later, and the go on the PATH is <version>.`
-- `callmap skipped the Ruby files, because ruby is not on the PATH.`
-- `callmap read each Go module on its own, because the go tool refused the go.work: <reason>`
-- `callmap skipped the Go module <module>, because the go tool refused it: <reason>`
-- `callmap read no functions in <file>, because Ripper could not parse it.`
+`callmap-ts` prints no other note.
 
-`callmap-go` runs the Go extractor in its own process, with the go tool of the `PATH`. So it prints only the 2 notes of the go tool, with its own name: `callmap-go read each Go module on its own, ...` and `callmap-go skipped the Go module ...`.
+`callmap-go` runs the Go extractor in its own process, with the go tool of the `PATH`. So it prints the 2 notes of the go tool:
 
-`callmap-rb` runs the Ruby extractor in its own process, with the ruby that runs `callmap-rb`. So it prints only the note of Ripper, with its own name: `callmap-rb read no functions in <file>, because Ripper could not parse it.`
+- `callmap-go read each Go module on its own, because the go tool refused the go.work: <reason>`
+- `callmap-go skipped the Go module <module>, because the go tool refused it: <reason>`
+
+`callmap-rb` runs the Ruby extractor in its own process, with the ruby that runs `callmap-rb`. So it prints the note of Ripper:
+
+- `callmap-rb read no functions in <file>, because Ripper could not parse it.`
 
 The command prints no note for a review over the Diff limit. The page lays out every view, as ADR-0037 records, so the level bar of the page tells the reader.
 
@@ -157,7 +157,7 @@ The base cache keeps the graph document of a base, so that a second review of th
 
 The glossary lists the dependency files of each language. If a flag or a setting of the language changes the graph document, the key also holds it. For example, the key of `callmap-ts` holds the `--tsconfig` path. The key of `callmap-go` holds the go env settings `CGO_ENABLED`, `GOOS`, `GOARCH`, `GOEXPERIMENT` and `GOFLAGS`, because they choose the files of a build. The version of `callmap-go` is the SHA-256 of its executable, so each build of `callmap-go` keys its own entries. Ruby has no dependency file. The version of `callmap-rb` is the SHA-256 of its Ruby files and of the `RUBY_DESCRIPTION` of the ruby that runs it, because Ripper reads each file as that ruby reads it.
 
-The cache home is `$XDG_CACHE_HOME` if it holds an absolute path, else `~/.cache`. Each distribution keeps its cache in its own folder in the cache home, named for its command. For example, `callmap-go` uses `~/.cache/callmap-go`. `callmap` uses `~/.cache/callmap` today.
+The cache home is `$XDG_CACHE_HOME` if it holds an absolute path, else `~/.cache`. Each distribution keeps its cache in its own folder in the cache home, named for its command. For example, `callmap-go` uses `~/.cache/callmap-go`.
 
 - **One folder for each repo.** The name of the folder is the SHA-256 of the git common folder of the repo. So the worktrees of one repo share their entries.
 - **One file for each entry.** The name of the file is the SHA-256 of the key, with `.json`. The file holds the graph document.

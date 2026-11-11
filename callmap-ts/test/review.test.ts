@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewInputOfPage } from '@callmap/review-input';
 import { describe, expect, it } from 'vitest';
-import { featureBranchRepo, goRepo, rubyRepo } from '../../packages/cli/test/fixture-repo.ts';
+import { featureBranchRepo, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
 import { tempDir } from '../../test/temp-dir.ts';
 
 const CALLMAP_TS = fileURLToPath(new URL('../src/cli.ts', import.meta.url));

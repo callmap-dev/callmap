@@ -1,7 +1,7 @@
 # The Ripper script of the Ruby extractor. It reads each file with Ripper and reports its class and
 # module bodies, its methods and the call sites inside them. Which function a call ties to is a
-# question the rules answer: the TypeScript half of @callmap/extractor-ruby, or the rules of
-# callmap-rb, which loads this file. Ripper ships with every Ruby, so the extractor needs no gem.
+# question the rules of callmap-rb answer, and they load this file. Ripper ships with every Ruby, so
+# the extractor needs no gem.
 #
 # Usage: ruby read.rb <repo> < repo-relative paths, one per line
 # Writes {"ruby": RUBY_DESCRIPTION, "files": {"<path>": {"parsed": true, "bodies": [...],

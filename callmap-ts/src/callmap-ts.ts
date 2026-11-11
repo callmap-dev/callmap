@@ -1,6 +1,6 @@
-import type { Distribution } from '@callmap/cli/src/distribution.ts';
-import { TYPESCRIPT_FILES } from '@callmap/cli/src/languages.ts';
-import { typescriptExtractor } from '@callmap/cli/src/typescript-extractor.ts';
+import type { Distribution } from './distribution.ts';
+import { TYPESCRIPT_FILES } from './languages.ts';
+import { typescriptExtractor } from './typescript-extractor.ts';
 
 export const CALLMAP_TS: Distribution = {
   command: 'callmap-ts',

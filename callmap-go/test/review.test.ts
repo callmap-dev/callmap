@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { reviewInputOfPage } from '@callmap/review-input';
 import type { ReviewInput } from '@callmap/review-input';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, goRepo, rubyRepo } from '../../packages/cli/test/fixture-repo.ts';
+import { featureBranchRepo, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
 import { tempDir } from '../../test/temp-dir.ts';
 
 const MODULE = fileURLToPath(new URL('..', import.meta.url));

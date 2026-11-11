@@ -1,4 +1,4 @@
-// The Go extractor as a CLI for the callmap command of @callmap/cli: a separate process that reads a
+// The Go extractor as a CLI for the tests of callmap-go in test/: a separate process that reads a
 // repo and writes its graph document to standard output (ADR-0009). Nothing but the document goes to standard
 // output, so the caller can pipe it straight into the core. A refusal goes to standard
 // error with a non-zero exit, so a repo it could not read is never mistaken for a repo with
