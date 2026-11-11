@@ -1,5 +1,6 @@
 import type { FunctionId } from '@callmap/graph-document';
 import type { ReaderPageData } from './data.ts';
+import type { Levels } from './levels.ts';
 import type { Scene } from './scene.ts';
 
 export type Choice =
@@ -23,6 +24,7 @@ export interface View {
   readonly callLimitOf?: (data: ReaderPageData) => number;
   readonly countOf?: (data: ReaderPageData) => { readonly count: number; readonly words: string };
   readonly firstChoice?: (data: ReaderPageData) => Choice;
+  readonly levelsOf?: (data: ReaderPageData, opened: ReadonlySet<FunctionId>) => Levels;
   readonly sceneOf: (
     data: ReaderPageData,
     opened: ReadonlySet<FunctionId>,
@@ -48,6 +50,3 @@ export const overLimitOf = (
   if (calls <= limit) return undefined;
   return { functions: boxes.filter(({ kind }) => kind === 'function').length, calls, limit };
 };
-
-export const openingOf = <T>(items: readonly [T, ...T[]], isOver: (item: T) => boolean): T =>
-  items.find((item) => !isOver(item)) ?? items[0];

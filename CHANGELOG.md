@@ -4,6 +4,7 @@ Each version of Callmap gets a section here. The changes that no version holds y
 
 ## Unreleased
 
+- Over the Diff limit, the Diff view shows one level at a time, as ADR-0031 records. Its levels hold only the changed functions, their neighbours and the functions that a next hop or a search opened. A review over the Diff limit opens on the Diff view, and the level bar says that the review is over the limit. The message of the Diff tab that sent the reader to the Whole project view goes away. On a level of the Diff view, "Clear next hops" removes the next hops, and the Diff view is one drawing again when it is at the limit or under it.
 - `callmap` prints one line on each run that names `callmap-ts`, which replaces `@callmap/cli`. It still writes the page. This is the last release of `@callmap/cli`.
 - The data block of the reader page holds the review input, format version 1: the graph documents of the base and the branch, the packed sources, the facts from git and the editor. The page computes the review when it opens, so the command runs no review. A page that does not know the format version of its review input shows a message that says which side to update. The base sources are the files that the branch changed in scope, as ADR-0038 records.
 - The reader page lays out the Diff view and the Whole project view itself, with ELK in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. The command lays out no view and no longer prints the note that a view is over the Diff limit.

@@ -175,7 +175,7 @@ The number of calls on a bundled line, in a rounded box on the line. It shows on
 _Avoid_: call count label, edge label
 
 **Level bar**:
-The bar at the top of the graph on a level of the Whole project view or of the Diff view. It holds the breadcrumb, the "Up one level" button and the count of the boxes and the lines of the open level. On a level of the Diff view, it also says that the review is over the Diff limit.
+The bar at the top of the graph on a level of the Whole project view or of the Diff view. It holds the breadcrumb, the "Up one level" button and the count of the boxes and the lines of the open level. On a level of the Diff view, it also says that the review is over the Diff limit. When the Diff view holds next hops, it also holds the "Clear next hops" button, which removes them.
 _Avoid_: toolbar, header
 
 **Overview map**:

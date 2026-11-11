@@ -4,11 +4,12 @@ import type { ReaderPageData } from './data.ts';
 import { drawingOf } from './drawing.ts';
 import { viewLayoutsOf } from './layout.ts';
 import type { Laid, LaidFunction, Rect } from './layout.ts';
-import type { ReaderPage } from './reader-page.ts';
+import type { Levels } from './levels.ts';
+import type { OpenLevel, ReaderPage } from './reader-page.ts';
 import { isHiddenBy } from './scene.ts';
 import type { FunctionBox, Scene } from './scene.ts';
 import { tabBarOf } from './tabs.ts';
-import { openingOf, overLimitOf } from './view.ts';
+import { choiceKeyOf, overLimitOf } from './view.ts';
 import type { Choice, OverLimit, View } from './view.ts';
 
 export interface Interaction {
@@ -26,6 +27,7 @@ interface ViewState {
   readonly view: View;
   readonly opened: Set<FunctionId>;
   choice: Choice | undefined;
+  over: OverLimit | undefined;
   scene: Scene | undefined;
   laid: Promise<Laid> | undefined;
 }
@@ -73,6 +75,7 @@ export const interactionOf = (
     view,
     opened: new Set(),
     choice: view.firstChoice?.(data),
+    over: undefined,
     scene: undefined,
     laid: undefined,
   })) as [ViewState, ...ViewState[]];
@@ -86,18 +89,52 @@ export const interactionOf = (
     return target.scene;
   };
 
-  const overLimitAt = (target: ViewState): OverLimit | undefined =>
-    overLimitOf(target.view, data, sceneOf(target));
-
-  let current = openingOf(states, (state) => overLimitAt(state) !== undefined);
+  let current = states[0];
 
   const tellOverLimit = (over: OverLimit | undefined): void => {
     for (const handler of overLimitHandlers) handler(over);
   };
 
+  const openLevelAt = ({ view, opened, choice }: ViewState): OpenLevel | undefined => {
+    const levels = choice?.kind === 'level' ? view.levelsOf?.(data, opened) : undefined;
+    return levels === undefined || choice?.kind !== 'level'
+      ? undefined
+      : { levels, path: choice.path };
+  };
+
+  const levelOn = (levels: Levels, level: string, id: FunctionId): boolean =>
+    levels.sceneOf(level).boxes.some((box) => box.kind === 'function' && box.id === id);
+
+  const levelChoiceOf = (target: ViewState, levels: Levels, place?: FunctionId): Choice => {
+    const open = target.choice?.kind === 'level' ? target.choice.path : undefined;
+    if (place !== undefined && (open === undefined || !levelOn(levels, open, place))) {
+      const file = levels.fileOf(place);
+      if (file !== undefined) return { kind: 'level', path: file };
+    }
+    if (open !== undefined && levels.holds(open)) return { kind: 'level', path: open };
+    return { kind: 'level', path: levels.top };
+  };
+
+  const fitShape = (target: ViewState, place?: FunctionId): void => {
+    const { view, opened } = target;
+    if (view.callLimitOf === undefined || view.levelsOf === undefined) return;
+    target.over = overLimitOf(view, data, view.sceneOf(data, opened, undefined));
+    const choice =
+      target.over === undefined
+        ? undefined
+        : levelChoiceOf(target, view.levelsOf(data, opened), place);
+    const before = target.choice === undefined ? '' : choiceKeyOf(target.choice);
+    const after = choice === undefined ? '' : choiceKeyOf(choice);
+    if (before === after) return;
+    target.choice = choice;
+    if (target !== current) return;
+    drawn = undefined;
+    if (choice !== undefined) for (const handler of choiceHandlers) handler(view, choice);
+  };
+
   const paint = (target: ViewState, laid: Laid, anchor?: FunctionId): void => {
     if (target !== current) return;
-    tellOverLimit(undefined);
+    tellOverLimit(target.over);
     drawing.draw(laid, anchor);
     hovered = undefined;
     drawing.highlight(selected, hovered);
@@ -105,27 +142,14 @@ export const interactionOf = (
     drawn = target;
   };
 
-  const leaveUndrawn = (target: ViewState, over: OverLimit): void => {
-    if (target !== current) return;
-    drawn = undefined;
-    tellOverLimit(over);
-  };
-
   const functionBoxOf = (id: FunctionId): FunctionBox | undefined =>
     sceneOf(current).boxes.find(
       (box): box is FunctionBox => box.kind === 'function' && box.id === id,
     );
 
-  const render = (target: ViewState, anchor?: FunctionId): Promise<void> => {
+  const render = (target: ViewState, anchor?: FunctionId, place?: FunctionId): Promise<void> => {
+    fitShape(target, place);
     target.scene = undefined;
-    const over = overLimitAt(target);
-    if (over !== undefined) {
-      target.laid = undefined;
-      return layouts.whileBusy(() => {
-        leaveUndrawn(target, over);
-        return Promise.resolve();
-      });
-    }
     const layout = layouts.layoutOf({
       view: target.view,
       choice: target.choice,
@@ -211,15 +235,27 @@ export const interactionOf = (
   };
 
   const show = (ids: readonly FunctionId[], anchor?: FunctionId): Promise<void> => {
-    const fresh = ids.filter((id) => !current.opened.has(id) && functionBoxOf(id) === undefined);
+    const levels = openLevelAt(current)?.levels;
+    const fresh = ids.filter(
+      (id) =>
+        !current.opened.has(id) &&
+        functionBoxOf(id) === undefined &&
+        levels?.fileOf(id) === undefined,
+    );
     if (fresh.length === 0) return layouts.idle();
     for (const id of fresh) current.opened.add(id);
-    return render(current, anchor);
+    return render(current, anchor, ids[0]);
+  };
+
+  const clearNextHops = (): Promise<void> => {
+    if (current.opened.size === 0) return layouts.idle();
+    current.opened.clear();
+    return render(current);
   };
 
   const choose = (choice: Choice): Promise<void> => {
     current.choice = choice;
-    current.opened.clear();
+    if (choice.kind !== 'level') current.opened.clear();
     drawn = undefined;
     for (const handler of choiceHandlers) handler(current.view, choice);
     return render(current);
@@ -227,7 +263,9 @@ export const interactionOf = (
 
   const reveal = (id: FunctionId): Promise<void> => {
     if (functionBoxOf(id) !== undefined) return layouts.idle();
-    const choice = current.view.choiceShowing?.(data, id);
+    const file = openLevelAt(current)?.levels.fileOf(id);
+    const choice: Choice | undefined =
+      file === undefined ? current.view.choiceShowing?.(data, id) : { kind: 'level', path: file };
     return choice === undefined ? show([id]) : choose(choice);
   };
 
@@ -245,7 +283,7 @@ export const interactionOf = (
     current = target;
     tabBar.select(name);
     for (const handler of viewHandlers) handler(target.view);
-    tellOverLimit(undefined);
+    tellOverLimit(target.over);
     const { laid } = target;
     if (laid === undefined) return render(target);
     return layouts.whileBusy(async () => {
@@ -282,6 +320,9 @@ export const interactionOf = (
       choiceHandlers.push(handler);
     },
     currentView: () => current.view,
+    openLevel: () => openLevelAt(current),
+    hasNextHops: () => current.opened.size > 0,
+    clearNextHops,
     onOverLimitChange: (handler) => {
       overLimitHandlers.push(handler);
     },

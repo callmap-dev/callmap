@@ -1,6 +1,6 @@
 # The reader page
 
-The page is one HTML file with no network access, so it opens from a file anywhere. ELK lays out the graph, and the page draws it as SVG. The page lays out each view and each level when you open it, in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. A Diff view over the Diff limit gets no layout. The page stores the file texts as one gzip block, and the browser unpacks it with `DecompressionStream` after the first view draws. Each call is a line that turns only at 90 degrees and never goes through a box. The callers stand on the left and the callees on the right. The page follows the light mode or the dark mode of the system.
+The page is one HTML file with no network access, so it opens from a file anywhere. ELK lays out the graph, and the page draws it as SVG. The page lays out each view and each level when you open it, in a Web Worker, so the page does not freeze. The graph shows as busy until the layout ends. The page stores the file texts as one gzip block, and the browser unpacks it with `DecompressionStream` after the first view draws. Each call is a line that turns only at 90 degrees and never goes through a box. The callers stand on the left and the callees on the right. The page follows the light mode or the dark mode of the system.
 
 Each mark is a small chip with a glyph on a neutral box. The glyph is Δ for changed, + for added, − for removed, · for neighbour, ? for an open end. So a screen full of changes stays calm, and a mark does not depend on colour alone. A removed function also has a dashed border.
 
@@ -62,7 +62,7 @@ An arrow selects the caller or the callee with the smallest vertical distance to
 
 A busy line with "Laying out" shows only when a layout takes more than 150 ms. A branch that changes no function shows "No changed functions" in place of the Diff view. A button there opens the Whole project view.
 
-The Diff view draws up to 2,000 lines, the Diff limit. Each line is one call. A review over the Diff limit opens on the Whole project view. The command prints the count of functions and calls to stderr. The Diff tab then says what it left out, in place of a drawing. A next hop or a search that takes the Diff view over the limit gets the same message. The Whole project view reads the same changes level by level.
+The Diff view draws up to 2,000 lines in one drawing, the Diff limit. Each line is one call. Over the Diff limit, the Diff view shows one level at a time, as the Whole project view does. Its levels hold only the functions of the Diff view: the changed functions, their neighbours and the functions that a next hop or a search opened. A folder or a file that holds none of them gets no box. The view opens at the deepest folder that holds every function of the Diff view. The level bar says that the review is over the Diff limit. A next hop or a search that takes the Diff view over the limit opens the level of the file of the clicked function, with that function selected. A next hop on a level adds its callers and callees to the levels, and the level draws again. The page keeps the next hops when you open another level. On a level of the Diff view, the button "Clear next hops" in the level bar removes them. If the Diff view is then at the limit or under it, it is one drawing again. ADR-0031 records these rules.
 
 ## The views
 
@@ -73,7 +73,7 @@ The tabs above the graph choose the view. Each view keeps the marks for added, r
   <img alt="The Diff view of the review fixture, with the changed function receipt selected and its diff in the code panel." src="screenshots/diff-view-light.png">
 </picture>
 
-- **Diff:** the changed functions and one hop around each, inside file frames. This view opens first, unless the review is over the Diff limit. A click on a function that the branch did not change opens its own callers and callees. In the other views, a click on a function only shows its code.
+- **Diff:** the changed functions and one hop around each, inside file frames. This view opens first. Over the Diff limit, it shows one level at a time. A click on a function that the branch did not change opens its own callers and callees. In the other views, a click on a function only shows its code.
 - **Whole project:** one level of the folder tree at a time, with a line between 2 boxes for the calls between them. The next part tells how the levels work.
 - **Folder:** a folder tree beside the graph. A click on a folder draws its functions, the calls between them, and the functions one hop outside the folder. The view draws these outside functions greyed, and it draws only the calls that touch a function of the folder.
 - **Route:** a list of entry points beside the graph. An entry point is a function in scope that no other function in scope calls. The entry points that reach a changed function come first. A click on an entry point draws its whole call tree. Each function shows once, so a cycle ends. A search opens the first entry point in the list that reaches the function. If no entry point reaches it, the view draws the call tree of the function itself.
