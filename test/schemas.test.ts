@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
 import type { ReviewInput } from '@callmap/review-input';
-import { reviewInputOfFile } from '../packages/cli/test/review-input-file.ts';
+import { reviewInputOfFile } from '../packages/reader-page/test/review-input-file.ts';
 import { graphDocumentProblemsOf, reviewInputProblemsOf } from './schemas.ts';
 
 const GRAPH_DOCUMENT: GraphDocument = {

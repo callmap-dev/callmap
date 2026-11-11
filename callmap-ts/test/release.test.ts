@@ -17,9 +17,14 @@ const jobOf = (name: string): string => {
 };
 
 describe('the release workflow', () => {
-  it('runs on a callmap-ts/v* tag and on a plain v* tag', () => {
+  it('runs on a callmap-ts/v* tag, and not on a plain v* tag, because @callmap/cli had its last release', () => {
     expect(RELEASE_WORKFLOW).toContain("      - 'callmap-ts/v*'\n");
-    expect(RELEASE_WORKFLOW).toContain("      - 'v*'\n");
+    expect(RELEASE_WORKFLOW).not.toContain("      - 'v*'\n");
+    expect(RELEASE_WORKFLOW).not.toContain('--workspace @callmap/cli');
+  });
+
+  it('packs no release assets', () => {
+    expect(RELEASE_WORKFLOW).not.toContain('release-assets');
   });
 
   it('publishes callmap-ts only on a callmap-ts/v* tag, with the OIDC token of a trusted publisher', () => {
@@ -42,12 +47,5 @@ describe('the release workflow', () => {
       expect(job.indexOf(`- run: ${step}`), step).toBeGreaterThan(-1);
     for (const step of ['conformance', 'test:pack'])
       expect(job.indexOf(step), step).toBeLessThan(publish);
-  });
-
-  it('releases only @callmap/cli on a plain v* tag', () => {
-    const job = jobOf('publish');
-    expect(job).toContain("if: startsWith(github.ref_name, 'v')");
-    expect(job).toContain('- run: npm publish --workspace @callmap/cli');
-    expect(job).not.toContain('callmap-ts');
   });
 });

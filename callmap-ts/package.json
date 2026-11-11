@@ -31,9 +31,15 @@
     "typescript": "6.0.3"
   },
   "devDependencies": {
-    "@callmap/cli": "*",
-    "@callmap/extractor-typescript": "*",
+    "@callmap/editor-link": "*",
+    "@callmap/graph-document": "*",
+    "@callmap/reader-page": "*",
+    "@callmap/review": "*",
     "@callmap/review-input": "*",
+    "@callmap/scope": "*",
+    "@testing-library/dom": "^10.4.2",
+    "@types/jsdom": "^30.0.0",
+    "jsdom": "^30.1.3",
     "rolldown": "^1.2.14"
   }
 }

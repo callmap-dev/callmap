@@ -10,19 +10,18 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readRuby } from '@callmap/extractor-ruby';
 import type { GraphDocument } from '@callmap/graph-document';
 import { reviewInputOfPage } from '@callmap/review-input';
 import type { ReviewInput } from '@callmap/review-input';
-import { effectiveScope } from '@callmap/scope';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { featureBranchRepo, git, goRepo, rubyRepo } from '../../packages/cli/test/fixture-repo.ts';
+import { featureBranchRepo, git, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
 import { tempDir } from '../../test/temp-dir.ts';
 
 const GEM_FOLDER = fileURLToPath(new URL('..', import.meta.url));
 const SUITE = fileURLToPath(new URL('../../packages/conformance/src/cli.ts', import.meta.url));
-const EXTRACTOR_FIXTURE = fileURLToPath(
-  new URL('../../packages/extractor-ruby/fixture', import.meta.url),
+const EXTRACTOR_FIXTURE = fileURLToPath(new URL('fixture', import.meta.url));
+const EXTRACTOR_FIXTURE_DOCUMENT = fileURLToPath(
+  new URL('fixture-graph-document.json', import.meta.url),
 );
 
 const TYPESCRIPT_LINE =
@@ -125,15 +124,18 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
     expect(input.branch[0]?.checker.name).toBe('Callmap Ruby rules');
   });
 
-  it('gives the graph documents of the extractor of today on every folder of its fixture, with the type flow', () => {
+  it('gives the graph document of the Ruby extractor of @callmap/cli on every folder of its fixture, with the type flow', () => {
     const repo = extractorFixtureRepo();
     const { finished, out } = runCallmapRb(repo);
     expect(finished.status, finished.stderr).toBe(0);
     const [branch] = reviewInputOf(out).branch;
-    const today = readRuby({ repo, scope: effectiveScope([], false) }).document;
+    const expected = JSON.parse(readFileSync(EXTRACTOR_FIXTURE_DOCUMENT, 'utf8')) as Omit<
+      GraphDocument,
+      'checker'
+    >;
     if (branch === undefined) throw new Error('the review input holds no branch document');
-    expect(withoutChecker(branch)).toEqual(withoutChecker(today));
-    const typeFlowCallers = today.calls.filter(({ caller }) =>
+    expect(withoutChecker(branch)).toEqual(expected);
+    const typeFlowCallers = expected.calls.filter(({ caller }) =>
       ['rules/finders/', 'rules/local-variables/', 'rules/shared-instance-variables/'].some(
         (folder) => caller.startsWith(folder),
       ),
@@ -245,7 +247,7 @@ describe('callmap-rb review, from a gem install with no Node on the PATH', () =>
 
 describe('the gem callmap-rb', () => {
   it('holds the page template of the build of the same commit', async () => {
-    const { pageTemplate } = await import('../../packages/cli/src/page-build.ts');
+    const { pageTemplate } = await import('@callmap/reader-page');
     const unpacked = tempDir('callmap-rb-unpacked-');
     execFileSync('gem', ['unpack', gemFile, '--target', unpacked], { encoding: 'utf8' });
     const [folder = ''] = readdirSync(unpacked);
@@ -281,7 +283,7 @@ describe('the CI of callmap-rb', () => {
     expect(start).toBeGreaterThan(-1);
     const job = ci.slice(start);
     const steps = [
-      '- run: npm run build --workspace @callmap/cli',
+      '- run: npm run build --workspace @callmap/reader-page',
       '- run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"',
       '- run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"',
       '- run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"',
@@ -312,7 +314,7 @@ describe('the release of callmap-rb', () => {
   it('checks the tag against the version of the gem, and builds, installs and runs the conformance suite before it publishes the gem with a trusted publisher', () => {
     const steps = [
       `- run: test "$GITHUB_REF_NAME" = "callmap-rb/v$(ruby -r ./callmap-rb/lib/callmap_rb/version -e 'print CallmapRb::VERSION')"`,
-      '- run: npm run build --workspace @callmap/cli',
+      '- run: npm run build --workspace @callmap/reader-page',
       '- run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"',
       '- run: gem install --local --no-document --install-dir "$RUNNER_TEMP/gem-home" --bindir "$RUNNER_TEMP/gem-home/bin" "$RUNNER_TEMP/callmap-rb.gem"',
       '- run: npm run conformance -- --language ruby "$RUNNER_TEMP/gem-home/bin/callmap-rb"',

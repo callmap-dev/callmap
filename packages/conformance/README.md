@@ -14,13 +14,13 @@ The suite makes a git repo from each folder. It commits `base/` on the branch `m
 
 ## Run the suite
 
-Give the review command of the distribution after the flags. The suite adds `review <repo> --no-open --no-cache --out <file>` to it. For example, this runs the suite against the current `callmap` command:
+Give the review command of the distribution after the flags. The suite adds `review <repo> --no-open --no-cache --out <file>` to it. A distribution reads one language, so name its language. For example, this runs the suite against `callmap-ts` from the source of the clone:
 
 ```sh
-npm run conformance -- node packages/cli/src/cli.ts
+npm run conformance -- --language typescript node callmap-ts/src/cli.ts
 ```
 
-A distribution of one language names its language. For example:
+And this runs it against an installed `callmap-go`:
 
 ```sh
 npm run conformance -- --language go callmap-go
@@ -45,7 +45,7 @@ The suite compares the result with the expected file as JSON values. The key ord
 Update an expected file only when the review input changes on purpose.
 
 1. Change the files in `base/` or `branch/`, or change the review command.
-2. Run the suite with `--update` and with the language of the fixture repo. For example: `npm run conformance -- --update --language go node packages/cli/src/cli.ts`.
+2. Run the suite with `--update`, with the language of the fixture repo and with the distribution of that language. For example: `npm run conformance -- --update --language go callmap-go`.
 3. Read the diff of the expected file in git. Make sure that each change is the change that you want.
 4. Commit the expected file in the same commit as the change.
 

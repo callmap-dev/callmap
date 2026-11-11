@@ -44,8 +44,8 @@ describe('the release of callmap-go', () => {
   it('builds the page template from the tagged commit, and fails before the release when the copy differs', () => {
     const job = jobOf(RELEASE_WORKFLOW, 'release-callmap-go');
     const steps = [
-      '- run: npm run build --workspace @callmap/cli',
-      '- run: cmp packages/cli/dist/page-template.html callmap-go/page-template.html',
+      '- run: npm run build --workspace @callmap/reader-page',
+      '- run: cmp packages/reader-page/dist/page-template.html callmap-go/page-template.html',
       GO_INSTALL,
       CONFORMANCE,
       '- run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes',
@@ -56,7 +56,7 @@ describe('the release of callmap-go', () => {
   });
 
   it('leaves the other releases to their own tags', () => {
-    for (const job of ['publish', 'publish-callmap-ts']) {
+    for (const job of ['publish-callmap-ts', 'publish-callmap-rb']) {
       expect(jobOf(RELEASE_WORKFLOW, job)).not.toContain("'callmap-go/v'");
       expect(jobOf(RELEASE_WORKFLOW, job)).not.toContain('go install');
     }

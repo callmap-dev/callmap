@@ -38,8 +38,6 @@ jobs:
       # full TypeScript compiler in a child process need more than the default.
       - run: npm test -- --testTimeout=30000 --hookTimeout=60000
 
-      - run: npm run conformance -- node packages/cli/src/cli.ts
-
       - run: npm run conformance -- --language typescript node callmap-ts/src/cli.ts
 
   callmap-go:
@@ -91,7 +89,7 @@ jobs:
       - run: npm ci
 
       # The gem build copies the page template of the build of the same commit.
-      - run: npm run build --workspace @callmap/cli
+      - run: npm run build --workspace @callmap/reader-page
 
       - run: gem build callmap-rb.gemspec --output "$RUNNER_TEMP/callmap-rb.gem"
         working-directory: callmap-rb
@@ -116,12 +114,7 @@ jobs:
           node-version: 22.x
           cache: npm
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: callmap-go/go.mod
-          cache-dependency-path: callmap-go/go.mod
-
       - run: npm ci
 
-      # It packs @callmap/cli and callmap-ts, and runs the review command of each install.
+      # It packs callmap-ts, and runs the review command of the install.
       - run: npm run test:pack

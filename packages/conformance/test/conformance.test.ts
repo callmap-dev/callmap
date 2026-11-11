@@ -6,10 +6,8 @@ import { describe, expect, it } from 'vitest';
 import { tempDir } from '../../../test/temp-dir.ts';
 
 const SUITE = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
-const CALLMAP = fileURLToPath(new URL('../../cli/src/cli.ts', import.meta.url));
 const REPLAYED_REVIEW = fileURLToPath(new URL('./replayed-review.ts', import.meta.url));
 const FIXTURE_REPOS = fileURLToPath(new URL('../fixture-repos', import.meta.url));
-const CI_WORKFLOW = fileURLToPath(new URL('../../../.github/workflows/ci.yml', import.meta.url));
 const GO_EXPECTED = join(FIXTURE_REPOS, 'go/review/expected-review-input.json');
 
 type Json = null | boolean | number | string | readonly Json[] | { readonly [key: string]: Json };
@@ -59,20 +57,6 @@ const goDocumentWith = (document: Json | undefined, checkerVersion: string): Jso
 };
 
 describe('the conformance suite', () => {
-  it('passes the current callmap command on every fixture repo', () => {
-    const finished = runSuite(process.execPath, CALLMAP);
-    expect(finished.stderr).toBe('');
-    expect(finished.stdout.split('\n')).toEqual([
-      'ok go/review',
-      'ok ruby/review',
-      'ok ruby/type-flow',
-      'ok typescript/levels',
-      'ok typescript/review',
-      '',
-    ]);
-    expect(finished.status).toBe(0);
-  }, 300_000);
-
   it('masks the commit hashes, the repo root and the checker version before the compare', () => {
     const expected = expectedGoInput();
     const fromAnotherMachine = {
@@ -165,13 +149,5 @@ describe('the expected files', () => {
 
   it.each(expectedFiles)('%s keeps its keys in sorted order', (file) => {
     expect(keysInSortedOrder(jsonOf(readFileSync(join(FIXTURE_REPOS, file), 'utf8')))).toBe(true);
-  });
-});
-
-describe('the CI of this repo', () => {
-  it('runs the conformance suite against the current callmap command', () => {
-    expect(readFileSync(CI_WORKFLOW, 'utf8')).toContain(
-      'npm run conformance -- node packages/cli/src/cli.ts',
-    );
   });
 });

@@ -10,17 +10,16 @@
     "callmap-ts"
   ],
   "scripts": {
-    "build": "npm run build --workspace @callmap/cli --workspace callmap-ts",
+    "build": "npm run build --workspace @callmap/reader-page --workspace callmap-ts",
     "prepare": "npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/cli/page && tsc --noEmit -p packages/cli/test-browser",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/reader-page/page && tsc --noEmit -p packages/reader-page/test-browser",
     "lint": "npm run format:check && npm run typecheck && eslint .",
     "test": "vitest run",
     "test:browser": "vitest run --config vitest.browser.config.ts",
     "test:pack": "vitest run --config vitest.pack.config.ts",
     "conformance": "node packages/conformance/src/cli.ts",
-    "release-assets": "node scripts/release-assets.ts",
     "screenshots": "vitest run --config vitest.screenshots.config.ts"
   },
   "engines": {

@@ -28,7 +28,7 @@ const manifests = [REPO_ROOT, ...workspaceDirectories].map(
 describe('the workspace manifests', () => {
   it('finds the workspaces from the workspaces field of the root manifest', () => {
     expect(workspaceDirectories.map((directory) => relative(REPO_ROOT, directory))).toContain(
-      join('packages', 'cli'),
+      join('packages', 'reader-page'),
     );
   });
 
