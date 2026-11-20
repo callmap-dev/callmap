@@ -312,3 +312,59 @@ describe('a workspace package', () => {
     expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
   });
 });
+
+const importsOf = (...specifiers: readonly string[]): string =>
+  specifiers.map((specifier) => `import '${specifier}';\n`).join('');
+
+describe('the missing packages', () => {
+  it('names each package that an import names and that resolves to no code, sorted and once', () => {
+    const repo = repoWith({
+      'src/a.ts': `${importsOf('zod', 'lodash/fp')}export { b } from 'left-pad';\n`,
+      'src/b.ts': `${importsOf('@shop/money', 'zod')}export const c = () => import('@shop/ui/button');\n`,
+    });
+    expect(extractGraphDocument({ repo }).missingPackages).toEqual([
+      '@shop/money',
+      '@shop/ui',
+      'left-pad',
+      'lodash',
+      'zod',
+    ]);
+  });
+
+  it('names no package when each import finds code', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': MONEY_CONFIG,
+      'node_modules/zod/package.json': JSON.stringify({ name: 'zod', types: 'index.d.ts' }),
+      'node_modules/zod/index.d.ts': 'export declare const z: number;\n',
+      'src/icons.d.ts': "declare module 'virtual:icons' { export const x: 1; }\n",
+      'src/a.ts': importsOf('zod', 'node:fs', 'path', 'virtual:icons', '@shop/money'),
+    });
+    expect(extractGraphDocument({ repo }).missingPackages).toEqual([]);
+  });
+
+  it('names a workspace package that no link in node_modules reaches', () => {
+    const repo = repoWith({
+      'packages/money/package.json': MONEY_PACKAGE,
+      'packages/money/tsconfig.json': MONEY_CONFIG,
+      'packages/money/src/index.ts': ROUNDED,
+      'apps/web/src/tax.ts': IMPORTS_ROUNDED,
+    });
+    expect(extractGraphDocument({ repo }).missingPackages).toEqual(['@shop/money']);
+  });
+
+  it('names no relative import and no path alias that finds no file', () => {
+    const repo = repoWith({
+      'apps/web/tsconfig.json': aliasConfig('./src/*'),
+      'apps/web/src/a.ts': importsOf('./nowhere', '../nowhere', '@/nowhere'),
+    });
+    expect(extractGraphDocument({ repo }).missingPackages).toEqual([]);
+  });
+
+  it('names only the packages that the files in scope import', () => {
+    const repo = repoWith({
+      'src/a.ts': importsOf('zod'),
+      'scripts/b.ts': importsOf('left-pad'),
+    });
+    expect(extractGraphDocument({ repo, scope: ['src/**'] }).missingPackages).toEqual(['zod']);
+  });
+});

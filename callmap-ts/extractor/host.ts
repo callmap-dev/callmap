@@ -1,13 +1,19 @@
 import * as ts from 'typescript';
 import type { CompilerOptionsOfFiles } from './config.ts';
+import type { UnresolvedImports } from './missing-packages.ts';
 import { workspacePackagesOf } from './workspace-package.ts';
 
 /**
  * A compiler host that resolves the imports of each file with the options of that file, so one
  * program holds every file and a call can cross from one app into another. An import of a
- * workspace package resolves to the source of that package.
+ * workspace package resolves to the source of that package. Each import that resolves to no file
+ * goes into the record of unresolved imports.
  */
-export const compilerHostOf = (repo: string, options: CompilerOptionsOfFiles): ts.CompilerHost => {
+export const compilerHostOf = (
+  repo: string,
+  options: CompilerOptionsOfFiles,
+  unresolved: UnresolvedImports,
+): ts.CompilerHost => {
   const host = ts.createCompilerHost(options.program);
   const workspacePackages = workspacePackagesOf(repo, options, host);
   const caches = new Map<ts.CompilerOptions, ts.ModuleResolutionCache>();
@@ -24,8 +30,8 @@ export const compilerHostOf = (repo: string, options: CompilerOptionsOfFiles): t
   };
   host.resolveModuleNameLiterals = (literals, containingFile, redirectedReference, _, file) => {
     const fileOptions = options.of(containingFile);
-    return literals.map((literal) =>
-      workspacePackages.toSource(
+    return literals.map((literal) => {
+      const resolution = workspacePackages.toSource(
         ts.resolveModuleName(
           literal.text,
           containingFile,
@@ -35,8 +41,10 @@ export const compilerHostOf = (repo: string, options: CompilerOptionsOfFiles): t
           redirectedReference,
           ts.getModeForUsageLocation(file, literal, fileOptions),
         ),
-      ),
-    );
+      );
+      if (resolution.resolvedModule === undefined) unresolved.add(containingFile, literal.text);
+      return resolution;
+    });
   };
   return host;
 };

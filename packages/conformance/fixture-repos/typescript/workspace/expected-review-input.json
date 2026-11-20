@@ -85,6 +85,7 @@
         }
       ],
       "language": "typescript",
+      "missingPackages": [],
       "openEnds": [],
       "scope": [
         "!**/*_test.go",
@@ -105,12 +106,17 @@
         {
           "callee": "apps/admin/src/format.ts#format",
           "caller": "apps/admin/src/dashboard.ts#dashboard",
-          "line": 4
+          "line": 5
         },
         {
           "callee": "packages/money/src/index.ts#rounded",
           "caller": "apps/admin/src/dashboard.ts#dashboard",
-          "line": 4
+          "line": 5
+        },
+        {
+          "callee": "apps/admin/src/dashboard.ts#dashboard",
+          "caller": "apps/admin/src/dashboard.ts#notify",
+          "line": 7
         },
         {
           "callee": "apps/web/src/format.ts#format",
@@ -150,11 +156,19 @@
       "functions": [
         {
           "file": "apps/admin/src/dashboard.ts",
-          "firstLine": 4,
+          "firstLine": 5,
           "id": "apps/admin/src/dashboard.ts#dashboard",
-          "lastLine": 4,
+          "lastLine": 5,
           "name": "dashboard",
           "sourceHash": "34dc72102399c8aaf4c86f01a69092d9872241279bfd7420e018e883ef14ec38"
+        },
+        {
+          "file": "apps/admin/src/dashboard.ts",
+          "firstLine": 7,
+          "id": "apps/admin/src/dashboard.ts#notify",
+          "lastLine": 7,
+          "name": "notify",
+          "sourceHash": "bd0182cf48991b31651c7109674359f0da10354e147caecddd10c2c3dc71880d"
         },
         {
           "file": "apps/admin/src/format.ts",
@@ -214,7 +228,17 @@
         }
       ],
       "language": "typescript",
-      "openEnds": [],
+      "missingPackages": [
+        "sonner"
+      ],
+      "openEnds": [
+        {
+          "caller": "apps/admin/src/dashboard.ts#notify",
+          "expression": "toast",
+          "line": 7,
+          "reason": "missing-module"
+        }
+      ],
       "scope": [
         "!**/*_test.go",
         "!**/*.test.*",
@@ -246,7 +270,7 @@
       "apps/web/src/checkout.ts": "import { format } from '@/format';\n\nexport const checkout = (cents: number): string => format(cents);\n"
     },
     "branch": {
-      "apps/admin/src/dashboard.ts": "import { rounded } from '@shop/money';\nimport { format } from '@/format';\n\nexport const dashboard = (count: number): string => `Orders: ${format(rounded(count))}`;\n",
+      "apps/admin/src/dashboard.ts": "import { rounded } from '@shop/money';\nimport { toast } from 'sonner';\nimport { format } from '@/format';\n\nexport const dashboard = (count: number): string => `Orders: ${format(rounded(count))}`;\n\nexport const notify = (count: number): void => toast(dashboard(count));\n",
       "apps/admin/src/format.ts": "export const format = (count: number): string => `${count} orders`;\n",
       "apps/web/src/checkout.ts": "import { format } from '@/format';\nimport { taxed } from '@/tax';\n\nexport const checkout = (cents: number): string => format(taxed(cents));\n",
       "apps/web/src/format.ts": "export const format = (cents: number): string => `$${(cents / 100).toFixed(2)}`;\n",

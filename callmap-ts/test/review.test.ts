@@ -1,11 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import type { SpawnSyncReturns } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewInputOfPage } from '@callmap/review-input';
 import { describe, expect, it } from 'vitest';
-import { featureBranchRepo, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
+import { commitFile, featureBranchRepo, git, goRepo, rubyRepo } from '../../test/fixture-repo.ts';
 import { tempDir } from '../../test/temp-dir.ts';
 
 const CALLMAP_TS = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
@@ -89,5 +89,54 @@ describe('callmap-ts review', () => {
       encoding: 'utf8',
     });
     expect(unknown.stderr).toBe('--nope is not a flag callmap-ts review knows\n');
+  });
+});
+
+const importsOf = (...packages: readonly string[]): string =>
+  `${packages.map((name) => `import '${name}';\n`).join('')}export const total = (): number => 1;\n`;
+
+const repoThatImports = (base: readonly string[], branch: readonly string[]): string => {
+  const repo = tempDir('callmap-review-');
+  git(repo, 'init', '--quiet', '--initial-branch', 'main');
+  commitFile(repo, 'total.ts', importsOf(...base));
+  git(repo, 'checkout', '--quiet', '-b', 'feature');
+  commitFile(repo, 'total.ts', importsOf(...branch, 'left-pad'));
+  return repo;
+};
+
+const install = (repo: string, name: string): void => {
+  mkdirSync(join(repo, 'node_modules', name), { recursive: true });
+  writeFileSync(join(repo, 'node_modules', name, 'package.json'), JSON.stringify({ name }));
+  writeFileSync(join(repo, 'node_modules', name, 'index.d.ts'), 'export {};\n');
+};
+
+describe('the warning for the missing packages', () => {
+  it('prints one line with the count, the first 5 names and what to do, and exits with 0', () => {
+    const repo = repoThatImports(
+      [],
+      ['zod', 'react', '@shop/ui/button', 'date-fns', 'ky', 'axios'],
+    );
+    const { finished, out } = runCallmapTs(repo);
+    expect(finished.stderr).toBe(
+      'The TypeScript imports of the branch name 7 packages that find no code: @shop/ui, axios, date-fns, ky, left-pad and 2 more. Each call into them is an open end, so install the dependencies and run the review again.\n',
+    );
+    expect(finished.status).toBe(0);
+    expect(finished.stdout).toBe(`${out}\n`);
+  });
+
+  it('names the one missing package of the branch, and not the ones of the base', () => {
+    const repo = repoThatImports(['zod'], []);
+    expect(runCallmapTs(repo).finished.stderr).toBe(
+      'The TypeScript imports of the branch name 1 package that finds no code: left-pad. Each call into it is an open end, so install the dependencies and run the review again.\n',
+    );
+  });
+
+  it('prints no warning when each package is installed', () => {
+    const repo = repoThatImports(['zod'], ['zod']);
+    install(repo, 'zod');
+    install(repo, 'left-pad');
+    const { finished } = runCallmapTs(repo);
+    expect(finished.stderr).toBe('');
+    expect(finished.status).toBe(0);
   });
 });
