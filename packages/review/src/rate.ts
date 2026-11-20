@@ -10,6 +10,7 @@ export interface ResolutionRate {
 export interface LanguageRate extends ResolutionRate {
   readonly language: string;
   readonly checker: Checker;
+  readonly missingPackages: readonly string[];
 }
 
 export const resolutionRateOf = ({ calls, openEnds }: GraphDocument): ResolutionRate => {
@@ -26,5 +27,6 @@ export const resolutionRatesOf = (documents: readonly GraphDocument[]): readonly
       language: document.language,
       checker: document.checker,
       ...resolutionRateOf(document),
+      missingPackages: document.missingPackages ?? [],
     }))
     .sort((left, right) => byText(left.language, right.language));
