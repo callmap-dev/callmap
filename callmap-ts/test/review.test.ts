@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import type { SpawnSyncReturns } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reviewInputOfPage } from '@callmap/review-input';
 import { describe, expect, it } from 'vitest';
@@ -138,5 +138,53 @@ describe('the warning for the missing packages', () => {
     const { finished } = runCallmapTs(repo);
     expect(finished.stderr).toBe('');
     expect(finished.status).toBe(0);
+  });
+});
+
+const WORKSPACE: Readonly<Record<string, string>> = {
+  'packages/money/package.json': JSON.stringify({
+    name: '@shop/money',
+    type: 'module',
+    exports: { '.': { types: './dist/index.d.ts', default: './dist/index.js' } },
+  }),
+  'packages/money/tsconfig.json': JSON.stringify({
+    compilerOptions: { rootDir: 'src', outDir: 'dist' },
+  }),
+  'packages/money/src/index.ts':
+    'export const rounded = (amount: number): number => Math.round(amount);\n',
+  'apps/web/src/tax.ts':
+    "import { rounded } from '@shop/money';\n\nexport const taxed = (cents: number) => rounded(cents);\n",
+};
+
+const commitAll = (repo: string, files: Readonly<Record<string, string>>): void => {
+  for (const [path, text] of Object.entries(files)) {
+    mkdirSync(dirname(join(repo, path)), { recursive: true });
+    writeFileSync(join(repo, path), text);
+  }
+  git(repo, 'add', '--all');
+  git(repo, 'commit', '--quiet', '--message', 'write the workspace');
+};
+
+describe('a workspace package on the base', () => {
+  it('resolves to its source through the node_modules that the base links to the checkout', () => {
+    const repo = tempDir('callmap-review-');
+    git(repo, 'init', '--quiet', '--initial-branch', 'main');
+    commitAll(repo, WORKSPACE);
+    git(repo, 'checkout', '--quiet', '-b', 'feature');
+    commitAll(repo, { 'apps/web/src/total.ts': 'export const total = (): number => 1;\n' });
+    mkdirSync(join(repo, 'node_modules/@shop'), { recursive: true });
+    symlinkSync('../../packages/money', join(repo, 'node_modules/@shop/money'));
+    const { finished, out } = runCallmapTs(repo);
+    expect(finished.stderr).toBe('');
+    const input = reviewInputOfPage(readFileSync(out, 'utf8'));
+    const callIntoMoney = {
+      caller: 'apps/web/src/tax.ts#taxed',
+      callee: 'packages/money/src/index.ts#rounded',
+      line: 3,
+    };
+    expect(input.base.map(({ calls, missingPackages }) => ({ calls, missingPackages }))).toEqual([
+      { calls: [callIntoMoney], missingPackages: [] },
+    ]);
+    expect(input.branch.map(({ calls }) => calls)).toEqual([[callIntoMoney]]);
   });
 });

@@ -342,6 +342,15 @@ describe('the missing packages', () => {
     expect(extractGraphDocument({ repo }).missingPackages).toEqual([]);
   });
 
+  it('names no installed package whose import names a file that is not code', () => {
+    const repo = repoWith({
+      'node_modules/bootstrap/package.json': JSON.stringify({ name: 'bootstrap' }),
+      'node_modules/bootstrap/dist/css/bootstrap.min.css': 'a {}\n',
+      'src/a.ts': importsOf('bootstrap/dist/css/bootstrap.min.css'),
+    });
+    expect(extractGraphDocument({ repo }).missingPackages).toEqual([]);
+  });
+
   it('names a workspace package that no link in node_modules reaches', () => {
     const repo = repoWith({
       'packages/money/package.json': MONEY_PACKAGE,

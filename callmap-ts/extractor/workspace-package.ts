@@ -1,4 +1,5 @@
-import { join, relative, sep } from 'node:path';
+import { lstatSync, readlinkSync } from 'node:fs';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import * as ts from 'typescript';
 import { isInside } from './config.ts';
 import type { CompilerOptionsOfFiles } from './config.ts';
@@ -65,6 +66,21 @@ const packageLinkOf = (path: string): PackageLink | undefined => {
   return { folder: parts.slice(0, end).join(sep), inner: parts.slice(end) };
 };
 
+/**
+ * The folder that a link names, read from the place of the link and not from its real path. The
+ * base of a review is a worktree whose `node_modules` links to the `node_modules` of the checkout,
+ * so the real path of a workspace package there is in the checkout and not in the worktree.
+ */
+const linkTargetOf = (link: string): string | undefined => {
+  try {
+    return lstatSync(link).isSymbolicLink()
+      ? resolve(dirname(link), readlinkSync(link))
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export const workspacePackagesOf = (
   repo: string,
   options: CompilerOptionsOfFiles,
@@ -76,11 +92,11 @@ export const workspacePackagesOf = (
   const workspaceFolders = new Map<string, string | undefined>();
   const workspaceFolderOf = (link: string): string | undefined => {
     if (workspaceFolders.has(link)) return workspaceFolders.get(link);
-    const real = realpath(link);
-    const folder =
-      isInside(repo, real) && !relative(repo, real).split(sep).includes(NODE_MODULES)
-        ? real
-        : undefined;
+    const isWorkspaceFolder = (path: string): boolean =>
+      isInside(repo, path) && !relative(repo, path).split(sep).includes(NODE_MODULES);
+    const folder = [linkTargetOf(link), realpath(link)].find(
+      (path) => path !== undefined && isWorkspaceFolder(path),
+    );
     workspaceFolders.set(link, folder);
     return folder;
   };

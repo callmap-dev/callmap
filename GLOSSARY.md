@@ -41,7 +41,7 @@ A package of the repo that another package of the repo imports by its name, such
 _Avoid_: internal package, local package, monorepo package
 
 **Missing package**:
-A package that an import of a file in scope names by its name and that resolves to no code, such as a library that the checkout did not install, or a workspace package that no link in `node_modules` reaches. A relative import, a path alias and a module of Node never name a missing package. The graph document of the branch lists the missing packages, and the review command prints a warning that tells the reader to install the dependencies.
+A package that an import of a file in scope names by its name and that resolves to no code, such as a library that the checkout did not install, or a workspace package that no link in `node_modules` reaches. A relative import, a path alias and a module of Node never name a missing package, and a package whose folder is in a `node_modules` above the file is not missing, also when the import names a file of it that is not code, such as a CSS file. The graph document of the branch lists the missing packages, and the review command prints a warning that tells the reader to install the dependencies.
 _Avoid_: unresolved package, uninstalled dependency
 
 **One-of call**:
