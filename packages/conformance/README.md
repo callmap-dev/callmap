@@ -10,7 +10,7 @@ Each fixture repo has its own folder: `fixture-repos/<language>/<case>/`. The fo
 - `branch/` holds the files of the branch commit.
 - `expected-review-input.json` holds the review input that the review command must give.
 
-The suite makes a git repo from each folder. It commits `base/` on the branch `main`, and then `branch/` on the branch `feature`.
+The suite makes a git repo from each folder. It commits `base/` on the branch `main`, and then `branch/` on the branch `feature`. A symbolic link in `base/` or `branch/` stays the same link in the git repo, so a fixture repo can track the link to a workspace package in `node_modules`.
 
 ## Run the suite
 

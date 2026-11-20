@@ -1,3 +1,4 @@
+import { rounded } from '@shop/money';
 import { format } from '@/format';
 
-export const dashboard = (count: number): string => `Orders: ${format(count)}`;
+export const dashboard = (count: number): string => `Orders: ${format(rounded(count))}`;

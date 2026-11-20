@@ -1,1 +1,3 @@
-export const taxed = (cents: number): number => Math.round(cents * 1.2);
+import { rounded } from '@shop/money';
+
+export const taxed = (cents: number): number => rounded(cents * 1.2);

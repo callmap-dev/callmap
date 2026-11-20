@@ -24,6 +24,8 @@ export interface ExtractOptions {
 export interface CompilerOptionsOfFiles {
   readonly program: ts.CompilerOptions;
   readonly of: (file: string) => ts.CompilerOptions;
+  /** The options of the `tsconfig.json` in the folder itself, and none when it holds none. */
+  readonly ofConfigIn: (folder: string) => ts.CompilerOptions | undefined;
 }
 
 /**
@@ -61,14 +63,13 @@ const optionsOfConfig = (path: string): ts.CompilerOptions => {
   return { ...parsed.options, allowJs: true };
 };
 
-const isRepoSource = (repo: string, file: string): boolean => {
-  const path = relative(repo, file);
-  return (
-    !path.startsWith('..') &&
-    !isAbsolute(path) &&
-    !path.split(sep).slice(0, -1).some(isSkippedDirectory)
-  );
+export const isInside = (folder: string, path: string): boolean => {
+  const inner = relative(folder, path);
+  return !inner.startsWith('..') && !isAbsolute(inner);
 };
+
+const isRepoSource = (repo: string, file: string): boolean =>
+  isInside(repo, file) && !relative(repo, file).split(sep).slice(0, -1).some(isSkippedDirectory);
 
 /**
  * Each file of the repo reads the nearest `tsconfig.json` in its folder or above it, up to the
@@ -83,25 +84,22 @@ export const compilerOptionsOfFiles = (
   tsconfig: string | undefined,
   filesInScope: readonly string[],
 ): CompilerOptionsOfFiles => {
-  if (tsconfig !== undefined) {
-    const options = optionsOfConfig(resolve(tsconfig));
-    return { program: options, of: () => options };
-  }
-  const optionsOfFolders = new Map<string, ts.CompilerOptions>();
-  const optionsOfFolder = (folder: string): ts.CompilerOptions => {
-    const known = optionsOfFolders.get(folder);
-    if (known !== undefined) return known;
+  const optionsOfConfigs = new Map<string, ts.CompilerOptions | undefined>();
+  const ofConfigIn = (folder: string): ts.CompilerOptions | undefined => {
+    if (optionsOfConfigs.has(folder)) return optionsOfConfigs.get(folder);
     const config = join(folder, NEAREST_CONFIG);
-    const options = ts.sys.fileExists(config)
-      ? optionsOfConfig(config)
-      : folder === repo
-        ? DEFAULT_OPTIONS
-        : optionsOfFolder(dirname(folder));
-    optionsOfFolders.set(folder, options);
+    const options = ts.sys.fileExists(config) ? optionsOfConfig(config) : undefined;
+    optionsOfConfigs.set(folder, options);
     return options;
   };
+  const optionsOfFolder = (folder: string): ts.CompilerOptions =>
+    ofConfigIn(folder) ?? (folder === repo ? DEFAULT_OPTIONS : optionsOfFolder(dirname(folder)));
   const of = (file: string): ts.CompilerOptions =>
     optionsOfFolder(isRepoSource(repo, file) ? dirname(file) : repo);
+  if (tsconfig !== undefined) {
+    const options = optionsOfConfig(resolve(tsconfig));
+    return { program: options, of: () => options, ofConfigIn };
+  }
   for (const file of filesInScope) of(file);
-  return { program: optionsOfFolder(repo), of };
+  return { program: optionsOfFolder(repo), of, ofConfigIn };
 };

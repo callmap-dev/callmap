@@ -24,7 +24,7 @@ const trackedFilesOf = (repo: string): readonly string[] =>
 
 const commitTree = (repo: string, tree: string, message: string): void => {
   for (const path of trackedFilesOf(repo)) rmSync(join(repo, path));
-  cpSync(tree, repo, { recursive: true });
+  cpSync(tree, repo, { recursive: true, verbatimSymlinks: true });
   git(repo, 'add', '--all');
   git(repo, 'commit', '--quiet', '--message', message);
 };

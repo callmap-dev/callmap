@@ -22,6 +22,7 @@
         "apps/admin/src/format.ts",
         "apps/web/src/checkout.ts",
         "apps/web/src/format.ts",
+        "packages/money/src/index.ts",
         "scripts/counts.ts",
         "scripts/seed.ts"
       ],
@@ -57,6 +58,14 @@
           "lastLine": 1,
           "name": "format",
           "sourceHash": "54eb6c90df92cdab5ed57c9bb2f40adac7541f8d0bdca69113b3f87a32062d4d"
+        },
+        {
+          "file": "packages/money/src/index.ts",
+          "firstLine": 1,
+          "id": "packages/money/src/index.ts#rounded",
+          "lastLine": 1,
+          "name": "rounded",
+          "sourceHash": "59d74439d1d80a4e2e5eb5f002fbee30d5702224dd2257a9cb180d54310d7c94"
         },
         {
           "file": "scripts/counts.ts",
@@ -96,7 +105,12 @@
         {
           "callee": "apps/admin/src/format.ts#format",
           "caller": "apps/admin/src/dashboard.ts#dashboard",
-          "line": 3
+          "line": 4
+        },
+        {
+          "callee": "packages/money/src/index.ts#rounded",
+          "caller": "apps/admin/src/dashboard.ts#dashboard",
+          "line": 4
         },
         {
           "callee": "apps/web/src/format.ts#format",
@@ -107,6 +121,11 @@
           "callee": "apps/web/src/tax.ts#taxed",
           "caller": "apps/web/src/checkout.ts#checkout",
           "line": 4
+        },
+        {
+          "callee": "packages/money/src/index.ts#rounded",
+          "caller": "apps/web/src/tax.ts#taxed",
+          "line": 3
         },
         {
           "callee": "scripts/counts.ts#counts",
@@ -124,17 +143,18 @@
         "apps/web/src/checkout.ts",
         "apps/web/src/format.ts",
         "apps/web/src/tax.ts",
+        "packages/money/src/index.ts",
         "scripts/counts.ts",
         "scripts/seed.ts"
       ],
       "functions": [
         {
           "file": "apps/admin/src/dashboard.ts",
-          "firstLine": 3,
+          "firstLine": 4,
           "id": "apps/admin/src/dashboard.ts#dashboard",
-          "lastLine": 3,
+          "lastLine": 4,
           "name": "dashboard",
-          "sourceHash": "c5b0e89ba2e1f45f266188f60067e88e7573cccb4c33614ec9ebf681b06a3154"
+          "sourceHash": "34dc72102399c8aaf4c86f01a69092d9872241279bfd7420e018e883ef14ec38"
         },
         {
           "file": "apps/admin/src/format.ts",
@@ -162,11 +182,19 @@
         },
         {
           "file": "apps/web/src/tax.ts",
-          "firstLine": 1,
+          "firstLine": 3,
           "id": "apps/web/src/tax.ts#taxed",
-          "lastLine": 1,
+          "lastLine": 3,
           "name": "taxed",
-          "sourceHash": "5903588625fa8739c53a145c6e139b2847e77c07b0d5828f35de0aa46943d49a"
+          "sourceHash": "2fbbabe7334593b3b8a32f62ac10f2ba010c43263e911ac66212283e2b8cf643"
+        },
+        {
+          "file": "packages/money/src/index.ts",
+          "firstLine": 1,
+          "id": "packages/money/src/index.ts#rounded",
+          "lastLine": 1,
+          "name": "rounded",
+          "sourceHash": "59d74439d1d80a4e2e5eb5f002fbee30d5702224dd2257a9cb180d54310d7c94"
         },
         {
           "file": "scripts/counts.ts",
@@ -218,11 +246,12 @@
       "apps/web/src/checkout.ts": "import { format } from '@/format';\n\nexport const checkout = (cents: number): string => format(cents);\n"
     },
     "branch": {
-      "apps/admin/src/dashboard.ts": "import { format } from '@/format';\n\nexport const dashboard = (count: number): string => `Orders: ${format(count)}`;\n",
+      "apps/admin/src/dashboard.ts": "import { rounded } from '@shop/money';\nimport { format } from '@/format';\n\nexport const dashboard = (count: number): string => `Orders: ${format(rounded(count))}`;\n",
       "apps/admin/src/format.ts": "export const format = (count: number): string => `${count} orders`;\n",
       "apps/web/src/checkout.ts": "import { format } from '@/format';\nimport { taxed } from '@/tax';\n\nexport const checkout = (cents: number): string => format(taxed(cents));\n",
       "apps/web/src/format.ts": "export const format = (cents: number): string => `$${(cents / 100).toFixed(2)}`;\n",
-      "apps/web/src/tax.ts": "export const taxed = (cents: number): number => Math.round(cents * 1.2);\n",
+      "apps/web/src/tax.ts": "import { rounded } from '@shop/money';\n\nexport const taxed = (cents: number): number => rounded(cents * 1.2);\n",
+      "packages/money/src/index.ts": "export const rounded = (amount: number): number => Math.round(amount);\n",
       "scripts/counts.ts": "export const counts = (): readonly number[] => [1, 2, 3];\n",
       "scripts/seed.ts": "import { counts } from './counts';\n\nexport const seed = (): readonly number[] => counts();\n"
     }

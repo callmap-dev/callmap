@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -204,5 +204,111 @@ describe('a monorepo whose packages import each other by name', () => {
         (path) => path.startsWith('callmap-ts/src/') || path.startsWith('packages/graph-document/'),
       ),
     ).toBe(true);
+  });
+});
+
+const MONEY_PACKAGE = JSON.stringify({
+  name: '@shop/money',
+  type: 'module',
+  exports: { '.': { types: './dist/index.d.ts', default: './dist/index.js' } },
+});
+
+const MONEY_CONFIG = JSON.stringify({ compilerOptions: { rootDir: 'src', outDir: 'dist' } });
+
+const ROUNDED = 'export const rounded = (amount: number): number => Math.round(amount);\n';
+
+const ROUNDED_DECLARATION = 'export declare const rounded: (amount: number) => number;\n';
+
+const IMPORTS_ROUNDED =
+  "import { rounded } from '@shop/money';\n\nexport const taxed = (cents: number) => rounded(cents);\n";
+
+const callIntoMoney = {
+  caller: 'apps/web/src/tax.ts#taxed',
+  callee: 'packages/money/src/index.ts#rounded',
+  line: 3,
+};
+
+const workspaceWith = (files: Readonly<Record<string, string>>): string => {
+  const repo = repoWith({
+    'packages/money/package.json': MONEY_PACKAGE,
+    'packages/money/src/index.ts': ROUNDED,
+    'apps/web/src/tax.ts': IMPORTS_ROUNDED,
+    ...files,
+  });
+  mkdirSync(join(repo, 'node_modules/@shop'), { recursive: true });
+  symlinkSync('../../packages/money', join(repo, 'node_modules/@shop/money'));
+  return repo;
+};
+
+describe('a workspace package', () => {
+  it('resolves to its source when the build folder does not exist', () => {
+    const repo = workspaceWith({ 'packages/money/tsconfig.json': MONEY_CONFIG });
+    const document = extractGraphDocument({ repo });
+    expect(document.calls).toEqual([callIntoMoney]);
+    expect(document.openEnds).toEqual([]);
+  });
+
+  it('resolves to its source when the build folder exists too', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': MONEY_CONFIG,
+      'packages/money/dist/index.d.ts': ROUNDED_DECLARATION,
+      'packages/money/dist/index.js': ROUNDED,
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
+  });
+
+  it('resolves to its source when the nearest config of the app is another one', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': MONEY_CONFIG,
+      'apps/web/tsconfig.json': aliasConfig('./src/*'),
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
+  });
+
+  it('resolves as the type checker does when it has no outDir and no rootDir', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': '{}',
+      'packages/money/dist/index.d.ts': ROUNDED_DECLARATION,
+    });
+    const document = extractGraphDocument({ repo, scope: ['apps/**', 'packages/money/src/**'] });
+    expect(document.calls).toEqual([]);
+    expect(document.openEnds).toEqual([]);
+  });
+
+  it('stays an open end when it has no outDir and its build folder does not exist', () => {
+    const repo = workspaceWith({ 'packages/money/tsconfig.json': '{}' });
+    expect(extractGraphDocument({ repo }).openEnds).toMatchObject([
+      { caller: 'apps/web/src/tax.ts#taxed', reason: 'missing-module' },
+    ]);
+  });
+
+  it('enters the graph only when the scope holds the files of the package', () => {
+    const repo = workspaceWith({ 'packages/money/tsconfig.json': MONEY_CONFIG });
+    const document = extractGraphDocument({ repo, scope: ['apps/**'] });
+    expect(document.files).toEqual(['apps/web/src/tax.ts']);
+    expect(document.calls).toEqual([]);
+    expect(document.openEnds).toEqual([]);
+  });
+
+  it('is not a package whose real path is inside a node_modules folder', () => {
+    const repo = repoWith({
+      'node_modules/@shop/money/package.json': MONEY_PACKAGE,
+      'node_modules/@shop/money/tsconfig.json': MONEY_CONFIG,
+      'node_modules/@shop/money/src/index.ts': ROUNDED,
+      'node_modules/@shop/money/dist/index.d.ts': ROUNDED_DECLARATION,
+      'apps/web/src/tax.ts': IMPORTS_ROUNDED,
+    });
+    const document = extractGraphDocument({ repo });
+    expect(document.calls).toEqual([]);
+    expect(document.openEnds).toEqual([]);
+  });
+
+  it('reads no workspace file of a package manager', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': MONEY_CONFIG,
+      'package.json': JSON.stringify({ workspaces: ['nowhere/*'] }),
+      'pnpm-workspace.yaml': 'packages:\n  - nowhere/*\n',
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
   });
 });

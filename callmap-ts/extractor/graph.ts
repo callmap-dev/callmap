@@ -126,7 +126,7 @@ export const extractGraphDocument = (options: ExtractOptions): GraphDocument => 
   const program = ts.createProgram({
     rootNames,
     options: { ...compilerOptions.program, noEmit: true },
-    host: compilerHostOf(compilerOptions),
+    host: compilerHostOf(repo, compilerOptions),
   });
   const typeChecker = program.getTypeChecker();
 
