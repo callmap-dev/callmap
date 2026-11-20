@@ -107,10 +107,11 @@ export const workspacePackagesOf = (
     const folder = workspaceFolderOf(link.folder);
     if (folder === undefined) return undefined;
     const config = options.ofConfigIn(folder);
-    if (config?.outDir === undefined) return undefined;
+    const outDir = config?.options.outDir;
+    if (config === undefined || outDir === undefined) return undefined;
     const built = join(folder, ...link.inner);
-    if (!isInside(config.outDir, built)) return undefined;
-    return join(config.rootDir ?? folder, relative(config.outDir, built));
+    if (!isInside(outDir, built)) return undefined;
+    return join(config.rootDir, relative(outDir, built));
   };
 
   const sourceFileOf = (path: string): SourceFile | undefined => {

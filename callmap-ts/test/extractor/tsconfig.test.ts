@@ -265,6 +265,27 @@ describe('a workspace package', () => {
     expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
   });
 
+  it('resolves to its source when it has an outDir and no rootDir, as the compiler emits it', () => {
+    const repo = workspaceWith({
+      'packages/money/tsconfig.json': JSON.stringify({
+        compilerOptions: { outDir: 'dist' },
+        include: ['src'],
+      }),
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
+  });
+
+  it('maps the build folder of a composite package with no rootDir to the folder of its config', () => {
+    const repo = workspaceWith({
+      'packages/money/package.json': MONEY_PACKAGE.replaceAll('./dist/index', './dist/src/index'),
+      'packages/money/tsconfig.json': JSON.stringify({
+        compilerOptions: { outDir: 'dist', composite: true },
+        include: ['src'],
+      }),
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([callIntoMoney]);
+  });
+
   it('resolves as the type checker does when it has no outDir and no rootDir', () => {
     const repo = workspaceWith({
       'packages/money/tsconfig.json': '{}',
