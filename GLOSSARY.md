@@ -209,7 +209,7 @@ The commit that a review compares the branch against: the merge base with the de
 _Avoid_: target, parent, main
 
 **Dependency file**:
-A file of the checkout that decides which code from outside the repo a language loads. The base cache of a distribution keys each entry on the dependency files of its language, so a change of a dependency file reads the base again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
+A file of the checkout that decides which code from outside the repo a language loads. The base cache of a distribution keys each entry on the dependency files of its language, so a change of a dependency file reads the base again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun, and every `tsconfig.json`, because each file reads the nearest `tsconfig.json` above it. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
 _Avoid_: lock file, for a file of Go
 
 **Changed function**:

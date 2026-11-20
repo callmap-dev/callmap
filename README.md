@@ -65,7 +65,7 @@ callmap-ts review [<repo>] [--base <commit>] [--scope <glob>]... [--tsconfig <fi
 | `--base <commit>`   | The commit to compare the branch with.                                                  | The merge base with the default branch           |
 | `--scope <glob>`    | Limits the review to the files that the glob matches. Give it once for each glob.       | Every file of the repo that git does not ignore  |
 | `--scope '!<glob>'` | Leaves out the files that the glob matches, also when another glob takes them.          | Nothing left out                                 |
-| `--tsconfig <file>` | `callmap-ts` only. The TypeScript config to read, as an absolute path or a path relative to the repo root. | `tsconfig.json` at the repo root, if it exists   |
+| `--tsconfig <file>` | `callmap-ts` only. The one TypeScript config for every file, as an absolute path or a path relative to the repo root. | Each file reads the nearest `tsconfig.json` in its folder or above it, up to the repo root |
 | `--out <file>`      | Where the page is written.                                                              | `review-<repo folder>.html` in `$TMPDIR/callmap` |
 | `--no-open`         | Writes the page and does not open it, for example to attach it to a merge request.      | The page opens in the browser                    |
 | `--no-cache`        | Reads the base again and does not write the cache.                                      | The base comes from the cache if it is there     |

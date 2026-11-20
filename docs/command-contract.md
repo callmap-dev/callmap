@@ -26,7 +26,7 @@ The flags can come in any order, before or after `<repo>`. A flag that takes a v
 | `--no-cache` | the cache is on | The command does not read the base cache and does not write to it. |
 | `--editor <name>` | `vscode` | The editor that the editor links open. The names are `vscode` and `jetbrains`. |
 | `--tests` | the tests stay out | The walk also reads the test files. "The test globs" below gives the rule. |
-| `--tsconfig <file>` | the `tsconfig.json` in the top folder of the repo | `callmap-ts` only. A relative path starts at the top folder of the repo. |
+| `--tsconfig <file>` | for each file, the nearest `tsconfig.json` in its folder or above it, up to the top folder of the repo | `callmap-ts` only. The one config for every file. A relative path starts at the top folder of the repo. ADR-0041 gives the rule. |
 
 ## The base
 
