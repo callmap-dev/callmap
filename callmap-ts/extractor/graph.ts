@@ -8,8 +8,9 @@ import type {
   GraphFunction,
   OpenEnd,
 } from '@callmap/graph-document';
-import { compilerOptions } from './config.ts';
+import { compilerOptionsOfFiles } from './config.ts';
 import type { ExtractOptions } from './config.ts';
+import { compilerHostOf } from './host.ts';
 import { implementationsOf } from './implementations.ts';
 import type { Member } from './implementations.ts';
 import { resolverOf } from './resolution.ts';
@@ -120,9 +121,12 @@ export const extractGraphDocument = (options: ExtractOptions): GraphDocument => 
   const repo = resolve(options.repo);
   const scope = options.scope ?? [];
   const files = sourceFilesInScope(repo, scope);
+  const rootNames = files.map((path) => `${repo}/${path}`);
+  const compilerOptions = compilerOptionsOfFiles(repo, options.tsconfig, rootNames);
   const program = ts.createProgram({
-    rootNames: files.map((path) => `${repo}/${path}`),
-    options: { ...compilerOptions(repo, options.tsconfig), noEmit: true },
+    rootNames,
+    options: { ...compilerOptions.program, noEmit: true },
+    host: compilerHostOf(compilerOptions),
   });
   const typeChecker = program.getTypeChecker();
 

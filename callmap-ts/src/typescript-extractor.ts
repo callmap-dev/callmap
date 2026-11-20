@@ -31,6 +31,7 @@ export const typescriptExtractor = (root: string, typedTsconfig: string | undefi
       'pnpm-lock.yaml',
       'bun.lock',
       'bun.lockb',
+      '**/tsconfig.json',
     ],
     options: tsconfig === undefined ? [] : [tsconfig],
     version: () => assets.typescriptExtractorVersion(),

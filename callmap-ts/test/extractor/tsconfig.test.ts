@@ -90,6 +90,86 @@ describe('the tsconfig a call is resolved through', () => {
   });
 });
 
+const aliasConfig = (target: string): string =>
+  JSON.stringify({ compilerOptions: { paths: { '@/*': [target] } } });
+
+const IMPORTS_PRICE = "import { price } from '@/price';\n\nexport const total = () => price();\n";
+
+describe('the nearest tsconfig of each file', () => {
+  it('resolves the alias of each app through the config of that app', () => {
+    const repo = repoWith({
+      'apps/web/tsconfig.json': aliasConfig('./src/*'),
+      'apps/web/src/price.ts': PRICE,
+      'apps/web/src/total.ts': IMPORTS_PRICE,
+      'apps/admin/tsconfig.json': aliasConfig('./lib/*'),
+      'apps/admin/lib/price.ts': PRICE,
+      'apps/admin/src/total.ts': IMPORTS_PRICE,
+    });
+    expect(extractGraphDocument({ repo }).calls).toEqual([
+      { caller: 'apps/admin/src/total.ts#total', callee: 'apps/admin/lib/price.ts#price', line: 3 },
+      { caller: 'apps/web/src/total.ts#total', callee: 'apps/web/src/price.ts#price', line: 3 },
+    ]);
+  });
+
+  it('gives the default options to a file with no tsconfig above it', () => {
+    const repo = repoWith({
+      'apps/web/tsconfig.json': aliasConfig('./src/*'),
+      'apps/web/src/price.ts': PRICE,
+      'scripts/price.ts': PRICE,
+      'scripts/total.ts':
+        "import { price } from './price';\n\nexport const total = () => price();\n",
+      'scripts/aliased.ts': IMPORTS_PRICE,
+    });
+    const document = extractGraphDocument({ repo });
+    expect(document.calls).toEqual([
+      { caller: 'scripts/total.ts#total', callee: 'scripts/price.ts#price', line: 3 },
+    ]);
+    expect(document.openEnds).toMatchObject([{ caller: 'scripts/aliased.ts#total' }]);
+  });
+
+  it('never reads a tsconfig.build.json as the nearest config', () => {
+    const repo = repoWith({
+      'apps/web/tsconfig.build.json': aliasConfig('./src/*'),
+      'apps/web/src/price.ts': PRICE,
+      'apps/web/src/total.ts': IMPORTS_PRICE,
+      'apps/admin/tsconfig.json': aliasConfig('./src/*'),
+      'apps/admin/tsconfig.build.json': aliasConfig('./lib/*'),
+      'apps/admin/src/price.ts': PRICE,
+      'apps/admin/src/total.ts': IMPORTS_PRICE,
+    });
+    const document = extractGraphDocument({ repo });
+    expect(document.calls).toEqual([
+      { caller: 'apps/admin/src/total.ts#total', callee: 'apps/admin/src/price.ts#price', line: 3 },
+    ]);
+    expect(document.openEnds).toMatchObject([{ caller: 'apps/web/src/total.ts#total' }]);
+  });
+
+  it('reads the one config that --tsconfig names for every file, over the nearest config', () => {
+    const repo = repoWith({
+      'tsconfig.shared.json': aliasConfig('./apps/web/lib/*'),
+      'apps/web/tsconfig.json': aliasConfig('./src/*'),
+      'apps/web/src/price.ts': PRICE,
+      'apps/web/lib/price.ts': PRICE,
+      'apps/web/src/total.ts': IMPORTS_PRICE,
+    });
+    expect(
+      extractGraphDocument({ repo, tsconfig: join(repo, 'tsconfig.shared.json') }).calls,
+    ).toEqual([
+      { caller: 'apps/web/src/total.ts#total', callee: 'apps/web/lib/price.ts#price', line: 3 },
+    ]);
+  });
+
+  it('refuses a nested tsconfig that is there and cannot be read, and names it', () => {
+    const repo = repoWith({
+      'apps/web/tsconfig.json': '{ "compilerOptions": { "paths": ',
+      'apps/web/src/price.ts': PRICE,
+    });
+    const read = () => extractGraphDocument({ repo });
+    expect(read).toThrow(ExtractionError);
+    expect(read).toThrow(`${repo}/apps/web/tsconfig.json could not be read as a tsconfig`);
+  });
+});
+
 describe('the directories every extractor skips', () => {
   it('leaves out node_modules, vendor, and a dot directory', () => {
     const repo = repoWith({

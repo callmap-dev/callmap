@@ -144,6 +144,7 @@ describe('the expected files', () => {
       'ruby/type-flow/expected-review-input.json',
       'typescript/levels/expected-review-input.json',
       'typescript/review/expected-review-input.json',
+      'typescript/workspace/expected-review-input.json',
     ]);
   });
 
