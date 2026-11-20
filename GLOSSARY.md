@@ -36,6 +36,10 @@ _Avoid_: cause, error, why
 A call whose callee is code outside the repo, such as the standard library, a module, a gem or a framework. In Ruby, a call that the class chain passes to a framework class, and a call to a method that a framework macro makes, such as `has_many`, are library calls too. So is a call on a Ruby constant that does not resolve, when its first segment has 2 properties. No `class` or `module` body of its load unit has a segment of that name, and no Zeitwerk constant of the unit has one. When an alias on the path has a target that does not resolve, the rule reads the target in place of the alias. A first segment that resolves to a constant of the repo, directly or through an alias, gives an open end. In Go, a call through an interface of the repo that only library types implement is a library call too. The call graph does not hold a library call, and the resolution rate does not count it.
 _Avoid_: external call, vendor call, leaf
 
+**Workspace package**:
+A package of the repo that another package of the repo imports by its name, such as `@shop/contracts` in a pnpm, npm or yarn workspace. Its code is code of the repo. So a call into a workspace package is a call, and not a library call, and the resolution rate counts it.
+_Avoid_: internal package, local package, monorepo package
+
 **One-of call**:
 One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module, `super` in a module with several includers and a call to an abstract method give one-of calls too. Only one of them runs.
 _Avoid_: maybe call, possible call
