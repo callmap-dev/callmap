@@ -68,10 +68,12 @@ export const nameThatFits = (name: string, room: number): string => {
 const functionNameThatFits = (name: string, room: number): string => {
   if (fitsIn(name, room)) return name;
   const characters = charactersBeforeCut(room);
-  const dot = name.lastIndexOf('.');
+  const dot = Math.max(name.lastIndexOf('.'), name.lastIndexOf('#'));
+  if (dot <= 0) return `${name.slice(0, characters)}…`;
   const method = name.slice(dot);
   const classCharacters = characters - method.length;
-  if (dot > 0 && classCharacters >= 1) return `${name.slice(0, classCharacters)}…${method}`;
+  if (classCharacters >= 1) return `${name.slice(0, classCharacters)}…${method}`;
+  if (characters >= 3) return `…${method.slice(0, characters - 1)}…`;
   return `${name.slice(0, characters)}…`;
 };
 
