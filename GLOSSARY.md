@@ -230,6 +230,10 @@ _Avoid_: context function, related function
 
 ### Release
 
+**Stable surface**:
+The 3 things that a release of a distribution from version 1.0 does not break without a new major version: the command contract, the review input and the graph document. Of the command contract, it holds the flags, their defaults, the exit codes and the line on standard output. The texts on standard error, the base cache and the look of the reader page are not part of it. A new format version does not break it, because each reader page carries the page code that reads its own review input.
+_Avoid_: public API, contract, for the 3 things together
+
 **Conformance suite**:
 The check that a distribution gives the right review input. It runs the review command of the distribution on each fixture repo of its language. It unpacks the sources, masks the values that change from one machine to the next, and compares the result with the expected review input as JSON values.
 _Avoid_: golden test, snapshot test
