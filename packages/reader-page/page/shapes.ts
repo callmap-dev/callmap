@@ -15,6 +15,7 @@ import type { LaidBox, LaidFrame, LaidLine, Point, Rect } from './layout.ts';
 import { chipMarkOf, hasChanges, isLevelBox, markCountsOf } from './scene.ts';
 import type { FunctionBox, LevelBox, LevelCounts } from './scene.ts';
 import {
+  functionNameAttributes,
   keptInHeaderAt,
   keptSizeAt,
   mapChipAttributes,
@@ -221,7 +222,7 @@ const functionBoxOf = (box: FunctionBox & Rect): SVGGElement => {
         class: 'name',
         x: nameLeft,
         y: middle,
-        ...nameAttributes(box.label, box.x + box.width - BOX_PADDING - nameLeft),
+        ...functionNameAttributes(box.label, box.x + box.width - BOX_PADDING - nameLeft),
       },
       box.label,
     ),

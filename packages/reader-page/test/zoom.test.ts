@@ -20,7 +20,9 @@ const CART = 'src/cart.ts';
 const RECEIPT = `${CART}#receipt`;
 
 const ALERT = 'src/alerts.ts#alert';
+const MAIL_SEND = 'src/notify.ts#Mail.send';
 const REPORT = 'src/report.ts';
+const LEGACY_TOTAL = 'app/models/order.rb#Order#legacy_total';
 
 const FRAME_HEADER = 30;
 const HEADER_TEXT = 24;
@@ -32,10 +34,12 @@ const ROOMY: GraphSize = { width: 2000, height: 1000 };
 
 let html = '';
 let levelsHtml = '';
+let rubyHtml = '';
 
 beforeAll(async () => {
   html = await readerPageOfFile('typescript/review');
   levelsHtml = await readerPageOfFile('typescript/levels');
+  rubyHtml = await readerPageOfFile('ruby/review');
 });
 
 interface Camera {
@@ -244,7 +248,7 @@ describe('the zoom bands', () => {
     expect(nameOf(page, ORDERS).textContent).toBe('orders/');
   });
 
-  it('cuts the start of a function name in the Scan band, so that it stays in its box', async () => {
+  it('cuts the end of a function name in the Scan band, so that it stays in its box', async () => {
     const page = await loadReaderPage(html, undefined, undefined, DENSE);
     press(page, 'Zoom out');
     expect(bandOf(page)).toBe('scan');
@@ -258,6 +262,29 @@ describe('the zoom bands', () => {
         (Number(rect?.getAttribute('x')) + Number(rect?.getAttribute('width'))) * scale;
       expect(nameEnd, shown).toBeLessThanOrEqual(boxEnd);
     }
+  });
+
+  it('cuts the end of a function name in the Scan band, and keeps the method of a class while it fits', async () => {
+    const page = await loadReaderPage(html, undefined, undefined, DENSE);
+    press(page, 'Zoom out');
+    expect(bandOf(page)).toBe('scan');
+    expect(nameOf(page, RECEIPT).textContent).toBe('recei…');
+    expect(nameOf(page, ALERT).textContent).toBe('alert');
+    expect(nameOf(page, MAIL_SEND).textContent).toBe('Ma….send');
+    press(page, 'Zoom out');
+    expect(bandOf(page)).toBe('scan');
+    expect(nameOf(page, RECEIPT).textContent).toBe('rece…');
+    expect(nameOf(page, MAIL_SEND).textContent).toBe('….sen…');
+  });
+
+  it('keeps the method of a Ruby class, whose name has a #, in the Scan band', async () => {
+    const page = await loadReaderPage(rubyHtml, undefined, undefined, DENSE);
+    press(page, 'Zoom out');
+    expect(bandOf(page)).toBe('scan');
+    expect(nameOf(page, LEGACY_TOTAL).textContent).toBe('O…#legacy_total');
+    press(page, 'Zoom out');
+    expect(bandOf(page)).toBe('scan');
+    expect(nameOf(page, LEGACY_TOTAL).textContent).toBe('…#legacy_to…');
   });
 
   it('sets the count that stays in the Scan band to 11 px on the screen', async () => {
