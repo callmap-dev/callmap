@@ -18,6 +18,7 @@ describe('callmap-ts in the conformance suite', () => {
     expect(finished.stdout.split('\n')).toEqual([
       'ok typescript/levels',
       'ok typescript/review',
+      'ok typescript/workspace',
       '',
     ]);
     expect(finished.status).toBe(0);

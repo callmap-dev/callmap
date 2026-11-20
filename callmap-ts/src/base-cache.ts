@@ -10,9 +10,11 @@ import {
   utimesSync,
   writeFileSync,
 } from 'node:fs';
+import type { Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { readGraphDocument } from '@callmap/graph-document';
 import type { GraphDocument } from '@callmap/graph-document';
+import { inScope, isSkippedDirectory } from '@callmap/scope';
 import { sha256OfFiles } from './file-hash.ts';
 import type { NamedFile } from './file-hash.ts';
 
@@ -36,10 +38,34 @@ export interface BaseKey {
 
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex');
 
-const dependencyFilesOf = (checkout: string, names: readonly string[]): readonly NamedFile[] =>
-  names
+const isUnreadable = (error: unknown): boolean =>
+  error instanceof Error && 'code' in error && (error.code === 'EACCES' || error.code === 'EPERM');
+
+const filesBelow = (checkout: string, folder: string): readonly string[] => {
+  let entries: readonly Dirent[];
+  try {
+    entries = readdirSync(join(checkout, folder), { withFileTypes: true });
+  } catch (error) {
+    if (folder !== '' && isUnreadable(error)) return [];
+    throw error;
+  }
+  return entries.flatMap((entry) => {
+    const path = folder === '' ? entry.name : `${folder}/${entry.name}`;
+    if (entry.isDirectory())
+      return isSkippedDirectory(entry.name) ? [] : filesBelow(checkout, path);
+    return entry.isFile() ? [path] : [];
+  });
+};
+
+const isPattern = (name: string): boolean => /[*?]/.test(name);
+
+const dependencyFilesOf = (checkout: string, names: readonly string[]): readonly NamedFile[] => {
+  const walked = names.some(isPattern) ? [...filesBelow(checkout, '')].sort() : [];
+  return names
+    .flatMap((name) => (isPattern(name) ? walked.filter((path) => inScope(path, [name])) : [name]))
     .map((name) => ({ name, path: join(checkout, name) }))
     .filter(({ path }) => existsSync(path));
+};
 
 const dependencyHashOf = (checkout: string, dependencyFiles: readonly string[]): string =>
   sha256OfFiles(dependencyFilesOf(checkout, dependencyFiles));

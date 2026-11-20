@@ -82,6 +82,7 @@ describe('the open ends, one-of groups and resolution rate of the review', () =>
         resolved: 9,
         open: 1,
         rate: 0.9,
+        missingPackages: [],
       },
     ]);
   });
@@ -117,6 +118,63 @@ describe('the open ends, one-of groups and resolution rate on the reader page', 
     ).toEqual(['Go 1.27.3 · 95.0%', `TypeScript ${typescriptVersion()} · 90.0%`]);
     expect(rate.getByRole('group', { name: 'Go 1.27.3' }).textContent).toContain('19 of 20 calls');
   });
+
+  const missingPackagesWarningOf = async (
+    missingPackages: readonly string[] | undefined,
+  ): Promise<{ readonly go: HTMLElement; readonly typescript: HTMLElement }> => {
+    const page = await loadReaderPage(
+      await withBranchDocuments((documents) => [
+        goDocument,
+        ...documents.map((document) => ({
+          ...document,
+          ...(missingPackages === undefined ? {} : { missingPackages }),
+        })),
+      ]),
+    );
+    const rate = within(
+      getByRole(page.window.document.body, 'region', { name: 'Resolution rate' }),
+    );
+    return {
+      go: rate.getByRole('group', { name: 'Go 1.27.3' }),
+      typescript: rate.getByRole('group', { name: `TypeScript ${typescriptVersion()}` }),
+    };
+  };
+
+  it('warns beside the rate of the language whose branch graph names a missing package', async () => {
+    const { go, typescript } = await missingPackagesWarningOf(['sonner']);
+    expect(within(typescript).getByRole('note').textContent).toBe(
+      '1 package finds no code: sonner. Each call into it is an open end, so install the dependencies and run the review again.',
+    );
+    expect(within(go).queryByRole('note')).toBeNull();
+    expect(typescript.lastElementChild?.getAttribute('role')).toBe('note');
+  });
+
+  it('names the count of the missing packages and the first 5 names', async () => {
+    const { typescript } = await missingPackagesWarningOf([
+      '@shop/money',
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f',
+    ]);
+    expect(within(typescript).getByRole('note').textContent).toBe(
+      '7 packages find no code: @shop/money, a, b, c, d and 2 more. Each call into them is an open end, so install the dependencies and run the review again.',
+    );
+  });
+
+  it.each([
+    ['no list', undefined],
+    ['an empty list', []],
+  ] as const)(
+    'shows no warning for a branch graph with %s of missing packages',
+    async (_, names) => {
+      const { go, typescript } = await missingPackagesWarningOf(names);
+      expect(within(typescript).queryByRole('note')).toBeNull();
+      expect(within(go).queryByRole('note')).toBeNull();
+    },
+  );
 
   it('lists the open ends of this review by the file of their caller, with the line and the reason of each', async () => {
     const { window } = await loadReaderPage(html);

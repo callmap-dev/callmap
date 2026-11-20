@@ -53,7 +53,11 @@ const B = 'src/a.ts#b';
 const C = 'src/c.ts#c';
 const D = 'src/d.ts#d';
 
-const EXAMPLE = { language: 'example', checker: { name: 'Example', version: '1.0.0' } };
+const EXAMPLE = {
+  language: 'example',
+  checker: { name: 'Example', version: '1.0.0' },
+  missingPackages: [],
+};
 
 const inLanguage = (
   language: string,
@@ -111,6 +115,7 @@ describe('the resolution rates of a review', () => {
         resolved: 1,
         open: 0,
         rate: 1,
+        missingPackages: [],
       },
       {
         language: 'second',
@@ -118,7 +123,16 @@ describe('the resolution rates of a review', () => {
         resolved: 1,
         open: 1,
         rate: 0.5,
+        missingPackages: [],
       },
+    ]);
+  });
+
+  it('gives each language the missing packages of its branch graph, and none of its base graph', () => {
+    const base = { ...graph([fn(A)]), missingPackages: ['lodash'] };
+    const branch = { ...graph([fn(A)]), missingPackages: ['@shop/money', 'sonner'] };
+    expect(ratesOf([branch], [base])).toEqual([
+      { ...EXAMPLE, resolved: 0, open: 0, rate: 1, missingPackages: ['@shop/money', 'sonner'] },
     ]);
   });
 });

@@ -1,0 +1,283 @@
+{
+  "base": [
+    {
+      "calls": [
+        {
+          "callee": "apps/web/src/format.ts#format",
+          "caller": "apps/web/src/checkout.ts#checkout",
+          "line": 3
+        },
+        {
+          "callee": "scripts/counts.ts#counts",
+          "caller": "scripts/seed.ts#seed",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "apps/admin/src/dashboard.ts",
+        "apps/admin/src/format.ts",
+        "apps/web/src/checkout.ts",
+        "apps/web/src/format.ts",
+        "packages/money/src/index.ts",
+        "scripts/counts.ts",
+        "scripts/seed.ts"
+      ],
+      "functions": [
+        {
+          "file": "apps/admin/src/dashboard.ts",
+          "firstLine": 1,
+          "id": "apps/admin/src/dashboard.ts#dashboard",
+          "lastLine": 1,
+          "name": "dashboard",
+          "sourceHash": "e97c6279ada53b92c055e7957beca087326e66eb3bbd99960cd365a55f6a4f7e"
+        },
+        {
+          "file": "apps/admin/src/format.ts",
+          "firstLine": 1,
+          "id": "apps/admin/src/format.ts#format",
+          "lastLine": 1,
+          "name": "format",
+          "sourceHash": "83a444fa43aebb91ea32577fd1cfde73616c72d4233d848f0b7b3b02ba715d31"
+        },
+        {
+          "file": "apps/web/src/checkout.ts",
+          "firstLine": 3,
+          "id": "apps/web/src/checkout.ts#checkout",
+          "lastLine": 3,
+          "name": "checkout",
+          "sourceHash": "36410096ded9c736f354dd02c5f698b909895f3d11f355b1afdc8e45f59d8bb9"
+        },
+        {
+          "file": "apps/web/src/format.ts",
+          "firstLine": 1,
+          "id": "apps/web/src/format.ts#format",
+          "lastLine": 1,
+          "name": "format",
+          "sourceHash": "54eb6c90df92cdab5ed57c9bb2f40adac7541f8d0bdca69113b3f87a32062d4d"
+        },
+        {
+          "file": "packages/money/src/index.ts",
+          "firstLine": 1,
+          "id": "packages/money/src/index.ts#rounded",
+          "lastLine": 1,
+          "name": "rounded",
+          "sourceHash": "59d74439d1d80a4e2e5eb5f002fbee30d5702224dd2257a9cb180d54310d7c94"
+        },
+        {
+          "file": "scripts/counts.ts",
+          "firstLine": 1,
+          "id": "scripts/counts.ts#counts",
+          "lastLine": 1,
+          "name": "counts",
+          "sourceHash": "aceb1d9eac20d2bac26c9b55bce02bda585b7b0f1cabd0dee6193e1256d5e01f"
+        },
+        {
+          "file": "scripts/seed.ts",
+          "firstLine": 3,
+          "id": "scripts/seed.ts#seed",
+          "lastLine": 3,
+          "name": "seed",
+          "sourceHash": "7f84671afd0ca39c2c255a4dcea82f84b70d1830da59be57b18c15cccd679a3f"
+        }
+      ],
+      "language": "typescript",
+      "missingPackages": [],
+      "openEnds": [],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "branch": [
+    {
+      "calls": [
+        {
+          "callee": "apps/admin/src/format.ts#format",
+          "caller": "apps/admin/src/dashboard.ts#dashboard",
+          "line": 5
+        },
+        {
+          "callee": "packages/money/src/index.ts#rounded",
+          "caller": "apps/admin/src/dashboard.ts#dashboard",
+          "line": 5
+        },
+        {
+          "callee": "apps/admin/src/dashboard.ts#dashboard",
+          "caller": "apps/admin/src/dashboard.ts#notify",
+          "line": 7
+        },
+        {
+          "callee": "apps/web/src/format.ts#format",
+          "caller": "apps/web/src/checkout.ts#checkout",
+          "line": 4
+        },
+        {
+          "callee": "apps/web/src/tax.ts#taxed",
+          "caller": "apps/web/src/checkout.ts#checkout",
+          "line": 4
+        },
+        {
+          "callee": "packages/money/src/index.ts#rounded",
+          "caller": "apps/web/src/tax.ts#taxed",
+          "line": 3
+        },
+        {
+          "callee": "scripts/counts.ts#counts",
+          "caller": "scripts/seed.ts#seed",
+          "line": 3
+        }
+      ],
+      "checker": {
+        "name": "TypeScript",
+        "version": "<checker version>"
+      },
+      "files": [
+        "apps/admin/src/dashboard.ts",
+        "apps/admin/src/format.ts",
+        "apps/web/src/checkout.ts",
+        "apps/web/src/format.ts",
+        "apps/web/src/tax.ts",
+        "packages/money/src/index.ts",
+        "scripts/counts.ts",
+        "scripts/seed.ts"
+      ],
+      "functions": [
+        {
+          "file": "apps/admin/src/dashboard.ts",
+          "firstLine": 5,
+          "id": "apps/admin/src/dashboard.ts#dashboard",
+          "lastLine": 5,
+          "name": "dashboard",
+          "sourceHash": "34dc72102399c8aaf4c86f01a69092d9872241279bfd7420e018e883ef14ec38"
+        },
+        {
+          "file": "apps/admin/src/dashboard.ts",
+          "firstLine": 7,
+          "id": "apps/admin/src/dashboard.ts#notify",
+          "lastLine": 7,
+          "name": "notify",
+          "sourceHash": "bd0182cf48991b31651c7109674359f0da10354e147caecddd10c2c3dc71880d"
+        },
+        {
+          "file": "apps/admin/src/format.ts",
+          "firstLine": 1,
+          "id": "apps/admin/src/format.ts#format",
+          "lastLine": 1,
+          "name": "format",
+          "sourceHash": "83a444fa43aebb91ea32577fd1cfde73616c72d4233d848f0b7b3b02ba715d31"
+        },
+        {
+          "file": "apps/web/src/checkout.ts",
+          "firstLine": 4,
+          "id": "apps/web/src/checkout.ts#checkout",
+          "lastLine": 4,
+          "name": "checkout",
+          "sourceHash": "6783d112b32fd9ee99cde75a546861c5e5a89aa133af6467d3914330ff810652"
+        },
+        {
+          "file": "apps/web/src/format.ts",
+          "firstLine": 1,
+          "id": "apps/web/src/format.ts#format",
+          "lastLine": 1,
+          "name": "format",
+          "sourceHash": "54eb6c90df92cdab5ed57c9bb2f40adac7541f8d0bdca69113b3f87a32062d4d"
+        },
+        {
+          "file": "apps/web/src/tax.ts",
+          "firstLine": 3,
+          "id": "apps/web/src/tax.ts#taxed",
+          "lastLine": 3,
+          "name": "taxed",
+          "sourceHash": "2fbbabe7334593b3b8a32f62ac10f2ba010c43263e911ac66212283e2b8cf643"
+        },
+        {
+          "file": "packages/money/src/index.ts",
+          "firstLine": 1,
+          "id": "packages/money/src/index.ts#rounded",
+          "lastLine": 1,
+          "name": "rounded",
+          "sourceHash": "59d74439d1d80a4e2e5eb5f002fbee30d5702224dd2257a9cb180d54310d7c94"
+        },
+        {
+          "file": "scripts/counts.ts",
+          "firstLine": 1,
+          "id": "scripts/counts.ts#counts",
+          "lastLine": 1,
+          "name": "counts",
+          "sourceHash": "aceb1d9eac20d2bac26c9b55bce02bda585b7b0f1cabd0dee6193e1256d5e01f"
+        },
+        {
+          "file": "scripts/seed.ts",
+          "firstLine": 3,
+          "id": "scripts/seed.ts#seed",
+          "lastLine": 3,
+          "name": "seed",
+          "sourceHash": "7f84671afd0ca39c2c255a4dcea82f84b70d1830da59be57b18c15cccd679a3f"
+        }
+      ],
+      "language": "typescript",
+      "missingPackages": [
+        "sonner"
+      ],
+      "openEnds": [
+        {
+          "caller": "apps/admin/src/dashboard.ts#notify",
+          "expression": "toast",
+          "line": 7,
+          "reason": "missing-module"
+        }
+      ],
+      "scope": [
+        "!**/*_test.go",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/*_spec.rb",
+        "!**/*_test.rb",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/spec/**"
+      ]
+    }
+  ],
+  "checkout": {
+    "baseCommit": "<commit>",
+    "baseName": "main",
+    "branch": "feature",
+    "headCommit": "<commit>",
+    "uncommitted": false
+  },
+  "editor": {
+    "name": "vscode",
+    "repoRoot": "<repo root>"
+  },
+  "formatVersion": 1,
+  "sources": {
+    "base": {
+      "apps/admin/src/dashboard.ts": "export const dashboard = (count: number): string => `Orders: ${count}`;\n",
+      "apps/web/src/checkout.ts": "import { format } from '@/format';\n\nexport const checkout = (cents: number): string => format(cents);\n"
+    },
+    "branch": {
+      "apps/admin/src/dashboard.ts": "import { rounded } from '@shop/money';\nimport { toast } from 'sonner';\nimport { format } from '@/format';\n\nexport const dashboard = (count: number): string => `Orders: ${format(rounded(count))}`;\n\nexport const notify = (count: number): void => toast(dashboard(count));\n",
+      "apps/admin/src/format.ts": "export const format = (count: number): string => `${count} orders`;\n",
+      "apps/web/src/checkout.ts": "import { format } from '@/format';\nimport { taxed } from '@/tax';\n\nexport const checkout = (cents: number): string => format(taxed(cents));\n",
+      "apps/web/src/format.ts": "export const format = (cents: number): string => `$${(cents / 100).toFixed(2)}`;\n",
+      "apps/web/src/tax.ts": "import { rounded } from '@shop/money';\n\nexport const taxed = (cents: number): number => rounded(cents * 1.2);\n",
+      "packages/money/src/index.ts": "export const rounded = (amount: number): number => Math.round(amount);\n",
+      "scripts/counts.ts": "export const counts = (): readonly number[] => [1, 2, 3];\n",
+      "scripts/seed.ts": "import { counts } from './counts';\n\nexport const seed = (): readonly number[] => counts();\n"
+    }
+  }
+}

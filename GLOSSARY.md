@@ -40,6 +40,10 @@ _Avoid_: external call, vendor call, leaf
 A package of the repo that another package of the repo imports by its name, such as `@shop/contracts` in a pnpm, npm or yarn workspace. Its code is code of the repo. So a call into a workspace package is a call, and not a library call, and the resolution rate counts it.
 _Avoid_: internal package, local package, monorepo package
 
+**Missing package**:
+A package that an import of a file in scope names by its name and that resolves to no code, such as a library that the checkout did not install, or a workspace package that no link in `node_modules` reaches. A relative import, a path alias and a module of Node never name a missing package, and a package whose folder is in a `node_modules` above the file is not missing, also when the import names a file of it that is not code, such as a CSS file. The graph document of the branch lists the missing packages, and the review command prints a warning that tells the reader to install the dependencies.
+_Avoid_: unresolved package, uninstalled dependency
+
 **One-of call**:
 One of several calls from one call site through an interface or a map of strategies, one to each implementation. In Ruby, a call on `self` in a module, `super` in a module with several includers and a call to an abstract method give one-of calls too. Only one of them runs.
 _Avoid_: maybe call, possible call
@@ -83,7 +87,7 @@ The Callmap that the package manager of one language installs: the npm package, 
 _Avoid_: library, port, edition
 
 **Graph document**:
-What one extractor emits for one repo: its files, its functions, its calls, its open ends, the scope it was built under, and the checker that proved its calls.
+What one extractor emits for one repo: its files, its functions, its calls, its open ends, the scope it was built under, the checker that proved its calls, and its missing packages when the extractor looks for them.
 _Avoid_: graph JSON, payload, manifest
 
 **Review input**:
@@ -209,7 +213,7 @@ The commit that a review compares the branch against: the merge base with the de
 _Avoid_: target, parent, main
 
 **Dependency file**:
-A file of the checkout that decides which code from outside the repo a language loads. The base cache of a distribution keys each entry on the dependency files of its language, so a change of a dependency file reads the base again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
+A file of the checkout that decides which code from outside the repo a language loads. The base cache of a distribution keys each entry on the dependency files of its language, so a change of a dependency file reads the base again. The dependency files of TypeScript are the lock files of npm, Yarn, pnpm and Bun, and every `tsconfig.json`, because each file reads the nearest `tsconfig.json` above it. The dependency files of Go are every `go.sum` and every `go.work.sum`, and the `go.work` at the repo root. Ruby has no dependency file, because its rules read only the source of the repo and load no gem.
 _Avoid_: lock file, for a file of Go
 
 **Changed function**:

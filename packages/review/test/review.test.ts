@@ -216,6 +216,7 @@ describe('the order of a review', () => {
           resolved: 1,
           open: 0,
           rate: 1,
+          missingPackages: [],
         },
       ],
       basePlaces: {},

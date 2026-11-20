@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, utimesSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -110,6 +110,21 @@ describe('the base cache of a review', () => {
     emptyEveryBase(cacheHome);
     writeFileSync(join(repo, 'package-lock.json'), '{ "lockfileVersion": 3, "packages": {} }\n');
     expect(marksOf(reviewHtml(cacheHome, repo))).toMatchObject(BRANCH_CHANGES);
+  });
+
+  it('reads the base again after a change of a nested tsconfig in the checkout', () => {
+    const repo = featureBranchRepo();
+    const cacheHome = newCacheHome();
+    mkdirSync(join(repo, 'apps/web'), { recursive: true });
+    writeFileSync(join(repo, 'apps/web/tsconfig.json'), '{ "compilerOptions": {} }\n');
+    reviewHtml(cacheHome, repo);
+    emptyEveryBase(cacheHome);
+    writeFileSync(
+      join(repo, 'apps/web/tsconfig.json'),
+      '{ "compilerOptions": { "strict": true } }\n',
+    );
+    expect(marksOf(reviewHtml(cacheHome, repo))).toMatchObject(BRANCH_CHANGES);
+    expect(entriesOf(cacheHome)).toHaveLength(2);
   });
 
   it('reads the base again after a change of the base commit', () => {

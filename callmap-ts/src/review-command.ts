@@ -74,6 +74,27 @@ const otherLanguageLinesOf = (
       `${command} read only the ${language.name} files. Run ${other.distribution} review for the ${other.name} files.`,
   );
 
+const NAMED_MISSING_PACKAGES = 5;
+
+const missingPackagesLineOf = (language: string, names: readonly string[]): string => {
+  const named = names.slice(0, NAMED_MISSING_PACKAGES).join(', ');
+  const more = names.length - NAMED_MISSING_PACKAGES;
+  const list = more > 0 ? `${named} and ${String(more)} more` : named;
+  const packages =
+    names.length === 1 ? '1 package that finds' : `${String(names.length)} packages that find`;
+  const them = names.length === 1 ? 'it' : 'them';
+  return `The ${language} imports of the branch name ${packages} no code: ${list}. Each call into ${them} is an open end, so install the dependencies and run the review again.`;
+};
+
+const missingPackagesLinesOf = (
+  { language }: Distribution,
+  branch: readonly GraphDocument[],
+): readonly string[] =>
+  branch
+    .map(({ missingPackages }) => missingPackages ?? [])
+    .filter((names) => names.length > 0)
+    .map((names) => missingPackagesLineOf(language.name, names));
+
 interface Base {
   readonly name: string;
   readonly commit: string;
@@ -165,6 +186,9 @@ export const runReview = async (
   if (invocation.open) openInBrowser(out);
   return {
     out,
-    notes: otherLanguageLinesOf(distribution, inScopeFiles, files),
+    notes: [
+      ...missingPackagesLinesOf(distribution, documents.branch),
+      ...otherLanguageLinesOf(distribution, inScopeFiles, files),
+    ],
   };
 };

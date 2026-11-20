@@ -26,7 +26,7 @@ The flags can come in any order, before or after `<repo>`. A flag that takes a v
 | `--no-cache` | the cache is on | The command does not read the base cache and does not write to it. |
 | `--editor <name>` | `vscode` | The editor that the editor links open. The names are `vscode` and `jetbrains`. |
 | `--tests` | the tests stay out | The walk also reads the test files. "The test globs" below gives the rule. |
-| `--tsconfig <file>` | the `tsconfig.json` in the top folder of the repo | `callmap-ts` only. A relative path starts at the top folder of the repo. |
+| `--tsconfig <file>` | for each file, the nearest `tsconfig.json` in its folder or above it, up to the top folder of the repo | `callmap-ts` only. The one config for every file. A relative path starts at the top folder of the repo. ADR-0041 gives the rule. |
 
 ## The base
 
@@ -91,6 +91,16 @@ callmap-go read only the Go files. Run callmap-ts review for the TypeScript file
 ```
 
 A branch with 2 other languages gives 2 lines.
+
+## The missing packages
+
+The graph document of the branch can list the missing packages: the sorted names of the packages that an import names and that resolve to no code. For each language whose list holds 1 or more names, the command prints one line on standard error. The line holds the count of the names, the first 5 names and the words "install the dependencies":
+
+```
+The TypeScript imports of the branch name 7 packages that find no code: @shop/ui, axios, date-fns, ky, left-pad and 2 more. Each call into them is an open end, so install the dependencies and run the review again.
+```
+
+The line does not change the exit code. A graph document with no list, or with an empty list, gives no line. Only the TypeScript extractor writes the list.
 
 ## The output and the exit codes
 
