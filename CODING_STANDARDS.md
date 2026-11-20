@@ -55,3 +55,11 @@ These rules tell you how to write a change to Callmap. A reviewer, human or agen
 - Write docs, ADRs, commit messages and pull request text in Simplified Technical English. Use short sentences, the active voice and one word for one meaning.
 - Do not use an em dash or an en dash in a sentence. Do not use a slash for "or" or "and".
 - Do not add an AI attribution or a co-author trailer.
+
+## Skip
+
+A review does not report a finding that matches a line here, and does not count it.
+
+- **Generated files:** a lockfile, a file in `callmap-go/vendor/`, the committed copies `callmap-go/page-template.html` and `callmap-go/internal/scope/test-globs.json`, and a screenshot in `docs/screenshots/`. Review the source that makes it.
+- **What CI enforces:** the format, the types and each ESLint rule that `npm run lint` checks.
+- **Nit limit:** a review keeps at most 3 comments for a minor point that does not change the behavior. Keep the 3 that a human reviewer is most likely to raise, and drop the others.

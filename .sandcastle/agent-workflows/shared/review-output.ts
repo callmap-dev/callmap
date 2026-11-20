@@ -16,8 +16,23 @@ export interface ReviewOutput {
   readonly specConformant: boolean;
   readonly unmetCriteria: string[];
   readonly needsChanges: boolean;
+  readonly riskAboveIssue: string;
   readonly inlineComments: InlineComment[];
   readonly replies: ThreadReply[];
+}
+
+export const VERDICTS = ['confirmed', 'refuted', 'pre-existing'] as const;
+
+export type Verdict = (typeof VERDICTS)[number];
+
+export interface ClaimVerdict {
+  readonly claim: number;
+  readonly verdict: Verdict;
+  readonly evidence: string;
+}
+
+export interface VerifierOutput {
+  readonly verdicts: ClaimVerdict[];
 }
 
 export interface ImplementPrOutput {
@@ -70,6 +85,7 @@ export const reviewOutputSchema = standardSchema<ReviewOutput>((value) => {
       record.needsChanges === undefined
         ? inlineComments.length > 0
         : asBoolean(record.needsChanges, 'needsChanges'),
+    riskAboveIssue: asOptionalString(record.riskAboveIssue) ?? '',
     inlineComments,
     replies: asArray(record.replies ?? [], 'replies').map(parseReply),
   };
@@ -87,6 +103,27 @@ export const implementPrOutputSchema = standardSchema<ImplementPrOutput>((value)
     })),
   };
 });
+
+const parseVerdict = (value: unknown): ClaimVerdict => {
+  const record = asRecord(value, 'verdict');
+  const claim = record.claim;
+  if (typeof claim !== 'number' || !Number.isInteger(claim) || claim < 1) {
+    throw new Error('verdict claim must be a positive integer');
+  }
+  const verdict = asString(record.verdict, 'verdict verdict');
+  if (!VERDICTS.includes(verdict as Verdict)) {
+    throw new Error(`verdict must be one of ${VERDICTS.join(', ')}`);
+  }
+  return {
+    claim,
+    verdict: verdict as Verdict,
+    evidence: asString(record.evidence, 'verdict evidence'),
+  };
+};
+
+export const verifierOutputSchema = standardSchema<VerifierOutput>((value) => ({
+  verdicts: asArray(asRecord(value, 'verifier output').verdicts, 'verdicts').map(parseVerdict),
+}));
 
 export const filterInlineComments = (
   comments: readonly InlineComment[],

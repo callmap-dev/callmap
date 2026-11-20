@@ -76,11 +76,14 @@ echo "CI on ${head}: ${ci_state}"
 
 spec=$(jq -r .specConformant "$VERDICT")
 needs=$(jq -r .needsChanges "$VERDICT")
+risk=$(jq -r '.riskAboveIssue // ""' "$VERDICT")
 
 if [ "$ci_state" != failure ] && [ "$ci_state" != timeout ] && [ "$spec" = true ] && [ "$needs" = false ]; then
   ci_text="CI passed"
   [ "$ci_state" = none ] && ci_text="No \`${CI_WORKFLOW:-CI}\` run found for this commit"
-  stop_loop "agent:ready" "Ready for a human review after $rounds fix rounds. ${ci_text}, the spec is met, and the review has no open change request." 1D76DB "The agent loop is green and waits for a human review"
+  risk_text=""
+  [ -n "$risk" ] && risk_text=" **Risk:** ${risk} Read those files first."
+  stop_loop "agent:ready" "Ready for a human review after $rounds fix rounds. ${ci_text}, the spec is met, and the review has no open change request.${risk_text}" 1D76DB "The agent loop is green and waits for a human review"
   exit 0
 fi
 
