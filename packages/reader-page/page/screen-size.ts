@@ -49,11 +49,30 @@ export const nameAttributes = (
   [BESIDE]: String(beside.length),
 });
 
+const CUT_END = 'data-cut-end';
+
+export const functionNameAttributes = (
+  name: string,
+  room: number,
+): Readonly<Record<string, string>> => ({ ...nameAttributes(name, room), [CUT_END]: '' });
+
+const charactersBeforeCut = (room: number): number =>
+  Math.max(1, Math.floor(room / SMALL_CHARACTER_WIDTH) - 1);
+
 export const nameThatFits = (name: string, room: number): string => {
   const cut = pathLabelOf(name, room);
   if (fitsIn(cut, room)) return cut;
-  const characters = Math.max(1, Math.floor(room / SMALL_CHARACTER_WIDTH) - 1);
-  return `…${cut.slice(-characters)}`;
+  return `…${cut.slice(-charactersBeforeCut(room))}`;
+};
+
+const functionNameThatFits = (name: string, room: number): string => {
+  if (fitsIn(name, room)) return name;
+  const characters = charactersBeforeCut(room);
+  const dot = name.lastIndexOf('.');
+  const method = name.slice(dot);
+  const classCharacters = characters - method.length;
+  if (dot > 0 && classCharacters >= 1) return `${name.slice(0, classCharacters)}…${method}`;
+  return `${name.slice(0, characters)}…`;
 };
 
 const CROWDED = 'data-crowded';
@@ -61,14 +80,15 @@ const CROWDED = 'data-crowded';
 export const fitNames = (root: Element, scale: number, scan: boolean): void => {
   for (const name of root.querySelectorAll(`[${NAME}]`)) {
     const full = name.getAttribute(NAME) ?? '';
+    const fit = name.hasAttribute(CUT_END) ? functionNameThatFits : nameThatFits;
     const beside = Number(name.getAttribute(BESIDE));
     const room = Number(name.getAttribute(NAME_ROOM)) * scale;
     const roomBeside = beside === 0 ? room : room - beside * SMALL_CHARACTER_WIDTH - BESIDE_GAP;
-    const besideName = nameThatFits(full, roomBeside);
+    const besideName = fit(full, roomBeside);
     const crowded = scan && beside > 0 && !fitsIn(besideName, roomBeside);
     name.parentElement?.toggleAttribute(CROWDED, crowded);
     if (!scan) name.textContent = full;
-    else name.textContent = crowded ? nameThatFits(full, room) : besideName;
+    else name.textContent = crowded ? fit(full, room) : besideName;
   }
 };
 
