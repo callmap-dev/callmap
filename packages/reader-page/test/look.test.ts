@@ -110,6 +110,45 @@ describe('the colours of the page', () => {
   });
 });
 
+const tokensOfBlock = (block: string): ReadonlyMap<string, string> =>
+  new Map(
+    [...block.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})/g)].map(([, token = '', value = '']) => [
+      token,
+      value,
+    ]),
+  );
+
+const luminanceOf = (hex: string): number => {
+  const [red = 0, green = 0, blue = 0] = [1, 3, 5].map((start) => {
+    const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+};
+
+const contrastOf = (first: string, second: string): number => {
+  const [light, dark] = [luminanceOf(first), luminanceOf(second)].sort((a, b) => b - a);
+  return ((light ?? 0) + 0.05) / ((dark ?? 0) + 0.05);
+};
+
+describe('the warning for the missing packages', () => {
+  it.each([
+    ['light', /^\s*:root\s*\{([^}]*)\}/],
+    ['dark', /@media \(prefers-color-scheme: dark\)\s*\{\s*:root\s*\{([^}]*)\}/],
+  ])('gives its text a contrast of at least 4.5 on its fill in %s mode', (_mode, block) => {
+    const style = styleOf(html);
+    const tokens = tokensOfBlock(block.exec(style)?.[1] ?? '');
+    const rule = /\.missing-packages\s*\{([^}]*)\}/.exec(style)?.[1] ?? '';
+    const tokenOf = (property: string): string => {
+      const token = new RegExp(`(?:^|;)\\s*${property}:\\s*var\\((--[\\w-]+)\\)`).exec(rule)?.[1];
+      const value = token === undefined ? undefined : tokens.get(token);
+      if (value === undefined) throw new Error(`no colour token for ${property}`);
+      return value;
+    };
+    expect(contrastOf(tokenOf('color'), tokenOf('background'))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 describe('the marks of the function boxes', () => {
   it('shows each mark as a chip with its glyph on the box, and no chip on a box with no mark', async () => {
     const page = await loadReaderPage(html);

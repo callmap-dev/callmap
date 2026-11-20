@@ -3,7 +3,28 @@ import { eyebrowOf, spanOf } from '../panel-elements.ts';
 import type { PagePart } from '../reader-page.ts';
 import { countTextOf } from '../words.ts';
 
-const languageRateOf = ({ checker, resolved, open, rate }: LanguageRate): HTMLElement => {
+const NAMED_MISSING_PACKAGES = 5;
+
+const missingPackagesWarningOf = (names: readonly string[]): HTMLElement => {
+  const named = names.slice(0, NAMED_MISSING_PACKAGES).join(', ');
+  const more = names.length - NAMED_MISSING_PACKAGES;
+  const list = more > 0 ? `${named} and ${String(more)} more` : named;
+  const packages = names.length === 1 ? '1 package finds' : `${String(names.length)} packages find`;
+  const them = names.length === 1 ? 'it' : 'them';
+  const warning = document.createElement('p');
+  warning.className = 'missing-packages';
+  warning.setAttribute('role', 'note');
+  warning.textContent = `${packages} no code: ${list}. Each call into ${them} is an open end, so install the dependencies and run the review again.`;
+  return warning;
+};
+
+const languageRateOf = ({
+  checker,
+  resolved,
+  open,
+  rate,
+  missingPackages,
+}: LanguageRate): HTMLElement => {
   const checkerText = `${checker.name} ${checker.version}`;
   const language = document.createElement('div');
   language.className = 'language-rate';
@@ -27,6 +48,7 @@ const languageRateOf = ({ checker, resolved, open, rate }: LanguageRate): HTMLEl
   calls.textContent = `${countTextOf(resolved)} of ${countTextOf(resolved + open)} calls proved`;
 
   language.append(value, bar, calls);
+  if (missingPackages.length > 0) language.append(missingPackagesWarningOf(missingPackages));
   return language;
 };
 

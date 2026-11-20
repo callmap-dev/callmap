@@ -80,6 +80,8 @@ The tabs above the graph choose the view. Each view keeps the marks for added, r
 
 The page shows the resolution rate of the branch graph in scope. The rate is the share of the calls into the repo's own code that the checker of the language proved. The rate stands next to its checker, such as "TypeScript 6.0.3 · 90.0%". The list of open ends below it holds the open ends of the functions in this review only. The graph marks each open end at its call site, as a dashed line that ends in a ring with ?. It does this also on a function that a next hop or a search adds. It draws the one-of calls of one call site as dotted lines from one dot, one to each implementation. A call through an interface is an example. The lines carry the label "one of N". A call into a library is not in the graph and does not change the rate.
 
+When the branch graph document of a language lists 1 or more missing packages, the page shows a warning below the rate of that language. The page reads the list from the review input and computes the warning. The warning gives the count of the missing packages and the first 5 names, such as "7 packages find no code: @shop/ui, axios, date-fns, ky, left-pad and 2 more". It tells the reader to install the dependencies and run the review again. So a person who gets only the page knows that the graph is not complete. A graph document with no list, or with an empty list, gives no warning. The warning uses the colour tokens of the page, so it reads well in the light mode and in the dark mode.
+
 ## The levels of the Whole project view
 
 ```
