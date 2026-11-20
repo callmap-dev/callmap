@@ -11,6 +11,7 @@ Do not include text outside the `<output>` block.
   "specConformant": true,
   "unmetCriteria": ["Each acceptance criterion from the linked issue that the branch still does not meet; empty when specConformant is true"],
   "needsChanges": false,
+  "riskAboveIssue": "The sentence of the risk check when a file of the diff is above the Risk line of the issue; empty otherwise",
   "inlineComments": [
     { "path": "relative/file.ts", "line": 123, "body": "Markdown comment" }
   ],

@@ -20,7 +20,10 @@ export interface PullRequestContext {
   readonly diff: string;
   readonly prCommentsJson: string;
   readonly validReplyIds: Set<string>;
+  readonly lastReviewedCommit: string;
 }
+
+export const REVIEW_MARKER = '<!-- sandcastle-review -->';
 
 export const currentDiffLines = (): Map<string, Set<number>> => parseDiffLines(diffToBase());
 
@@ -40,6 +43,20 @@ const promptDiff = (diff: string): string =>
       return `${header}(The prompt leaves out the diff of this file, because it has ${fileDiff.length} characters. Read the file in the checkout.)\n`;
     })
     .join('');
+
+const lastReviewedAncestor = (
+  reviews: readonly { body?: string | null; commit_id?: string | null }[],
+): string => {
+  const commit = reviews
+    .filter((review) => review.body?.includes(REVIEW_MARKER) && review.commit_id)
+    .at(-1)?.commit_id;
+  if (!commit || commit === sh('git rev-parse HEAD').trim()) {
+    return '';
+  }
+  return safeSh(`git merge-base --is-ancestor ${commit} HEAD && echo yes`).trim() === 'yes'
+    ? commit
+    : '';
+};
 
 const THREADS_PAGE_SIZE = 100;
 const COMMENTS_PAGE_SIZE = 50;
@@ -67,6 +84,7 @@ export const fetchPullRequestContext = (prNumber: string): PullRequestContext =>
     body?: string | null;
     state: string;
     submitted_at?: string | null;
+    commit_id?: string | null;
   }[];
 
   const ghRepo = process.env.GH_REPO ?? '';
@@ -193,5 +211,6 @@ query($owner:String!,$repo:String!,$number:Int!) {
     diff,
     prCommentsJson: JSON.stringify(prComments, null, 2),
     validReplyIds: new Set(reviewThreads.map((comment) => comment.commentId)),
+    lastReviewedCommit: lastReviewedAncestor(reviews),
   };
 };
