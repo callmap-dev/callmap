@@ -58,6 +58,17 @@ describe('readGraphDocument', () => {
     expect(readGraphDocument(document({ openEnds })).openEnds).toEqual(openEnds);
   });
 
+  it('reads the sorted names of the missing packages', () => {
+    const missingPackages = ['@shop/money', 'zod'];
+    expect(readGraphDocument(document({ missingPackages })).missingPackages).toEqual(
+      missingPackages,
+    );
+  });
+
+  it('reads a document with no list of missing packages, as an old extractor writes it', () => {
+    expect(readGraphDocument(document())).not.toHaveProperty('missingPackages');
+  });
+
   it('reads the checker that proved the calls of the document', () => {
     expect(readGraphDocument(document()).checker).toEqual({
       name: 'TypeScript',
@@ -91,6 +102,14 @@ describe('a graph document the contract does not allow', () => {
 
   it('refuses a field the contract does not hold', () => {
     expect(refuse({ ...document(), edges: [] })).toThrow(/edges/);
+  });
+
+  it.each([
+    ['a name that is empty', ['']],
+    ['names out of order', ['zod', '@shop/money']],
+    ['one name twice', ['zod', 'zod']],
+  ])('refuses a list of missing packages with %s', (_, missingPackages) => {
+    expect(refuse(document({ missingPackages }))).toThrow(/missing package/);
   });
 
   it('refuses a call to an unknown function id', () => {

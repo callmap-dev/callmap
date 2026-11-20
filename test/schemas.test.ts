@@ -42,11 +42,19 @@ describe('the JSON Schema of the graph document', () => {
     expect(graphDocumentProblemsOf(GRAPH_DOCUMENT)).toEqual([]);
   });
 
+  it('accepts a graph document with the names of its missing packages', () => {
+    expect(graphDocumentProblemsOf(withField('missingPackages', ['@shop/money', 'zod']))).toEqual(
+      [],
+    );
+  });
+
   it.each([
     ['no checker', withField('checker', undefined)],
     ['a checker with no version', withField('checker', { name: 'TypeScript' })],
     ['a scope glob that is empty', withField('scope', [''])],
     ['a field that the contract does not allow', withField('review', [])],
+    ['a missing package with an empty name', withField('missingPackages', [''])],
+    ['one missing package twice', withField('missingPackages', ['zod', 'zod'])],
     [
       'an open end with an unknown reason',
       withField('openEnds', [

@@ -12,7 +12,13 @@
     "files": { "type": "array", "items": { "$ref": "#/definitions/path" } },
     "functions": { "type": "array", "items": { "$ref": "#/definitions/function" } },
     "calls": { "type": "array", "items": { "$ref": "#/definitions/call" } },
-    "openEnds": { "type": "array", "items": { "$ref": "#/definitions/openEnd" } }
+    "openEnds": { "type": "array", "items": { "$ref": "#/definitions/openEnd" } },
+    "missingPackages": {
+      "description": "The names of the packages that an import names and that resolve to no code, sorted. An extractor that does not look for them leaves the field out.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/text" },
+      "uniqueItems": true
+    }
   },
   "additionalProperties": false,
   "definitions": {

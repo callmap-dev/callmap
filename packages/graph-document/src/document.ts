@@ -6,6 +6,7 @@ import {
   requireNonEmpty,
   requirePath,
 } from './contract.ts';
+import type { Fields } from './contract.ts';
 
 export type FunctionId = string;
 
@@ -56,6 +57,11 @@ export interface GraphDocument {
   readonly functions: readonly GraphFunction[];
   readonly calls: readonly Call[];
   readonly openEnds: readonly OpenEnd[];
+  /**
+   * The sorted names of the packages that an import names and that resolve to no code. An
+   * extractor that does not look for them leaves the field out.
+   */
+  readonly missingPackages?: readonly string[];
 }
 
 const DOCUMENT_FIELDS: readonly string[] = [
@@ -66,6 +72,7 @@ const DOCUMENT_FIELDS: readonly string[] = [
   'functions',
   'calls',
   'openEnds',
+  'missingPackages',
 ];
 const FUNCTION_FIELDS: readonly string[] = [
   'id',
@@ -141,6 +148,21 @@ const readOpenEnd = (entry: unknown): OpenEnd => {
   };
 };
 
+const readMissingPackages = (fields: Fields): readonly string[] => {
+  const names = requireArray(fields, 'missingPackages', WHAT).map((name) =>
+    requireNonEmpty(name, 'the name of a missing package'),
+  );
+  names.forEach((name, index) => {
+    const previous = names[index - 1];
+    if (previous !== undefined && previous >= name) {
+      throw new GraphDocumentError(
+        `the names of the missing packages must be sorted and named once, but '${name}' follows '${previous}'`,
+      );
+    }
+  });
+  return names;
+};
+
 const readChecker = (value: unknown): Checker => {
   const fields = requireFields(value, `the checker of ${WHAT}`, CHECKER_FIELDS);
   return {
@@ -194,5 +216,8 @@ export const readGraphDocument = (value: unknown): GraphDocument => {
   requireOneCallSitePerGroup(calls);
   for (const openEnd of openEnds) requireKnown(openEnd.caller, 'the caller of an open end');
 
-  return { language, checker, scope, files, functions, calls, openEnds };
+  const document: GraphDocument = { language, checker, scope, files, functions, calls, openEnds };
+  return Object.hasOwn(fields, 'missingPackages')
+    ? { ...document, missingPackages: readMissingPackages(fields) }
+    : document;
 };
