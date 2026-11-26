@@ -37,11 +37,21 @@ npm run test:browser
 
 ## The check on a pull request
 
-Each pull request and each push to `master` runs the `lint and test` check in GitHub Actions. The workflow is `.github/workflows/ci.yml`. It runs `npm ci`, `npm run lint` and `npm test` on Node 22, with Go and Ruby installed. Then it runs the conformance suite for TypeScript against `callmap-ts` in `callmap-ts/`.
+Each pull request and each push to `master` runs the checks of `.github/workflows/ci.yml` in GitHub Actions. The `lint and test` check runs on Linux with Node 22. It runs `npm ci`, `npm run lint` and the tests of the core and of the page. It leaves the tests of the distributions to their own checks.
 
-The `callmap-go` check in the same workflow fails when `callmap-go/internal/scope/test-globs.json` differs from `packages/scope/test-globs.json`. Then it runs `go install` in `callmap-go/` with no network, and runs the conformance suite for Go against the installed `callmap-go`. `packages/conformance/README.md` tells how the suite works and how to update an expected file.
+Each distribution has a check with 3 legs: Linux and macOS with the current runtime, and Linux with the runtime floor that its manifest declares. Each leg runs the tests of the distribution and then its conformance suite. The name of a leg holds the distribution, the platform and the runtime version, so a red leg tells where the break is:
 
-The `callmap-rb` check in the same workflow builds the page template, builds the gem in `callmap-rb/`, installs it into a temporary gem home and runs the conformance suite for Ruby against the installed `callmap-rb`.
+| Distribution | Linux                            | macOS                            | Runtime floor                       |
+| ------------ | -------------------------------- | -------------------------------- | ----------------------------------- |
+| `callmap-ts` | `callmap-ts on Linux, Node 22.x` | `callmap-ts on macOS, Node 22.x` | `callmap-ts on Linux, Node 22.18.0` |
+| `callmap-go` | `callmap-go on Linux, Go 1.26.x` | `callmap-go on macOS, Go 1.26.x` | `callmap-go on Linux, Go 1.26.0`    |
+| `callmap-rb` | `callmap-rb on Linux, Ruby 3.4`  | `callmap-rb on macOS, Ruby 3.4`  | `callmap-rb on Linux, Ruby 3.1`     |
+
+A leg of `callmap-ts` runs the tests in `callmap-ts/test/` and the conformance suite for TypeScript against `callmap-ts` in `callmap-ts/`.
+
+A leg of `callmap-go` fails when `callmap-go/internal/scope/test-globs.json` differs from `packages/scope/test-globs.json`. It runs the tests in `callmap-go/test/`. Then it runs `go install` in `callmap-go/` with no network, and runs the conformance suite for Go against the installed `callmap-go`. `packages/conformance/README.md` tells how the suite works and how to update an expected file.
+
+A leg of `callmap-rb` builds the page template and runs the tests in `callmap-rb/test/`. Then it builds the gem in `callmap-rb/`, installs it into a temporary gem home and runs the conformance suite for Ruby against the installed `callmap-rb`.
 
 These checks do not run `npm run test:browser`, so run that check on your machine.
 
