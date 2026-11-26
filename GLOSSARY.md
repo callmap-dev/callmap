@@ -242,6 +242,10 @@ _Avoid_: audit report, sample file, checklist
 A run of the review command of one distribution on a list of open-source repos with pinned commits, for the 5 repos gate and the run times gate of ADR-0042. The field run command clones each repo, reviews the commit range from its base commit to its branch commit, and writes a field record: for each repo, the commits, the exit code, each note, the time of a first review, the time of a cached review and the resolution rate. A repo that fails does not stop the run.
 _Avoid_: benchmark, smoke test, field test
 
+**Use record**:
+The Markdown file of one distribution in `docs/research/use-records/` that counts the real reviews of the owner, for the use record gate of ADR-0042. Each line records one review with a released version: the date, the version, the count of the changed functions, the result and, for a wrong call or a crash, the link to its issue. A line holds no repo name and no branch name, so no employer repo shows in it.
+_Avoid_: usage log, review log, diary
+
 **Conformance suite**:
 The check that a distribution gives the right review input. It runs the review command of the distribution on each fixture repo of its language. It unpacks the sources, masks the values that change from one machine to the next, and compares the result with the expected review input as JSON values.
 _Avoid_: golden test, snapshot test
