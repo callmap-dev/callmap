@@ -11,6 +11,8 @@ const CALLMAP_TS = fileURLToPath(new URL('../callmap-ts/src/cli.ts', import.meta
 
 const REVIEW_COMMAND = [process.execPath, CALLMAP_TS] as const;
 
+const FIELD_REPOS = fileURLToPath(new URL('../docs/research/field-repos/', import.meta.url));
+
 interface ListEntry {
   readonly url: string;
   readonly branchCommit: string;
@@ -25,11 +27,11 @@ interface FieldRun {
   readonly leftInTemp: readonly string[];
 }
 
-const runFieldRun = (...args: readonly string[]) => {
+const runFieldRun = (args: readonly string[], env: NodeJS.ProcessEnv = {}) => {
   const temp = tempDir('callmap-field-temp-');
   const finished = spawnSync(process.execPath, [FIELD_RUN, ...args], {
     encoding: 'utf8',
-    env: { ...process.env, TMPDIR: temp, XDG_CACHE_HOME: tempDir('callmap-cache-') },
+    env: { ...process.env, TMPDIR: temp, XDG_CACHE_HOME: tempDir('callmap-cache-'), ...env },
   });
   return { ...finished, leftInTemp: readdirSync(temp) };
 };
@@ -39,7 +41,7 @@ const fieldRunOf = (entries: readonly ListEntry[]): FieldRun => {
   const list = join(folder, 'repos.json');
   const out = join(folder, 'field-record.md');
   writeFileSync(list, JSON.stringify(entries));
-  const finished = runFieldRun(
+  const finished = runFieldRun([
     '--list',
     list,
     '--distribution',
@@ -49,7 +51,7 @@ const fieldRunOf = (entries: readonly ListEntry[]): FieldRun => {
     '--out',
     out,
     ...REVIEW_COMMAND,
-  );
+  ]);
   return {
     status: finished.status,
     stdout: finished.stdout,
@@ -122,5 +124,38 @@ describe('the field run command', () => {
     expect(passed).toContain('- Exit code: 0\n');
     expect(passed).toMatch(/- Cached review: \d+\.\d s\n/);
     expect(run.leftInTemp).toEqual([]);
+  });
+
+  describe.each([
+    ['typescript.json', 'https://github.com/apache/echarts'],
+    ['go.json', 'https://github.com/go-gitea/gitea'],
+    ['ruby.json', 'https://github.com/mastodon/mastodon'],
+  ])('the list file %s of the research folder', (listFile, auditRepo) => {
+    it('holds 5 repos at pinned commits, with the audit repo first, in the format of the command', () => {
+      const out = join(tempDir('callmap-field-run-'), 'field-record.md');
+      const run = runFieldRun(
+        [
+          '--list',
+          join(FIELD_REPOS, listFile),
+          '--distribution',
+          'callmap-ts',
+          '--version',
+          '0.1.0',
+          '--out',
+          out,
+          'no-review-command',
+        ],
+        { GIT_ALLOW_PROTOCOL: 'file' },
+      );
+      expect(run.stderr).toBe('');
+      const urls = run.stdout.split('\n').filter((line) => line !== '');
+      expect(urls).toHaveLength(5);
+      expect(urls[0]).toBe(`FAIL ${auditRepo}`);
+      const commits = [
+        ...readFileSync(out, 'utf8').matchAll(/^- (?:Branch|Base) commit: `(.*)`$/gm),
+      ].map(([, commit = '']) => commit);
+      expect(commits).toHaveLength(10);
+      expect(commits.filter((commit) => !/^[0-9a-f]{40}$/.test(commit))).toEqual([]);
+    });
   });
 });
