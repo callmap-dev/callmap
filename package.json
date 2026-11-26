@@ -21,6 +21,7 @@
     "test:pack": "vitest run --config vitest.pack.config.ts",
     "conformance": "node packages/conformance/src/cli.ts",
     "audit": "node packages/gates/src/audit.ts",
+    "field-run": "node packages/gates/src/field-run.ts",
     "screenshots": "vitest run --config vitest.screenshots.config.ts"
   },
   "engines": {

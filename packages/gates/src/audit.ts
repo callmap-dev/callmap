@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from 'node:fs';
-import type { GraphDocument } from '@callmap/graph-document';
 import { reviewInputOfPage, unpackedSourcesOf } from '@callmap/review-input';
 import { auditSheetOf, verdictCountOf } from './audit-sheet.ts';
+import { checkerOf } from './checker.ts';
 import { candidateLinesOf, inFileAndLineOrder } from './candidate-lines.ts';
 import { MAX_SEED, seededSampleOf } from './seeded-sample.ts';
 
@@ -79,9 +79,6 @@ const settingsOf = (args: readonly string[]): AuditSettings => {
     out: requiredValue(values, '--out'),
   };
 };
-
-const checkerOf = (documents: readonly GraphDocument[]): string =>
-  [...new Set(documents.map(({ checker }) => `${checker.name} ${checker.version}`))].join(', ');
 
 const writeAuditSheet = async (settings: AuditSettings): Promise<void> => {
   const input = reviewInputOfPage(readFileSync(settings.page, 'utf8'));

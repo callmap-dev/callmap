@@ -1,5 +1,6 @@
 import type { Call, GraphDocument, OpenEnd } from '@callmap/graph-document';
 import type { SourceLine } from './candidate-lines.ts';
+import { codeOf, inlineCodeOf } from './markdown.ts';
 
 export interface AuditHead {
   readonly repo: string;
@@ -75,21 +76,6 @@ const lineContentAt = (documents: readonly GraphDocument[]) => {
       openEnds: openEnds.get(location) ?? [],
     };
   };
-};
-
-const longestBacktickRunOf = (text: string): number =>
-  Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length));
-
-const codeOf = (text: string): string => {
-  const fence = '`'.repeat(Math.max(3, longestBacktickRunOf(text) + 1));
-  return `${fence}\n${text}\n${fence}`;
-};
-
-const inlineCodeOf = (text: string): string => {
-  const ticks = '`'.repeat(longestBacktickRunOf(text) + 1);
-  return text.startsWith('`') || text.endsWith('`')
-    ? `${ticks} ${text} ${ticks}`
-    : `${ticks}${text}${ticks}`;
 };
 
 const SECTION_MARK = '## ';
