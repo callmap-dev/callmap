@@ -18,3 +18,13 @@ npm run audit -- review.html --seed 7 --repo apache/echarts --distribution callm
 The command reads the review input from the data block of the page, so it refuses a format version that it does not know. It takes the branch sources from the packed sources. A line is a candidate when it holds an opening parenthesis and is not a comment line. In a Ruby file, a line with an identifier and no parenthesis is a candidate too, because a Ruby call needs no parenthesis. The command sorts the candidates by file and line and picks the count of them with Mulberry32, a seeded generator of the package. It writes the picked lines in the order of file and line.
 
 A section of a line where the graph document holds nothing says so. Decide if the call on that line is a library call or a missed call site.
+
+## The count of the verdicts
+
+Write `right` or `wrong` after `Verdict:` in each section of the audit sheet. Then count the verdicts:
+
+```sh
+npm run audit -- --verdicts audit-sheet.md
+```
+
+The command prints one line with the count of `right`, of `wrong` and of empty verdicts, for example `198 right, 1 wrong, 1 empty`. It exits with code 0 only when each verdict is `right`. It exits with code 1 when a verdict is `wrong` or empty. A verdict with another word, a section with no verdict line or with text after its verdict line, and a sheet with another count of sections than its head names make the command fail with a message that names the problem.

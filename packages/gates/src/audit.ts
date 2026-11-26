@@ -2,12 +2,14 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { GraphDocument } from '@callmap/graph-document';
 import { reviewInputOfPage, unpackedSourcesOf } from '@callmap/review-input';
-import { auditSheetOf } from './audit-sheet.ts';
+import { auditSheetOf, verdictCountOf } from './audit-sheet.ts';
 import { candidateLinesOf, inFileAndLineOrder } from './candidate-lines.ts';
 import { MAX_SEED, seededSampleOf } from './seeded-sample.ts';
 
-const USAGE =
-  'usage: audit <reader page> --seed <seed> --repo <repo> --distribution <distribution> --version <version> --out <audit sheet> [--count <count>]';
+const USAGE = [
+  'usage: audit <reader page> --seed <seed> --repo <repo> --distribution <distribution> --version <version> --out <audit sheet> [--count <count>]',
+  '       audit --verdicts <audit sheet>',
+].join('\n');
 
 const DEFAULT_COUNT = 200;
 
@@ -103,8 +105,18 @@ const writeAuditSheet = async (settings: AuditSettings): Promise<void> => {
   process.stdout.write(`${settings.out}\n`);
 };
 
+const countVerdicts = (args: readonly string[]): void => {
+  const [sheet, ...extra] = args;
+  if (sheet === undefined || sheet.startsWith('--') || extra.length > 0) throw new Error(USAGE);
+  const { right, wrong, empty } = verdictCountOf(readFileSync(sheet, 'utf8'));
+  process.stdout.write(`${String(right)} right, ${String(wrong)} wrong, ${String(empty)} empty\n`);
+  if (wrong > 0 || empty > 0) process.exitCode = 1;
+};
+
 try {
-  await writeAuditSheet(settingsOf(process.argv.slice(2)));
+  const args = process.argv.slice(2);
+  if (args[0] === '--verdicts') countVerdicts(args.slice(1));
+  else await writeAuditSheet(settingsOf(args));
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;

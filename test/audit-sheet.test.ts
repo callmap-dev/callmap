@@ -248,3 +248,83 @@ describe('the audit command', () => {
     );
   });
 });
+
+const sheetFileOf = (sheet: string): string => {
+  const file = join(tempDir('callmap-audit-'), 'audit-sheet.md');
+  writeFileSync(file, sheet);
+  return file;
+};
+
+const filledSheetOf = (sheet: string, verdicts: readonly string[]): string => {
+  let index = 0;
+  return sheet.replace(/^Verdict:$/gm, () => {
+    const verdict = verdicts[index] ?? '';
+    index += 1;
+    return verdict === '' ? 'Verdict:' : `Verdict: ${verdict}`;
+  });
+};
+
+const countOf = (sheet: string) => runAudit('--verdicts', sheetFileOf(sheet));
+
+describe('the count of the verdicts of an audit sheet', () => {
+  let sheet = '';
+
+  beforeAll(() => {
+    sheet = sheetOf(typescriptPage, '--seed', '7', '--count', '4');
+  });
+
+  it('prints the count of each verdict and exits with code 0 when every verdict is right', () => {
+    const finished = countOf(filledSheetOf(sheet, ['right', 'right', 'right', 'right']));
+    expect(finished.stderr).toBe('');
+    expect(finished.stdout).toBe('4 right, 0 wrong, 0 empty\n');
+    expect(finished.status).toBe(0);
+  });
+
+  it('exits with code 1 when a verdict is wrong', () => {
+    const finished = countOf(filledSheetOf(sheet, ['right', 'wrong', 'right', 'right']));
+    expect(finished.stdout).toBe('3 right, 1 wrong, 0 empty\n');
+    expect(finished.status).toBe(1);
+  });
+
+  it('exits with code 1 when a verdict is empty', () => {
+    const finished = countOf(filledSheetOf(sheet, ['right', '', 'wrong']));
+    expect(finished.stdout).toBe('1 right, 1 wrong, 2 empty\n');
+    expect(finished.status).toBe(1);
+  });
+
+  it('counts the verdicts of the sheet that the audit command writes as empty', () => {
+    const finished = countOf(sheet);
+    expect(finished.stdout).toBe('0 right, 0 wrong, 4 empty\n');
+    expect(finished.status).toBe(1);
+  });
+
+  it('fails with a message that names the section of a verdict with another word', () => {
+    const filled = filledSheetOf(sheet, ['right', 'right', 'maybe', 'right']);
+    const location = [...sectionsOf(sheet).keys()][2] ?? '';
+    const finished = countOf(filled);
+    expect(finished.stderr).toBe(
+      `The verdict of the section ${location} is "maybe". Write right or wrong.\n`,
+    );
+    expect(finished.stdout).toBe('');
+    expect(finished.status).toBe(1);
+  });
+
+  it('fails with a message that names the section of a verdict that is not on the verdict line', () => {
+    const filled = sheet.replace(/^Verdict:\n\n/m, 'Verdict:\nright\n');
+    const location = [...sectionsOf(sheet).keys()][0] ?? '';
+    const finished = countOf(filled);
+    expect(finished.stderr).toBe(
+      `The section ${location} holds text after its verdict line. Write right or wrong after "Verdict:".\n`,
+    );
+    expect(finished.status).toBe(1);
+  });
+
+  it('fails when the sheet holds another count of sections than its head names', () => {
+    const cut = sheet.slice(0, sheet.lastIndexOf('\n## ') + 1);
+    const finished = countOf(cut);
+    expect(finished.stderr).toBe(
+      'The head of the audit sheet names the count 4, but the sheet holds 3 sections.\n',
+    );
+    expect(finished.status).toBe(1);
+  });
+});

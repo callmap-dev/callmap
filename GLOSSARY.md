@@ -235,7 +235,7 @@ The 3 things that a release of a distribution from version 1.0 does not break wi
 _Avoid_: public API, contract, for the 3 things together
 
 **Audit sheet**:
-The Markdown file that the audit command writes from one reader page and one seed, for the audit of ADR-0042. Its head names the repo, the commit, the distribution, its version, the checker, the seed and the count. Each section holds one line of the branch source that can hold a call: its file, its line number, its source text, the calls, the one-of groups and the open ends that the graph document holds on it, and an empty verdict. The owner writes `right` or `wrong` in each verdict. The same page and the same seed give the same audit sheet.
+The Markdown file that the audit command writes from one reader page and one seed, for the audit of ADR-0042. Its head names the repo, the commit, the distribution, its version, the checker, the seed and the count. Each section holds one line of the branch source that can hold a call: its file, its line number, its source text, the calls, the one-of groups and the open ends that the graph document holds on it, and an empty verdict. The owner writes `right` or `wrong` in each verdict, and the audit command counts the verdicts. The same page and the same seed give the same audit sheet.
 _Avoid_: audit report, sample file, checklist
 
 **Conformance suite**:
