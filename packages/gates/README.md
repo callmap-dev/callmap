@@ -37,7 +37,7 @@ The field run command runs the review command of one distribution on a list of r
 npm run field-run -- --list repos.json --distribution callmap-ts --version 0.1.0 --out field-record.md callmap-ts
 ```
 
-- `--list <list file>` names a JSON file that holds an array of repos. Each entry holds `url`, the URL of the repo, `branchCommit`, the commit of the branch side, and `baseCommit`, the commit of the base.
+- `--list <list file>` names a JSON file that holds an array of repos. `docs/research/field-repos/` holds the list file of each language. Each entry holds `url`, the URL of the repo, `branchCommit`, the commit of the branch side, and `baseCommit`, the commit of the base.
 - `--distribution <distribution>` and `--version <version>` name the distribution and its version in the head of the record.
 - `--out <file>` names the field record to write.
 
