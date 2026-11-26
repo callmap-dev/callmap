@@ -7,8 +7,14 @@ export interface SourceLine {
   readonly text: string;
 }
 
+interface BlockComment {
+  readonly opensOn: (text: string) => boolean;
+  readonly closesOn: (text: string) => boolean;
+}
+
 interface LineRule {
   readonly commentMarkers: readonly string[];
+  readonly blockComment: BlockComment;
   readonly canHoldCall: (text: string) => boolean;
 }
 
@@ -65,11 +71,22 @@ const holdsRubyIdentifier = (text: string): boolean =>
 
 const RUBY_RULE: LineRule = {
   commentMarkers: ['#'],
+  blockComment: {
+    opensOn: (text) => /^=begin(\s|$)/.test(text),
+    closesOn: (text) => /^=end(\s|$)/.test(text),
+  },
   canHoldCall: (text) => holdsOpeningParenthesis(text) || holdsRubyIdentifier(text),
 };
 
 const C_STYLE_RULE: LineRule = {
-  commentMarkers: ['//', '/*', '*'],
+  commentMarkers: ['//', '/*'],
+  blockComment: {
+    opensOn: (text) => {
+      const trimmed = text.trim();
+      return trimmed.startsWith('/*') && !trimmed.slice(2).includes('*/');
+    },
+    closesOn: (text) => text.includes('*/'),
+  },
   canHoldCall: holdsOpeningParenthesis,
 };
 
@@ -87,6 +104,18 @@ const isCandidate = (text: string, rule: LineRule): boolean => {
   );
 };
 
+const candidatesOfFile = (file: string, source: string, rule: LineRule): readonly SourceLine[] => {
+  const candidates: SourceLine[] = [];
+  let inBlockComment = false;
+  source.split('\n').forEach((rawText, index) => {
+    const text = rawText.replace(/\r$/, '');
+    if (inBlockComment) inBlockComment = !rule.blockComment.closesOn(text);
+    else if (rule.blockComment.opensOn(text)) inBlockComment = true;
+    else if (isCandidate(text, rule)) candidates.push({ file, line: index + 1, text });
+  });
+  return candidates;
+};
+
 const byCodePoint = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;
 
@@ -101,11 +130,7 @@ export const candidateLinesOf = (
       const language = languages.get(file);
       if (language === undefined)
         throw new Error(`The branch source ${file} is in no graph document of the branch.`);
-      const rule = ruleOf(language);
-      return (sources[file] ?? '')
-        .split('\n')
-        .map((text, index) => ({ file, line: index + 1, text: text.replace(/\r$/, '') }))
-        .filter(({ text }) => isCandidate(text, rule));
+      return candidatesOfFile(file, sources[file] ?? '', ruleOf(language));
     });
 };
 

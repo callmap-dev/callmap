@@ -36,7 +36,10 @@ const runFieldRun = (args: readonly string[], env: NodeJS.ProcessEnv = {}) => {
   return { ...finished, leftInTemp: readdirSync(temp) };
 };
 
-const fieldRunOf = (entries: readonly ListEntry[]): FieldRun => {
+const fieldRunOf = (
+  entries: readonly ListEntry[],
+  reviewCommand: readonly string[] = REVIEW_COMMAND,
+): FieldRun => {
   const folder = tempDir('callmap-field-run-');
   const list = join(folder, 'repos.json');
   const out = join(folder, 'field-record.md');
@@ -50,7 +53,7 @@ const fieldRunOf = (entries: readonly ListEntry[]): FieldRun => {
     '0.1.0',
     '--out',
     out,
-    ...REVIEW_COMMAND,
+    ...reviewCommand,
   ]);
   return {
     status: finished.status,
@@ -124,6 +127,30 @@ describe('the field run command', () => {
     expect(passed).toContain('- Exit code: 0\n');
     expect(passed).toMatch(/- Cached review: \d+\.\d s\n/);
     expect(run.leftInTemp).toEqual([]);
+  });
+
+  it('fails a repo whose review command writes no reader page, and runs the next repo', () => {
+    const run = fieldRunOf([shop, shop], [process.execPath, '-e', '']);
+    expect(run.stderr).toBe('');
+    expect(run.status).toBe(1);
+    expect(run.stdout).toBe(`FAIL ${shop.url}\nFAIL ${shop.url}\n`);
+    const sections = run.record.split('\n## ').slice(1);
+    expect(sections).toHaveLength(2);
+    for (const section of sections)
+      expect(section).toMatch(
+        /- Exit code: 0\n\nMessage:\n\n```\nThe field run could not read the reader page: .*review\.html/,
+      );
+    expect(run.leftInTemp).toEqual([]);
+  });
+
+  it('fails each repo with no exit code when the review command does not start, and still writes the record', () => {
+    const run = fieldRunOf([shop, shop], ['no-such-review-command']);
+    expect(run.status).toBe(1);
+    expect(run.stdout).toBe(`FAIL ${shop.url}\nFAIL ${shop.url}\n`);
+    const sections = run.record.split('\n## ').slice(1);
+    expect(sections).toHaveLength(2);
+    for (const section of sections)
+      expect(section).toMatch(/- Exit code: none\n\nMessage:\n\n```\n.*ENOENT/);
   });
 
   describe.each([

@@ -29,6 +29,12 @@ const COMMENT_LINES = [
   '/* receipt(prices) gives the text of a receipt,',
   ' * and taxed(prices) adds the tax.',
   ' */',
+  '/*',
+  '   subtotal(prices) is in a comment too.',
+  '*/',
+  'export const doubled = (price: number): number =>',
+  '  2',
+  '  * round(price);',
   '',
 ].join('\n');
 
@@ -44,6 +50,8 @@ const TYPESCRIPT_CANDIDATES = [
   'src/cart.ts:9',
   'src/cart.ts:10',
   'src/cart.ts:13',
+  'src/cart.ts:22',
+  'src/cart.ts:24',
   'src/checkout.ts:3',
   'src/money.ts:1',
   'src/money.ts:3',
@@ -173,7 +181,7 @@ describe('the audit command', () => {
     expect([...sectionsOf(other).keys()]).not.toEqual([...sectionsOf(first).keys()]);
   });
 
-  it('samples only the lines that hold an opening parenthesis, and no blank line and no comment line', () => {
+  it('samples only the lines that hold an opening parenthesis, and no blank line and no line of a comment, but a line of code that starts with *', () => {
     const sheet = sheetOf(typescriptPage, ...ALL_TYPESCRIPT_LINES);
     expect([...sectionsOf(sheet).keys()]).toEqual(TYPESCRIPT_CANDIDATES);
   });
@@ -234,9 +242,21 @@ describe('the audit command', () => {
     expect(audit.status).toBe(1);
   });
 
-  it('samples each Ruby line with an identifier, because a Ruby call needs no parenthesis', async () => {
+  it('samples each Ruby line with an identifier outside a comment, because a Ruby call needs no parenthesis', async () => {
     const input = JSON.parse(readFileSync(RUBY_EXPECTED, 'utf8')) as UnpackedReviewInput;
-    const page = pageOf(await packedReviewInputOf(input));
+    const order = 'app/models/order.rb';
+    const page = pageOf(
+      await packedReviewInputOf({
+        ...input,
+        sources: {
+          ...input.sources,
+          branch: {
+            ...input.sources.branch,
+            [order]: `${input.sources.branch[order] ?? ''}=begin\ntotal is in a comment\n=end\n# tax is in a comment\n`,
+          },
+        },
+      }),
+    );
     const sheet = sheetOf(page, '--seed', '1', '--count', String(RUBY_CANDIDATES.length));
     expect([...sectionsOf(sheet).keys()]).toEqual(RUBY_CANDIDATES);
     expect(sectionAt(sheet, 'app/models/concerns/billable.rb:3')).toContain(

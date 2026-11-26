@@ -86,11 +86,14 @@ interface FinishedRun {
   readonly milliseconds: number;
 }
 
+const MAX_OUTPUT_BYTES = 1024 * 1024 * 1024;
+
 const timedRun = (program: string, args: readonly string[]): FinishedRun => {
   const start = performance.now();
-  const finished = spawnSync(program, args, { encoding: 'utf8' });
+  const finished = spawnSync(program, args, { encoding: 'utf8', maxBuffer: MAX_OUTPUT_BYTES });
   const milliseconds = performance.now() - start;
-  if (finished.error !== undefined) throw finished.error;
+  if (finished.error !== undefined)
+    return { exitCode: 'none', stderr: finished.error.message, milliseconds };
   const exitCode =
     finished.status === null ? `the signal ${String(finished.signal)}` : String(finished.status);
   return { exitCode, stderr: finished.stderr, milliseconds };
@@ -133,7 +136,13 @@ const reviewedRepo = (
   const reviewArgs = [...programArgs, 'review', clone, '--base', repo.baseCommit, '--out', out];
   const first = timedRun(program, [...reviewArgs, '--no-open', '--no-cache']);
   if (!passed(first)) return failedResult(repo, first, first.stderr);
-  const branch = reviewInputOfPage(readFileSync(out, 'utf8')).branch;
+  let branch: readonly GraphDocument[];
+  try {
+    branch = reviewInputOfPage(readFileSync(out, 'utf8')).branch;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return failedResult(repo, first, `The field run could not read the reader page: ${reason}`);
+  }
   const warm = timedRun(program, [...reviewArgs, '--no-open']);
   if (!passed(warm)) return failedResult(repo, warm, warm.stderr);
   const cached = timedRun(program, [...reviewArgs, '--no-open']);
