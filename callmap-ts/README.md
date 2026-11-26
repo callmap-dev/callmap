@@ -14,6 +14,10 @@ The command compares the branch with its base, writes the reader page and opens 
 
 If the scope holds files of another language, the command prints one line that names the distribution for that language. For Go, use `callmap-go`. For Ruby, use `callmap-rb`.
 
+## Platforms
+
+`callmap-ts` supports Linux and macOS. The CI runs its tests and its conformance suite on both. Windows is not tested.
+
 ## The flags
 
 ```

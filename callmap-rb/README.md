@@ -12,6 +12,10 @@ gem install callmap-rb
 
 The install gives the command `callmap-rb`. A review needs no network after the install.
 
+## Platforms
+
+`callmap-rb` supports Linux and macOS. The CI runs its tests and its conformance suite on both. Windows is not tested.
+
 ## Review a branch
 
 Run this command in a git repo:
