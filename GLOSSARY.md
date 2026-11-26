@@ -238,6 +238,10 @@ _Avoid_: public API, contract, for the 3 things together
 The Markdown file that the audit command writes from one reader page and one seed, for the audit of ADR-0042. Its head names the repo, the commit, the distribution, its version, the checker, the seed and the count. Each section holds one line of the branch source that can hold a call: its file, its line number, its source text, the calls, the one-of groups and the open ends that the graph document holds on it, and an empty verdict. The owner writes `right` or `wrong` in each verdict, and the audit command counts the verdicts. The same page and the same seed give the same audit sheet.
 _Avoid_: audit report, sample file, checklist
 
+**Field run**:
+A run of the review command of one distribution on a list of open-source repos with pinned commits, for the 5 repos gate and the run times gate of ADR-0042. The field run command clones each repo, reviews the commit range from its base commit to its branch commit, and writes a field record: for each repo, the commits, the exit code, each note, the time of a first review, the time of a cached review and the resolution rate. A repo that fails does not stop the run.
+_Avoid_: benchmark, smoke test, field test
+
 **Conformance suite**:
 The check that a distribution gives the right review input. It runs the review command of the distribution on each fixture repo of its language. It unpacks the sources, masks the values that change from one machine to the next, and compares the result with the expected review input as JSON values.
 _Avoid_: golden test, snapshot test
