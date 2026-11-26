@@ -21,6 +21,11 @@ jobs:
           node-version: 22.x
           cache: npm
 
+      # The shared test of the walks runs the Ruby extractor.
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+
       - run: npm ci
 
       - run: npm run lint

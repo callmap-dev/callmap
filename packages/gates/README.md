@@ -34,13 +34,14 @@ The command prints one line with the count of `right`, of `wrong` and of empty v
 The field run command runs the review command of one distribution on a list of repos and writes a field record. Run it from the root of a clone, with the review command at the end, as the conformance suite takes it:
 
 ```sh
-npm run field-run -- --list repos.json --distribution callmap-ts --version 0.1.0 --out field-record.md callmap-ts
+npm run field-run -- --list repos.json --distribution callmap-ts --version 0.1.0 --runtime 'Node 22.18.0' --out field-record.md callmap-ts
 ```
 
 - `--list <list file>` names a JSON file that holds an array of repos. `docs/research/field-repos/` holds the list file of each language. Each entry holds `url`, the URL of the repo, `branchCommit`, the commit of the branch side, and `baseCommit`, the commit of the base.
 - `--distribution <distribution>` and `--version <version>` name the distribution and its version in the head of the record.
+- `--runtime <runtime>` names the runtime that runs the review command in the head of the record, such as `Node 22.18.0`, `Go 1.26.0` or `Ruby 3.4.1`. The checker of `callmap-ts` is its TypeScript version, so only this flag names its Node.
 - `--out <file>` names the field record to write.
 
 For each repo, the command clones the repo into a temporary folder and checks out the branch commit. It runs the review command with `--base`, `--out`, `--no-open` and `--no-cache`, and takes the time as the time of a first review. Then it runs the review command 2 times with the cache on, and takes the time of the second run as the time of a cached review. It removes the clone after the runs. A repo that fails does not stop the run.
 
-The command prints `ok` or `FAIL` and the URL of each repo. The field record is a Markdown file. Its head names the distribution, its version, the checker, the system and the processor. Each repo gets one section with the commits and the exit code. The section of a repo that passed also holds the 2 run times, the resolution rate from the page and each note of the first review. The section of a repo that failed holds the message of the failed run. A review command that does not start gives the exit code `none`, and a reader page that the command cannot read fails the repo too. Check by hand that each note is true. The command exits with code 1 when a repo failed, and with code 0 otherwise.
+The command prints `ok` or `FAIL` and the URL of each repo. The field record is a Markdown file. Its head names the distribution, its version, the checker, the runtime, the system and the processor. Each repo gets one section with the commits and the exit code. The section of a repo that passed also holds the 2 run times, the resolution rate from the page and each note of the first review. The section of a repo that failed holds the message of the failed run. A review command that does not start gives the exit code `none`, and a reader page that the command cannot read fails the repo too. Check by hand that each note is true. The command exits with code 1 when a repo failed, and with code 0 otherwise.

@@ -11,14 +11,15 @@ import { fieldRecordOf } from './field-record.ts';
 import type { FieldRepo, RepoOutcome } from './field-record.ts';
 
 const USAGE =
-  'usage: field-run --list <list file> --distribution <distribution> --version <version> --out <field record> <review command>...';
+  'usage: field-run --list <list file> --distribution <distribution> --version <version> --runtime <runtime> --out <field record> <review command>...';
 
-const VALUE_FLAGS = ['--list', '--distribution', '--version', '--out'];
+const VALUE_FLAGS = ['--list', '--distribution', '--version', '--runtime', '--out'];
 
 interface FieldRunSettings {
   readonly list: string;
   readonly distribution: string;
   readonly version: string;
+  readonly runtime: string;
   readonly out: string;
   readonly reviewCommand: readonly string[];
 }
@@ -51,6 +52,7 @@ const settingsOf = (args: readonly string[]): FieldRunSettings => {
     list: required('--list'),
     distribution: required('--distribution'),
     version: required('--version'),
+    runtime: required('--runtime'),
     out: required('--out'),
     reviewCommand,
   };
@@ -185,6 +187,7 @@ const runField = (settings: FieldRunSettings): void => {
     distribution: settings.distribution,
     version: settings.version,
     checker: checkerOf(results.flatMap(({ documents }) => documents)),
+    runtime: settings.runtime,
     system: `${type()} ${release()}, ${arch()}`,
     processor: processorOf(),
   };

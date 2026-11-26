@@ -37,7 +37,7 @@ npm run test:browser
 
 ## The check on a pull request
 
-Each pull request and each push to `master` runs the checks of `.github/workflows/ci.yml` in GitHub Actions. The `lint and test` check runs on Linux with Node 22. It runs `npm ci`, `npm run lint` and the tests of the core and of the page. It leaves the tests of the distributions to their own checks.
+Each pull request and each push to `master` runs the checks of `.github/workflows/ci.yml` in GitHub Actions. The `lint and test` check runs on Linux with Node 22 and Ruby 3.4, because a shared test of the walks runs the Ruby extractor. It runs `npm ci`, `npm run lint` and the tests of the core and of the page. It leaves the tests of the distributions to their own checks.
 
 Each distribution has a check with 3 legs: Linux and macOS with the current runtime, and Linux with the runtime floor that its manifest declares. Each leg runs the tests of the distribution and then its conformance suite. The name of a leg holds the distribution, the platform and the runtime version, so a red leg tells where the break is:
 

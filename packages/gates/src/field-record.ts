@@ -11,6 +11,7 @@ export interface FieldHead {
   readonly distribution: string;
   readonly version: string;
   readonly checker: string;
+  readonly runtime: string;
   readonly system: string;
   readonly processor: string;
 }
@@ -47,6 +48,7 @@ const headOf = (head: FieldHead): string =>
     `- Distribution: ${inlineCodeOf(head.distribution)}`,
     `- Version: ${inlineCodeOf(head.version)}`,
     `- Checker: ${head.checker === '' ? NO_CHECKER : head.checker}`,
+    `- Runtime: ${head.runtime}`,
     `- System: ${head.system}`,
     `- Processor: ${head.processor}`,
     '',

@@ -64,9 +64,9 @@ ADR-0042 gives each distribution 5 gates. Pass each gate again before each 1.0 t
 
 ### The 5 repos and the run times
 
-1. Run the field run on the list of the language: `npm run field-run -- --list docs/research/field-repos/typescript.json --distribution callmap-ts --version <version> --out docs/research/<date>-field-run-of-callmap-ts/field-record.md callmap-ts`. The command clones each repo, so it needs the network. It installs no dependency of a repo. The review then reads each repo as a fresh clone. The go tool of `callmap-go` uses only the module cache, so a Go module whose dependencies are not in the cache gives a note, and that note is true.
+1. Run the field run on the list of the language: `npm run field-run -- --list docs/research/field-repos/typescript.json --distribution callmap-ts --version <version> --runtime "Node $(node --version | cut -c 2-)" --out docs/research/<date>-field-run-of-callmap-ts/field-record.md callmap-ts`. For `callmap-go`, `--runtime` names the Go version of `go version`, and for `callmap-rb` the Ruby version of `ruby --version`. The command clones each repo, so it needs the network. It installs no dependency of a repo. The review then reads each repo as a fresh clone. The go tool of `callmap-go` uses only the module cache, so a Go module whose dependencies are not in the cache gives a note, and that note is true.
 2. The 5 repos gate passes when the command exits with code 0, so no repo crashed, and each note in the record is true. Check each note by hand. A crash or a false note gets an issue.
-3. Copy the time of a first review and of a cached review of the audit repo from the record to the README of the distribution, with the processor and the system of the head of the record. ADR-0042 states these times and promises none.
+3. Copy the time of a first review and of a cached review of the audit repo from the record to the README of the distribution, with the runtime, the processor and the system of the head of the record. ADR-0042 states these times and promises none.
 4. Commit the field record.
 
 ### The use record
