@@ -23,8 +23,8 @@ const PAGE_PACKAGES: readonly string[] = ['reader-page'];
 
 const isPage = (name: string): boolean => PAGE_PACKAGES.includes(name);
 
-/** A package that runs a distribution on fixture repos and reads its page. It is not core. */
-const SUITE_PACKAGES: readonly string[] = ['conformance'];
+/** A package that runs a distribution or reads its page, as a tool of this repo. It is not core. */
+const SUITE_PACKAGES: readonly string[] = ['conformance', 'gates'];
 
 const isSuite = (name: string): boolean => SUITE_PACKAGES.includes(name);
 

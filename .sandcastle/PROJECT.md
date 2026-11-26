@@ -9,6 +9,7 @@ Callmap is an npm workspace with these packages in `packages/`:
 - `review`, `graph-document`, `review-input`, `scope`, `editor-link`: the core packages.
 - `reader-page`: the reader page. The page script is in `page/`, and `build/` builds the page template. Its tests in `test/` build each page from a review input file, with no git and no extractor. `review-inputs/` holds the review input files that are not expected files of the conformance suite.
 - `conformance`: the conformance suite and its fixture repos.
+- `gates`: the tools of the repo for the gates of ADR-0042, such as the audit command. No distribution ships them.
 
 `callmap-ts/` is the npm workspace of the distribution `callmap-ts`: its thin CLI in `callmap-ts/src/`, its TypeScript extractor in `callmap-ts/extractor/`, its build and its tests. ADR-0040 records the folder.
 
