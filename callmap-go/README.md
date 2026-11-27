@@ -12,6 +12,10 @@ go install github.com/callmap-dev/callmap/callmap-go@latest
 
 The install gives the command `callmap-go`. A review needs no network after the install. The checker on the reader page is the Go version that built `callmap-go`.
 
+## Platforms
+
+`callmap-go` supports Linux and macOS. The CI runs its tests and its conformance suite on both. Windows is not tested.
+
 ## Review a branch
 
 Run this command in a git repo:

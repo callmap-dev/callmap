@@ -1,0 +1,27 @@
+[
+  {
+    "url": "https://github.com/mastodon/mastodon",
+    "branchCommit": "7be1842a5292464c3d14b12ff581d7c712e0d5c6",
+    "baseCommit": "ec8bab694b72a7697dc40a3c8a069f8c50ef19ba"
+  },
+  {
+    "url": "https://github.com/rubocop/rubocop",
+    "branchCommit": "8f36b0dd1bbcf90123d38c686b30de221c8448cd",
+    "baseCommit": "2fb3a8721efdab21172e42101852cc6ddc4df493"
+  },
+  {
+    "url": "https://github.com/sinatra/sinatra",
+    "branchCommit": "2e3f79139154b8bfdaad7ad516f35dcb0e70446a",
+    "baseCommit": "44a6b2b7d1711c799a5ca3c81def05a71364e358"
+  },
+  {
+    "url": "https://github.com/heartcombo/devise",
+    "branchCommit": "05811fb8366edd08874111d0f6fb44543e1c91ef",
+    "baseCommit": "5b008ed51c0df3223cf727e7ad07378d6329b12f"
+  },
+  {
+    "url": "https://github.com/jekyll/jekyll",
+    "branchCommit": "97c3bdc822df9d5bea4c269b29a28de5a5e29d70",
+    "baseCommit": "26ec089058d59944b1e8f6ee9c07870ba88ab7b4"
+  }
+]

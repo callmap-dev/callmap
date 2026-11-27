@@ -1,0 +1,27 @@
+[
+  {
+    "url": "https://github.com/go-gitea/gitea",
+    "branchCommit": "85211296ddcf2640d7e4110cb0d034cd92cf4c04",
+    "baseCommit": "ff68b39c93d7b0d10e0f6629fb188f8f1c0b37d4"
+  },
+  {
+    "url": "https://github.com/etcd-io/etcd",
+    "branchCommit": "4e090c033abc29636df2f844fbdd363adffcd90b",
+    "baseCommit": "f577f0d80fc58210a94aee6e09aebf6b2ad96165"
+  },
+  {
+    "url": "https://github.com/hashicorp/consul",
+    "branchCommit": "47416604dc48ca76199a7a568ceaf7308029e226",
+    "baseCommit": "5013316066eb48d9dda7fad40830ed7446ebb28c"
+  },
+  {
+    "url": "https://github.com/caddyserver/caddy",
+    "branchCommit": "679806f92d49e5b494200f2e90a93f228203a418",
+    "baseCommit": "32bb6603b260841f6f9e9e69bbe2c00d7082323d"
+  },
+  {
+    "url": "https://github.com/spf13/cobra",
+    "branchCommit": "adbc8813901bba65827259daa8e22ff94ec1f30e",
+    "baseCommit": "75790e48fb73c8ba027e0163157a86ce8604ca3e"
+  }
+]

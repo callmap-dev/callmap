@@ -11,6 +11,7 @@ export { oneOfGroupsOf } from './one-of-groups.ts';
 export type { OneOfGroup, OneOfLabel } from './one-of-groups.ts';
 export type { OpenEndsByCaller } from './open-ends.ts';
 export { byText } from './order.ts';
+export { resolutionRatesOf } from './rate.ts';
 export type { LanguageRate, ResolutionRate } from './rate.ts';
 export type { Resolution } from './resolution.ts';
 export { reviewOf } from './review.ts';

@@ -92,3 +92,10 @@ const tock = (left: number): number => tick(left);
   );
   return repo;
 };
+
+const CONFORMANCE_FIXTURE_REPOS = fileURLToPath(
+  new URL('../packages/conformance/fixture-repos', import.meta.url),
+);
+
+export const conformanceRepo = (fixture: string): string =>
+  branchRepoOf(join(CONFORMANCE_FIXTURE_REPOS, fixture), 'main');
